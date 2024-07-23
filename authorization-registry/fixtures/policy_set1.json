@@ -1,0 +1,25 @@
+{
+  "policy_set": {
+    "policy_issuer": "NL.24244",
+    "access_subject": "NL.44444",
+    "id": "84b7fba4-05f3-4af8-9d84-dde384abe881",
+    "licenses": ["ISHARE.0001"],
+    "max_delegation_depth": 2
+  },
+  "policies": [
+    {
+      "id": "564f3b46-7127-4c3c-a0b8-2859c01cc9c1",
+      "policy_set": "84b7fba4-05f3-4af8-9d84-dde384abe881",
+      "resource_type": "TestResource",
+      "identifiers": ["test4"],
+      "attributes": ["zingers"],
+      "actions": ["Read", "Delete"],
+      "service_providers": ["good-company"],
+      "rules": [
+        {
+          "effect": "Permit"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "lovely-user",
+  "fullname": "good user",
+  "email": "email@email.com",
+  "idp_eori": "IDP.EORI",
+  "idp_url": "location::idp",
+  "company": "NL.24244"
+}

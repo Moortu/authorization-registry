@@ -1,0 +1,25 @@
+{
+  "policy_set": {
+    "policy_issuer": "NL.24244",
+    "access_subject": "NL.44444",
+    "id": "19bafe28-5816-4a1e-bae9-47ef50eecf7e",
+    "licenses": ["ISHARE.0001"],
+    "max_delegation_depth": 0
+  },
+  "policies": [
+    {
+      "id": "0f0321da-6af2-4a45-aad3-46046efc2a87",
+      "policy_set": "19bafe28-5816-4a1e-bae9-47ef50eecf7e",
+      "resource_type": "PDP.Policy",
+      "identifiers": ["TestResource"],
+      "attributes": ["*"],
+      "actions": ["Read", "Create", "Delete", "Edit"],
+      "service_providers": [ "NL.44444"],
+      "rules": [
+        {
+          "effect": "Permit"
+        }
+      ]
+    }
+  ]
+}

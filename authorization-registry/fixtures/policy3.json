@@ -1,0 +1,29 @@
+{
+  "id": "d9f90b6e-2f04-4f5e-9b9e-b5d8c5e0da72",
+  "policyContent": {
+    "target": {
+      "resource": {
+        "type": "OfferPolicy",
+        "identifiers": ["*"],
+        "attributes": ["*"]
+      },
+      "actions": ["Create", "Read", "Delete"],
+      "environment": {
+        "serviceProviders": ["COMPANY"]
+      }
+    },
+    "rules": [
+      {
+        "effect": "Permit"
+      }
+    ]
+  },
+  "service_providers": ["service-company"],
+  "identifiers": ["*"],
+  "attributes": ["item"],
+  "policy_issuer": "COMPANY-ISSUER",
+  "access_subject": "COMPANY-REQUESTER",
+  "licenses": ["ISHARE.0002"],
+  "resource_type": "Resource",
+  "actions": ["Read"]
+}

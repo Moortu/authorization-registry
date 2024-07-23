@@ -1,0 +1,10 @@
+{
+  "id": "52b53dfc-5775-488e-9f05-5053792f4907",
+  "service_providers": ["service-company"],
+  "identifiers": ["*"],
+  "attributes": ["*"],
+  "policy_issuer": "COMPANY-ISSUER",
+  "access_subject": "COMPANY-REQUESTER",
+  "resource_type": "Resource",
+  "actions": ["Read"]
+}

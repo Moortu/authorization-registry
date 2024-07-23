@@ -1,0 +1,8 @@
+{
+  "id": "bad-user",
+  "fullname": "bad user",
+  "email": "bad@email.com",
+  "idp_eori": "IDP.EORI",
+  "idp_url": "location::idp",
+  "company": "NL.44444"
+}
