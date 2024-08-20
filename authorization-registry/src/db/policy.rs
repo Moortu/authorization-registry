@@ -401,15 +401,3 @@ pub async fn delete_policy(id: &Uuid, db: &DatabaseConnection) -> anyhow::Result
 
     Ok(())
 }
-
-// #[cfg(test)]
-// mod test {
-//     use sea_query::{Expr, PostgresQueryBuilder};
-
-//     #[test]
-//     fn test() {
-//         let query = Expr::col(ar_entity::policy_set::Column::PolicyIssuer).eq("f");
-
-//         assert_eq!(query., "");
-//     }
-// }
