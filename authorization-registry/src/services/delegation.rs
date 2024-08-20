@@ -64,8 +64,8 @@ pub async fn create_delegation_evidence(
     );
 
     let de_policy_sets = policy_store::get_policy_sets_with_policies(
-        &delegation_request.target.access_subject,
-        &delegation_request.policy_issuer,
+        Some(delegation_request.target.access_subject.to_owned()),
+        Some(delegation_request.policy_issuer.to_owned()),
         &db,
     )
     .await
