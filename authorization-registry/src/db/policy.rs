@@ -19,6 +19,29 @@ pub async fn _get_all_policies(
     return Ok(policies);
 }
 
+pub async fn get_all_policy_sets(
+    access_subject: Option<String>,
+    policy_issuer: Option<String>,
+    db: &DatabaseConnection,
+) -> anyhow::Result<Vec<ar_entity::policy_set::Model>> {
+    let mut query = ar_entity::policy_set::Entity::find();
+
+    if let Some(access_subject) = access_subject {
+        query = query.filter(ar_entity::policy_set::Column::AccessSubject.eq(access_subject))
+    }
+
+    if let Some(policy_issuer) = policy_issuer {
+        query = query.filter(ar_entity::policy_set::Column::PolicyIssuer.eq(policy_issuer))
+    }
+
+    let policy_sets = query
+        .all(db)
+        .await
+        .context("error retrieving policy sets from db")?;
+
+    return Ok(policy_sets);
+}
+
 pub async fn get_policies_by_policy_set(
     policy_set_id: &Uuid,
     db: &DatabaseConnection,
@@ -246,15 +269,6 @@ pub async fn insert_policy<C: ConnectionTrait>(
         .last_insert_id;
 
     Ok(policy_id)
-}
-
-pub async fn get_all_policy_sets(
-    db: &DatabaseConnection,
-) -> anyhow::Result<Vec<ar_entity::policy_set::Model>> {
-    ar_entity::policy_set::Entity::find()
-        .all(db)
-        .await
-        .context("Error retrieving policy sets from db")
 }
 
 pub async fn delete_policy_set(

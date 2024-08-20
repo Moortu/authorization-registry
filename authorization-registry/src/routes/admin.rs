@@ -1,13 +1,13 @@
 use anyhow::Context;
 use axum::{
-    extract::State,
+    extract::{Query, State},
     middleware::{from_fn, from_fn_with_state},
     routing::post,
     Extension, Json, Router,
 };
 use axum_extra::extract::WithRejection;
 use sea_orm::DatabaseConnection;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -60,29 +60,164 @@ async fn insert_policy_set(
     Ok(Json(response))
 }
 
+#[derive(Deserialize)]
+struct GetPolicySetsQuery {
+    access_subject: Option<String>,
+    policy_issuer: Option<String>,
+}
+
 async fn get_all_policy_sets(
+    Query(query): Query<GetPolicySetsQuery>,
     Extension(db): Extension<DatabaseConnection>,
 ) -> Result<Json<Vec<ar_entity::policy_set::Model>>, AppError> {
-    let policy_sets = policy_store::get_all_policy_sets(&db)
-        .await
-        .context("Error getting policiy sets")?;
+    let policy_sets =
+        policy_store::get_all_policy_sets(query.access_subject, query.policy_issuer, &db)
+            .await
+            .context("Error getting policiy sets")?;
 
     Ok(Json(policy_sets))
 }
 
 #[cfg(test)]
 mod test {
-    use crate::services::server_token;
+    use crate::{fixtures::fixtures::insert_policy_set_fixture, services::server_token};
     use axum::{
         body::Body,
         http::{Request, StatusCode},
     };
+    use http_body_util::BodyExt;
     use reqwest::header::AUTHORIZATION;
     use serde_json::json;
     use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
     use tower::ServiceExt;
 
     use super::super::super::test_helpers::helpers::*;
+
+    #[sqlx::test]
+    async fn test_get_policy_sets(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set2.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set3.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set4.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set5.json", &db).await;
+
+        let app = get_test_app(db);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body: Vec<ar_entity::policy_set::Model> = serde_json::from_str(
+            std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
+        )
+        .unwrap();
+
+        assert_eq!(body.len(), 5);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_get_policy_sets_filter_as(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set2.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set3.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set4.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set5.json", &db).await;
+
+        let app = get_test_app(db);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set?access_subject=NL.44444")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body: Vec<ar_entity::policy_set::Model> = serde_json::from_str(
+            std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
+        )
+        .unwrap();
+
+        assert_eq!(body.len(), 4);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_get_policy_sets_filter_pi(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set2.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set3.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set4.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set5.json", &db).await;
+
+        let app = get_test_app(db);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set?policy_issuer=NL.44444")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body: Vec<ar_entity::policy_set::Model> = serde_json::from_str(
+            std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
+        )
+        .unwrap();
+
+        assert_eq!(body.len(), 1);
+
+        Ok(())
+    }
 
     #[sqlx::test]
     async fn test_insert_policy_set(

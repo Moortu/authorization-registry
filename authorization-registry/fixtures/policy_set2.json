@@ -2,14 +2,14 @@
   "policy_set": {
     "policy_issuer": "NL.24244",
     "access_subject": "NL.44444",
-    "id": "84b7fba4-05f3-4af8-9d84-dde384abe881",
+    "id": "40a7530d-7b8d-453d-bde1-262d0e9a1ca5",
     "licenses": ["ISHARE.0001"],
     "max_delegation_depth": 2
   },
   "policies": [
     {
-      "id": "564f3b46-7127-4c3c-a0b8-2859c01cc9c1",
-      "policy_set": "84b7fba4-05f3-4af8-9d84-dde384abe881",
+      "id": "5d461799-42dd-4be8-9886-c865508f2584",
+      "policy_set": "40a7530d-7b8d-453d-bde1-262d0e9a1ca5",
       "resource_type": "test-iden",
       "identifiers": ["*"],
       "attributes": ["*"],
