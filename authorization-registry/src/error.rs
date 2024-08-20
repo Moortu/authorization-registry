@@ -90,3 +90,4 @@ pub struct ErrorResponse {
     error: String,
     metadata: Option<serde_json::Value>,
 }
+
