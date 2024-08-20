@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::db::policy as policy_store;
+use crate::db::policy::{self as policy_store, MatchingPolicySetRow};
 use crate::services::policy as policy_service;
 use crate::{error::AppError, AppState};
 use crate::{
@@ -69,11 +69,11 @@ struct GetPolicySetsQuery {
 async fn get_all_policy_sets(
     Query(query): Query<GetPolicySetsQuery>,
     Extension(db): Extension<DatabaseConnection>,
-) -> Result<Json<Vec<ar_entity::policy_set::Model>>, AppError> {
+) -> Result<Json<Vec<MatchingPolicySetRow>>, AppError> {
     let policy_sets =
-        policy_store::get_all_policy_sets(query.access_subject, query.policy_issuer, &db)
+        policy_store::get_policy_sets_with_policies(query.access_subject, query.policy_issuer, &db)
             .await
-            .context("Error getting policiy sets")?;
+            .context("Error getting policicy sets")?;
 
     Ok(Json(policy_sets))
 }

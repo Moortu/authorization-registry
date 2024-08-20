@@ -19,7 +19,7 @@ pub async fn _get_all_policies(
     return Ok(policies);
 }
 
-pub async fn get_all_policy_sets(
+pub async fn _get_all_policy_sets(
     access_subject: Option<String>,
     policy_issuer: Option<String>,
     db: &DatabaseConnection,
@@ -77,11 +77,32 @@ pub struct MatchingPolicySetRow {
 }
 
 pub async fn get_policy_sets_with_policies(
-    access_subject: &str,
-    policy_issuer: &str,
+    access_subject: Option<String>,
+    policy_issuer: Option<String>,
     db: &DatabaseConnection,
 ) -> anyhow::Result<Vec<MatchingPolicySetRow>> {
-    let sql = r#"
+    let mut conditions = Vec::new();
+    let mut values: Vec<Value> = Vec::new();
+
+    if let Some(access_subject) = access_subject {
+        conditions.push("access_subject = $1");
+        values.push(access_subject.into());
+    }
+
+    if let Some(policy_issuer) = policy_issuer {
+        conditions.push("policy_issuer = $2");
+        values.push(policy_issuer.into())
+    }
+
+    let condition = if conditions.len() > 0 {
+        let joined_conditions: String = conditions.join(" and ");
+        format!("where ({joined_conditions})")
+    } else {
+        "".to_owned()
+    };
+
+    let sql = format!(
+        r#"
             select
             ps.id as policy_set_id,
             ps.access_subject as access_subject,
@@ -107,26 +128,21 @@ pub async fn get_policy_sets_with_policies(
                         p.rules
                     )
                 ) filter (where p.id is not null),
-                '{}'
+                '{{}}'
             ) as policies
         from
             policy_set ps
         left join
             policy p
                 on p.policy_set = ps.id
-        where (
-            ps.access_subject = $1
-            and ps.policy_issuer = $2
-        )
+        {}
         group by
             ps.id
-    "#;
-
-    let stmt = Statement::from_sql_and_values(
-        sea_orm::DatabaseBackend::Postgres,
-        sql,
-        vec![access_subject.into(), policy_issuer.into()],
+    "#,
+        condition
     );
+
+    let stmt = Statement::from_sql_and_values(sea_orm::DatabaseBackend::Postgres, sql, values);
 
     let raw_result = JsonValue::find_by_statement(stmt)
         .all(db)
@@ -385,3 +401,15 @@ pub async fn delete_policy(id: &Uuid, db: &DatabaseConnection) -> anyhow::Result
 
     Ok(())
 }
+
+// #[cfg(test)]
+// mod test {
+//     use sea_query::{Expr, PostgresQueryBuilder};
+
+//     #[test]
+//     fn test() {
+//         let query = Expr::col(ar_entity::policy_set::Column::PolicyIssuer).eq("f");
+
+//         assert_eq!(query., "");
+//     }
+// }
