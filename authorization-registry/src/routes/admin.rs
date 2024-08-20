@@ -80,7 +80,10 @@ async fn get_all_policy_sets(
 
 #[cfg(test)]
 mod test {
-    use crate::{fixtures::fixtures::insert_policy_set_fixture, services::server_token};
+    use crate::{
+        db::policy::MatchingPolicySetRow, fixtures::fixtures::insert_policy_set_fixture,
+        services::server_token,
+    };
     use axum::{
         body::Body,
         http::{Request, StatusCode},
@@ -125,7 +128,7 @@ mod test {
 
         assert_eq!(response.status(), StatusCode::OK);
 
-        let body: Vec<ar_entity::policy_set::Model> = serde_json::from_str(
+        let body: Vec<MatchingPolicySetRow> = serde_json::from_str(
             std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
         )
         .unwrap();
@@ -167,7 +170,7 @@ mod test {
 
         assert_eq!(response.status(), StatusCode::OK);
 
-        let body: Vec<ar_entity::policy_set::Model> = serde_json::from_str(
+        let body: Vec<MatchingPolicySetRow> = serde_json::from_str(
             std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
         )
         .unwrap();
@@ -209,7 +212,7 @@ mod test {
 
         assert_eq!(response.status(), StatusCode::OK);
 
-        let body: Vec<ar_entity::policy_set::Model> = serde_json::from_str(
+        let body: Vec<MatchingPolicySetRow> = serde_json::from_str(
             std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
         )
         .unwrap();

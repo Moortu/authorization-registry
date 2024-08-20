@@ -85,12 +85,12 @@ pub async fn get_policy_sets_with_policies(
     let mut values: Vec<Value> = Vec::new();
 
     if let Some(access_subject) = access_subject {
-        conditions.push("access_subject = $1");
+        conditions.push(format!("access_subject = ${}", values.len() + 1));
         values.push(access_subject.into());
     }
 
     if let Some(policy_issuer) = policy_issuer {
-        conditions.push("policy_issuer = $2");
+        conditions.push(format!("policy_issuer = ${}", values.len() + 1));
         values.push(policy_issuer.into())
     }
 
