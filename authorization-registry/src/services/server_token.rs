@@ -1,6 +1,7 @@
-use crate::error::AppError;
+use crate::error::{AppError, ExpectedError};
 use anyhow::Context;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 
 pub struct ServerToken {
@@ -158,7 +159,16 @@ impl ServerToken {
         raw_roken: &String,
     ) -> Result<TokenData<ServiceAccessTokenClaims>, AppError> {
         let validation = Validation::new(jsonwebtoken::Algorithm::HS256);
-        return Ok(decode(&raw_roken, &self.decoding_key, &validation)
-            .context("Error decoding server access token")?);
+        match decode::<ServiceAccessTokenClaims>(&raw_roken, &self.decoding_key, &validation) {
+            Ok(token_data) => Ok(token_data),
+            Err(err) => {
+                return Err(AppError::Expected(ExpectedError {
+                    status_code: StatusCode::UNAUTHORIZED,
+                    message: "unauthorized".to_owned(),
+                    metadata: None,
+                    reason: format!("Unable to decode server access token: {:?}", err),
+                }))
+            }
+        }
     }
 }
