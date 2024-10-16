@@ -1,8 +1,7 @@
 use serde::Deserialize;
 
 fn default_listen_address() -> String {
-    "0.0.0.0:4000"
-        .to_string()
+    "0.0.0.0:4000".to_string()
 }
 
 fn default_jwt_expiry_seconds() -> u64 {
