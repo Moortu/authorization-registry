@@ -7,9 +7,13 @@ import "@fontsource-variable/merriweather-sans";
 import { CssVarsProvider, extendTheme } from "@mui/joy";
 
 import { routeTree } from './routeTree.gen'
+import { AuthProvider } from './auth';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Create a new router instance
 const router = createRouter({ routeTree })
+
+const queryClient = new QueryClient();
 
 // Register the router instance for type safety
 declare module '@tanstack/react-router' {
@@ -29,7 +33,11 @@ const theme = extendTheme({
 function WrappedApp() {
   return (
     <CssVarsProvider theme={theme}>
-      <RouterProvider router={router} />
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
+      </QueryClientProvider>
     </CssVarsProvider>
   )
 }

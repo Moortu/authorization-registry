@@ -11,37 +11,85 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as authImport } from './routes/__auth'
+import { Route as authIndexImport } from './routes/__auth/index'
 
 // Create/Update Routes
+
+const authRoute = authImport.update({
+  id: '/__auth',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const authIndexRoute = authIndexImport.update({
+  path: '/',
+  getParentRoute: () => authRoute,
+} as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {}
+  interface FileRoutesByPath {
+    '/__auth': {
+      id: '/__auth'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof authImport
+      parentRoute: typeof rootRoute
+    }
+    '/__auth/': {
+      id: '/__auth/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof authIndexImport
+      parentRoute: typeof authImport
+    }
+  }
 }
 
 // Create and export the route tree
 
-export interface FileRoutesByFullPath {}
+interface authRouteChildren {
+  authIndexRoute: typeof authIndexRoute
+}
 
-export interface FileRoutesByTo {}
+const authRouteChildren: authRouteChildren = {
+  authIndexRoute: authIndexRoute,
+}
+
+const authRouteWithChildren = authRoute._addFileChildren(authRouteChildren)
+
+export interface FileRoutesByFullPath {
+  '': typeof authRouteWithChildren
+  '/': typeof authIndexRoute
+}
+
+export interface FileRoutesByTo {
+  '/': typeof authIndexRoute
+}
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
+  '/__auth': typeof authRouteWithChildren
+  '/__auth/': typeof authIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: never
+  fullPaths: '' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: never
-  id: '__root__'
+  to: '/'
+  id: '__root__' | '/__auth' | '/__auth/'
   fileRoutesById: FileRoutesById
 }
 
-export interface RootRouteChildren {}
+export interface RootRouteChildren {
+  authRoute: typeof authRouteWithChildren
+}
 
-const rootRouteChildren: RootRouteChildren = {}
+const rootRouteChildren: RootRouteChildren = {
+  authRoute: authRouteWithChildren,
+}
 
 export const routeTree = rootRoute
   ._addFileChildren(rootRouteChildren)
@@ -54,7 +102,19 @@ export const routeTree = rootRoute
   "routes": {
     "__root__": {
       "filePath": "__root.tsx",
-      "children": []
+      "children": [
+        "/__auth"
+      ]
+    },
+    "/__auth": {
+      "filePath": "__auth.tsx",
+      "children": [
+        "/__auth/"
+      ]
+    },
+    "/__auth/": {
+      "filePath": "__auth/index.tsx",
+      "parent": "/__auth"
     }
   }
 }
