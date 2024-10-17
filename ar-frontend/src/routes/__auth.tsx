@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { z } from "zod";
 import { isAuthenticated, useAuth } from "../auth";
 import { initLogin } from "../network/idp";
+import { Box } from "@mui/joy";
+import { Logo } from "../components/logo";
 
 const searchSchema = z
   .object({
@@ -46,5 +48,12 @@ function Component() {
     return null;
   }
 
-  return <Outlet />;
+  return (
+    <Box>
+      <Box paddingY={2}>
+        <Logo />
+      </Box>
+      <Outlet />
+    </Box>
+  );
 }

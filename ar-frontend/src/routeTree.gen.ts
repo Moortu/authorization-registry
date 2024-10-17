@@ -10,90 +10,131 @@
 
 // Import Routes
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as authImport } from './routes/__auth'
-import { Route as authIndexImport } from './routes/__auth/index'
+import { Route as rootRoute } from "./routes/__root";
+import { Route as authImport } from "./routes/__auth";
+import { Route as authIndexImport } from "./routes/__auth/index";
+import { Route as authNewpolicysetImport } from "./routes/__auth/new_policy_set";
+import { Route as authPolicysetPolicySetIdImport } from "./routes/__auth/policy_set.$policySetId";
 
 // Create/Update Routes
 
 const authRoute = authImport.update({
-  id: '/__auth',
+  id: "/__auth",
   getParentRoute: () => rootRoute,
-} as any)
+} as any);
 
 const authIndexRoute = authIndexImport.update({
-  path: '/',
+  path: "/",
   getParentRoute: () => authRoute,
-} as any)
+} as any);
+
+const authNewpolicysetRoute = authNewpolicysetImport.update({
+  path: "/new_policy_set",
+  getParentRoute: () => authRoute,
+} as any);
+
+const authPolicysetPolicySetIdRoute = authPolicysetPolicySetIdImport.update({
+  path: "/policy_set/$policySetId",
+  getParentRoute: () => authRoute,
+} as any);
 
 // Populate the FileRoutesByPath interface
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/__auth': {
-      id: '/__auth'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof authImport
-      parentRoute: typeof rootRoute
-    }
-    '/__auth/': {
-      id: '/__auth/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof authIndexImport
-      parentRoute: typeof authImport
-    }
+    "/__auth": {
+      id: "/__auth";
+      path: "";
+      fullPath: "";
+      preLoaderRoute: typeof authImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/__auth/new_policy_set": {
+      id: "/__auth/new_policy_set";
+      path: "/new_policy_set";
+      fullPath: "/new_policy_set";
+      preLoaderRoute: typeof authNewpolicysetImport;
+      parentRoute: typeof authImport;
+    };
+    "/__auth/": {
+      id: "/__auth/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof authIndexImport;
+      parentRoute: typeof authImport;
+    };
+    "/__auth/policy_set/$policySetId": {
+      id: "/__auth/policy_set/$policySetId";
+      path: "/policy_set/$policySetId";
+      fullPath: "/policy_set/$policySetId";
+      preLoaderRoute: typeof authPolicysetPolicySetIdImport;
+      parentRoute: typeof authImport;
+    };
   }
 }
 
 // Create and export the route tree
 
 interface authRouteChildren {
-  authIndexRoute: typeof authIndexRoute
+  authNewpolicysetRoute: typeof authNewpolicysetRoute;
+  authIndexRoute: typeof authIndexRoute;
+  authPolicysetPolicySetIdRoute: typeof authPolicysetPolicySetIdRoute;
 }
 
 const authRouteChildren: authRouteChildren = {
+  authNewpolicysetRoute: authNewpolicysetRoute,
   authIndexRoute: authIndexRoute,
-}
+  authPolicysetPolicySetIdRoute: authPolicysetPolicySetIdRoute,
+};
 
-const authRouteWithChildren = authRoute._addFileChildren(authRouteChildren)
+const authRouteWithChildren = authRoute._addFileChildren(authRouteChildren);
 
 export interface FileRoutesByFullPath {
-  '': typeof authRouteWithChildren
-  '/': typeof authIndexRoute
+  "": typeof authRouteWithChildren;
+  "/new_policy_set": typeof authNewpolicysetRoute;
+  "/": typeof authIndexRoute;
+  "/policy_set/$policySetId": typeof authPolicysetPolicySetIdRoute;
 }
 
 export interface FileRoutesByTo {
-  '/': typeof authIndexRoute
+  "/new_policy_set": typeof authNewpolicysetRoute;
+  "/": typeof authIndexRoute;
+  "/policy_set/$policySetId": typeof authPolicysetPolicySetIdRoute;
 }
 
 export interface FileRoutesById {
-  __root__: typeof rootRoute
-  '/__auth': typeof authRouteWithChildren
-  '/__auth/': typeof authIndexRoute
+  __root__: typeof rootRoute;
+  "/__auth": typeof authRouteWithChildren;
+  "/__auth/new_policy_set": typeof authNewpolicysetRoute;
+  "/__auth/": typeof authIndexRoute;
+  "/__auth/policy_set/$policySetId": typeof authPolicysetPolicySetIdRoute;
 }
 
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '' | '/'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/__auth' | '/__auth/'
-  fileRoutesById: FileRoutesById
+  fileRoutesByFullPath: FileRoutesByFullPath;
+  fullPaths: "" | "/new_policy_set" | "/" | "/policy_set/$policySetId";
+  fileRoutesByTo: FileRoutesByTo;
+  to: "/new_policy_set" | "/" | "/policy_set/$policySetId";
+  id:
+    | "__root__"
+    | "/__auth"
+    | "/__auth/new_policy_set"
+    | "/__auth/"
+    | "/__auth/policy_set/$policySetId";
+  fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
-  authRoute: typeof authRouteWithChildren
+  authRoute: typeof authRouteWithChildren;
 }
 
 const rootRouteChildren: RootRouteChildren = {
   authRoute: authRouteWithChildren,
-}
+};
 
 export const routeTree = rootRoute
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
 /* prettier-ignore-end */
 
@@ -109,11 +150,21 @@ export const routeTree = rootRoute
     "/__auth": {
       "filePath": "__auth.tsx",
       "children": [
-        "/__auth/"
+        "/__auth/new_policy_set",
+        "/__auth/",
+        "/__auth/policy_set/$policySetId"
       ]
+    },
+    "/__auth/new_policy_set": {
+      "filePath": "__auth/new_policy_set.tsx",
+      "parent": "/__auth"
     },
     "/__auth/": {
       "filePath": "__auth/index.tsx",
+      "parent": "/__auth"
+    },
+    "/__auth/policy_set/$policySetId": {
+      "filePath": "__auth/policy_set.$policySetId.tsx",
       "parent": "/__auth"
     }
   }

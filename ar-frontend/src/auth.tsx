@@ -19,7 +19,7 @@ const tokenSchema = z.object({
   exp: z.number(),
   company_id: z.string(),
   realm_access_roles: z.array(z.string()),
-  user_id: z.string()
+  user_id: z.string(),
 });
 
 export type Token = z.infer<typeof tokenSchema>;
@@ -95,4 +95,3 @@ export function useAuth() {
 
   return auth;
 }
-
