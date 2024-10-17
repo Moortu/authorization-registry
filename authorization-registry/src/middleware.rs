@@ -103,7 +103,7 @@ pub async fn auth_role_middleware(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use axum::ServiceExt;
+    use tower::ServiceExt;
     use axum::{
         body::Body, extract::Extension, http::Request, middleware::from_fn_with_state,
         routing::get, Router,
