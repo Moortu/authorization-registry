@@ -25,10 +25,9 @@ function Component() {
   useEffect(() => {
     if (search?.token && isAuthenticated(token)) {
       navigate({
+        to: "/",
         replace: true,
         search: {
-          ...search,
-          token: undefined,
         },
       });
     }

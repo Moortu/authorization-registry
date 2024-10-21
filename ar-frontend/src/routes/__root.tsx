@@ -1,7 +1,15 @@
 import { Outlet, createRootRoute } from "@tanstack/react-router";
 import { Box } from "@mui/joy";
+import { z } from "zod";
+
+const searchSchema = z
+  .object({
+    token: z.string().optional(),
+  })
+  .optional();
 
 export const Route = createRootRoute({
+  validateSearch: searchSchema,
   component: () => {
     return (
       <Box

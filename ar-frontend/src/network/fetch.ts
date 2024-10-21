@@ -2,7 +2,7 @@ import { useAuth } from "../auth";
 import { z } from "zod";
 
 export const baseAPIUrl =
-  import.meta.env.VITE_BASE_API_URL || window.location.origin + "/api";
+  import.meta.env.VITE_BASE_API_URL || window.location.origin.replace("/ui", "");
 
 const errorResponseSchema = z.object({
   message: z.string(),
