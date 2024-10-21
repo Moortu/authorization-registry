@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { baseAPIUrl, useAuthenticatedFetch } from "./fetch";
 import { z } from "zod";
 
@@ -9,6 +9,24 @@ const policySchema = z.object({
   resource_type: z.string(),
   attributes: z.array(z.string()),
   service_providers: z.array(z.string()),
+  rules: z.array(
+    z.union([
+      z.object({
+        effect: z.literal("Permit"),
+      }),
+      z.object({
+        effect: z.literal("Deny"),
+        target: z.object({
+          actions: z.array(z.string()),
+          resource: z.object({
+            type: z.string(),
+            attributes: z.array(z.string()),
+            identifiers: z.array(z.string()),
+          }),
+        }),
+      }),
+    ]),
+  ),
 });
 
 const policySetWithPoliciesSchema = z.object({
@@ -33,7 +51,11 @@ export function useAdminPolicySet({ policySetId }: { policySetId: string }) {
       );
       const json = await response.json();
 
-      return policySetWithPoliciesSchema.parse(json);
+      try {
+        return policySetWithPoliciesSchema.parse(json);
+      } catch (e) {
+        console.error(e);
+      }
     },
   });
 }
@@ -65,7 +87,52 @@ export function useAdminPolicySets({
       );
       const json = await response.json();
 
-      return z.array(policySetWithPoliciesSchema).parse(json);
+      try {
+        return z.array(policySetWithPoliciesSchema).parse(json);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+  });
+}
+
+export function useAddPolicyToPolicySet({
+  policySetId,
+}: {
+  policySetId: string;
+}) {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ policy }: { policy: Omit<Policy, "id"> }) => {
+      await authenticatedFetch(
+        `${baseAPIUrl}/policy-set/${policySetId}/policy`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            target: {
+              actions: policy.actions,
+              environment: {
+                serviceProviders: policy.service_providers,
+              },
+              resource: {
+                type: policy.resource_type,
+                identifiers: policy.identifiers,
+                attributes: policy.attributes,
+              },
+            },
+            rules: policy.rules,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "policy-sets"],
+      });
     },
   });
 }

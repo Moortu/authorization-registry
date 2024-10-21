@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
-  Policy,
   PolicySetWithPolicies,
   useAdminPolicySets,
 } from "../../network/policy-set";
@@ -17,6 +16,7 @@ import { z } from "zod";
 import { useDebounce } from "@uidotdev/usehooks";
 import { PageLoadingFallback } from "../../components/page-loading-fallback";
 import { CatchBoundary } from "../../components/catch-boundary";
+import { PolicyCard } from "../../components/policy-card";
 
 const searchSchema = z.object({
   access_subject: z.string().optional(),
@@ -28,58 +28,6 @@ export const Route = createFileRoute("/__auth/")({
   validateSearch: searchSchema,
   errorComponent: CatchBoundary,
 });
-
-function PolicyCardItem({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <>
-      <Box display="grid" gridColumn={1}>
-        <Typography textColor="neutral.800" level="body-xs">
-          {title}
-        </Typography>
-      </Box>
-      <Box display="grid" gridColumn={2} paddingLeft={2}>
-        <Typography textColor="primary.500" level="body-xs">
-          {description}
-        </Typography>
-      </Box>
-    </>
-  );
-}
-
-function PolicyCard({ policy }: { policy: Policy }) {
-  return (
-    <Card sx={{ backgroundColor: "background.level1" }} size="sm">
-      <Box display="grid">
-        <PolicyCardItem
-          title="Actions"
-          description={policy.actions.join(", ")}
-        />
-        <PolicyCardItem
-          title="Resource type"
-          description={policy.resource_type}
-        />
-        <PolicyCardItem
-          title="Service providers"
-          description={policy.service_providers.join(", ")}
-        />
-        <PolicyCardItem
-          title="Attributes"
-          description={policy.attributes.join(", ")}
-        />
-        <PolicyCardItem
-          title="Identifiers"
-          description={policy.identifiers.join(", ")}
-        />
-      </Box>
-    </Card>
-  );
-}
 
 function PolicySetCard({ policySet }: { policySet: PolicySetWithPolicies }) {
   return (
@@ -117,49 +65,48 @@ function Component() {
   });
 
   return (
-    <PageLoadingFallback isLoading={isLoading}>
-      <div>
-        <Typography level="h2">Policy sets</Typography>
-        <Stack paddingY={2} spacing={2} direction="row" alignItems="flex-end">
-          <Box sx={{ width: 180 }}>
-            <FormLabel>Access subject</FormLabel>
-            <Input
-              size="sm"
-              defaultValue={search.access_subject || ""}
-              onChange={(e) =>
-                navigate({
-                  to: "/",
-                  search: {
-                    ...search,
-                    access_subject: e.target.value,
-                  },
-                })
-              }
-            />
-          </Box>
-          <Box sx={{ width: 180 }}>
-            <FormLabel>Policy issuer</FormLabel>
-            <Input
-              size="sm"
-              defaultValue={search.policy_issuer || ""}
-              onChange={(e) =>
-                navigate({
-                  to: "/",
-                  search: {
-                    ...search,
-                    policy_issuer: e.target.value,
-                  },
-                })
-              }
-            />
-          </Box>
-          <Box>
-            <Button onClick={() => navigate({ to: "/new_policy_set" })}>
-              New policy set
-            </Button>
-          </Box>
-        </Stack>
-
+    <div>
+      <Typography level="h2">Policy sets</Typography>
+      <Stack paddingY={2} spacing={2} direction="row" alignItems="flex-end">
+        <Box sx={{ width: 180 }}>
+          <FormLabel>Access subject</FormLabel>
+          <Input
+            size="sm"
+            defaultValue={search.access_subject || ""}
+            onChange={(e) =>
+              navigate({
+                to: "/",
+                search: {
+                  ...search,
+                  access_subject: e.target.value,
+                },
+              })
+            }
+          />
+        </Box>
+        <Box sx={{ width: 180 }}>
+          <FormLabel>Policy issuer</FormLabel>
+          <Input
+            size="sm"
+            defaultValue={search.policy_issuer || ""}
+            onChange={(e) =>
+              navigate({
+                to: "/",
+                search: {
+                  ...search,
+                  policy_issuer: e.target.value,
+                },
+              })
+            }
+          />
+        </Box>
+        <Box>
+          <Button disabled onClick={() => navigate({ to: "/new_policy_set" })}>
+            New policy set
+          </Button>
+        </Box>
+      </Stack>
+      <PageLoadingFallback isLoading={isLoading}>
         <Stack spacing={1}>
           {policySets?.map((ps) => (
             <Link
@@ -176,7 +123,7 @@ function Component() {
             </Link>
           ))}
         </Stack>
-      </div>
-    </PageLoadingFallback>
+      </PageLoadingFallback>
+    </div>
   );
 }

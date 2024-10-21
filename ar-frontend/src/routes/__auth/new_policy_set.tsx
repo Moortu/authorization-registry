@@ -18,8 +18,7 @@ function Component() {
           <FormLabel>Policy issuer</FormLabel>
           <Input />
         </Box>
-        
       </Stack>
     </div>
-  )
+  );
 }
