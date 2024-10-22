@@ -1,5 +1,5 @@
 import { Button, Stack } from "@mui/joy";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AddPolicyStepper } from "../../../components/add-policy-stepper";
 import { z } from "zod";
 import { PolicyCard } from "../../../components/policy-card";
@@ -29,6 +29,7 @@ export const Route = createFileRoute(
 });
 
 function Component() {
+  const navigate = useNavigate();
   const params = Route.useParams();
   const search = Route.useSearch();
   const denyRules = search.rules.map((r) => ({
@@ -43,23 +44,28 @@ function Component() {
     effect: "Deny" as const,
   }));
 
-  const { mutateAsync: addPolicy } = useAddPolicyToPolicySet({
+  const rules = [{ effect: "Permit" as const }, ...denyRules];
+
+  const { mutateAsync: addPolicy, isPending } = useAddPolicyToPolicySet({
     policySetId: params.policySetId,
   });
 
   return (
     <Stack spacing={3}>
       <AddPolicyStepper activeStep={3} />
-      <PolicyCard policy={{ ...search, rules: denyRules }} />
+      <PolicyCard policy={{ ...search, rules }} />
 
       <Stack direction="row">
         <Button
+          disabled={isPending}
           onClick={() => {
             addPolicy({
               policy: {
                 ...search,
-                rules: denyRules,
+                rules,
               },
+            }).then(() => {
+              navigate({ to: "/policy_set/$policySetId", params });
             });
           }}
         >

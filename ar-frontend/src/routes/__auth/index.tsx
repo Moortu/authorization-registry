@@ -44,9 +44,19 @@ function PolicySetCard({ policySet }: { policySet: PolicySetWithPolicies }) {
       </Stack>
       <Box>
         <Typography>Policies</Typography>
-        <Stack spacing={2} direction="row">
+        <Stack spacing={2} direction="row" flexWrap="wrap" useFlexGap>
           {policySet.policies.map((p) => (
-            <PolicyCard policy={p} key={p.id} />
+            <Box
+              key={p.id}
+              width={{
+                xs: "100%",
+                sm: "47%",
+                md: "32%",
+              }}
+              height="100%"
+            >
+              <PolicyCard policy={p} />
+            </Box>
           ))}
         </Stack>
       </Box>

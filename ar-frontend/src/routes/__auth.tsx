@@ -27,8 +27,7 @@ function Component() {
       navigate({
         to: "/",
         replace: true,
-        search: {
-        },
+        search: {},
       });
     }
 

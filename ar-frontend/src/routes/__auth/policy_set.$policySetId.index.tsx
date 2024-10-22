@@ -2,12 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAdminPolicySet } from "../../network/policy-set";
 import { PageLoadingFallback } from "../../components/page-loading-fallback";
 import { CatchBoundary } from "../../components/catch-boundary";
-import {
-  Box,
-  Typography,
-  Stack,
-  Button,
-} from "@mui/joy";
+import { Box, Typography, Stack, Button } from "@mui/joy";
 import { PolicyCard } from "../../components/policy-card";
 import { z } from "zod";
 
@@ -43,7 +38,7 @@ function Component() {
           </Box>
           <Box>
             <Typography>Policies</Typography>
-            <Stack spacing={1} direction="row">
+            <Stack spacing={1} direction="row" flexWrap="wrap" useFlexGap>
               {policySet.policies.map((p) => (
                 <PolicyCard policy={p} key={p.id} />
               ))}

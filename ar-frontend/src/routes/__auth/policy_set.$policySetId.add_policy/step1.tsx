@@ -89,6 +89,21 @@ function Component() {
             )}
           />
           <form.Field
+            name="service_providers"
+            children={(field) => (
+              <FormControl>
+                <FormLabel>Service providers</FormLabel>
+                <Autocomplete
+                  value={field.state.value}
+                  onChange={(_, value) => field.handleChange(value)}
+                  freeSolo
+                  multiple
+                  options={[]}
+                />
+              </FormControl>
+            )}
+          />
+          <form.Field
             name="identifiers"
             children={(field) => (
               <FormControl>
