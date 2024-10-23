@@ -6,39 +6,17 @@ export const baseAPIUrl =
   window.location.origin.replace("/ui", "");
 
 const errorResponseSchema = z.object({
-  message: z.string(),
-  error_type: z.object({
-    type: z.string(),
-    metadata: z.record(z.string()).optional(),
-  }),
-  errors: z
-    .array(
-      z.object({
-        error_type: z.object({
-          type: z.string(),
-          metadata: z.record(z.string()).optional(),
-        }),
-        message: z.string(),
-        location: z.string().optional(),
-      }),
-    )
-    .optional(),
+  error: z.string(),
 });
 
 export class ErrorResponse extends Error {
   message: string;
-  errors: Record<string, string>;
   response: Response;
 
-  constructor(
-    message: string,
-    errors: Record<string, string>,
-    response: Response,
-  ) {
+  constructor(message: string, response: Response) {
     super(message);
 
     this.message = message;
-    this.errors = errors;
     this.response = response;
   }
 }
@@ -47,14 +25,10 @@ async function createErrorResponse(response: Response): Promise<ErrorResponse> {
   const json = await response.json();
 
   const parsedResponse = errorResponseSchema.parse(json);
-  const errors: Record<string, string> = {};
-  parsedResponse.errors?.forEach((e, idx) => {
-    errors[e.location || idx] = e.message;
-  });
 
-  const message = parsedResponse.message;
+  const message = parsedResponse.error;
 
-  return new ErrorResponse(message, errors, response);
+  return new ErrorResponse(message, response);
 }
 
 export function useAuthenticatedFetch() {

@@ -5,14 +5,14 @@ import {
   Autocomplete,
   Button,
   Divider,
-  FormControl,
-  FormLabel,
   Input,
   Stack,
   Select,
   Option,
 } from "@mui/joy";
 import { useForm } from "@tanstack/react-form";
+import { FormField } from "../../../components/form-field";
+import { required } from "../../../form-field-validators";
 
 const searchSchema = z.object({
   actions: z.array(z.string()),
@@ -79,9 +79,9 @@ function Component() {
         <Stack spacing={1}>
           <form.Field
             name="actions"
+            validators={required}
             children={(field) => (
-              <FormControl>
-                <FormLabel>Actions</FormLabel>
+              <FormField label="Actions" errors={field.state.meta.errors}>
                 <Select
                   value={field.state.value}
                   onChange={(_, newValue) => field.handleChange(newValue)}
@@ -91,26 +91,26 @@ function Component() {
                   <Option value="edit">Edit</Option>
                   <Option value="delete">Delete</Option>
                 </Select>
-              </FormControl>
+              </FormField>
             )}
           />
           <form.Field
             name="resource_type"
+            validators={required}
             children={(field) => (
-              <FormControl>
-                <FormLabel>Resource type</FormLabel>
+              <FormField label="Resource type" errors={field.state.meta.errors}>
                 <Input
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                 />
-              </FormControl>
+              </FormField>
             )}
           />
           <form.Field
             name="identifiers"
+            validators={required}
             children={(field) => (
-              <FormControl>
-                <FormLabel>Identifiers</FormLabel>
+              <FormField label="Identifiers" errors={field.state.meta.errors}>
                 <Autocomplete
                   value={field.state.value}
                   onChange={(_, value) => field.handleChange(value)}
@@ -118,14 +118,14 @@ function Component() {
                   multiple
                   options={[]}
                 />
-              </FormControl>
+              </FormField>
             )}
           />
           <form.Field
             name="attributes"
+            validators={required}
             children={(field) => (
-              <FormControl>
-                <FormLabel>Attributes</FormLabel>
+              <FormField label="Attributes" errors={field.state.meta.errors}>
                 <Autocomplete
                   value={field.state.value}
                   onChange={(_, value) => field.handleChange(value)}
@@ -133,7 +133,7 @@ function Component() {
                   multiple
                   options={[]}
                 />
-              </FormControl>
+              </FormField>
             )}
           />
           <Button type="submit" variant="outlined">

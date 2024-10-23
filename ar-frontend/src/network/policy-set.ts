@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { baseAPIUrl, useAuthenticatedFetch } from "./fetch";
+import { baseAPIUrl, ErrorResponse, useAuthenticatedFetch } from "./fetch";
 import { z } from "zod";
 
 const policySchema = z.object({
@@ -132,6 +132,59 @@ export function useAddPolicyToPolicySet({
 
       queryClient.invalidateQueries({
         queryKey: ["admin", "policy-sets"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "policy-sets", policySetId],
+      });
+    },
+  });
+}
+
+export function useDeletePolicyFromPolicySet({
+  policySetId,
+}: {
+  policySetId: string;
+}) {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ErrorResponse, { policyId: string }>({
+    mutationFn: async ({ policyId }: { policyId: string }) => {
+      await authenticatedFetch(
+        `${baseAPIUrl}/policy-set/${policySetId}/policy/${policyId}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "policy-sets"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "policy-sets", policySetId],
+      });
+    },
+  });
+}
+
+export function useDeletePolicySet({ policySetId }: { policySetId: string }) {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ErrorResponse, void>({
+    mutationFn: async () => {
+      await authenticatedFetch(`${baseAPIUrl}/policy-set/${policySetId}`, {
+        method: "DELETE",
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "policy-sets"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "policy-sets", policySetId],
       });
     },
   });

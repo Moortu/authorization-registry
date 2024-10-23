@@ -4,14 +4,14 @@ import {
   Typography,
   Stack,
   Button,
-  FormLabel,
   Select,
   Option,
   Input,
-  FormControl,
   Autocomplete,
 } from "@mui/joy";
 import { AddPolicyStepper } from "../../../components/add-policy-stepper";
+import { required } from "../../../form-field-validators";
+import { FormField } from "../../../components/form-field";
 
 export const Route = createFileRoute(
   "/__auth/policy_set/$policySetId/add_policy/step1",
@@ -61,9 +61,9 @@ function Component() {
         <Stack spacing={1}>
           <form.Field
             name="actions"
+            validators={required}
             children={(field) => (
-              <FormControl>
-                <FormLabel>Actions</FormLabel>
+              <FormField label="Actions" errors={field.state.meta.errors}>
                 <Select
                   value={field.state.value}
                   onChange={(_, newValue) => field.handleChange(newValue)}
@@ -73,41 +73,49 @@ function Component() {
                   <Option value="edit">Edit</Option>
                   <Option value="delete">Delete</Option>
                 </Select>
-              </FormControl>
+              </FormField>
             )}
           />
           <form.Field
             name="resource_type"
+            validators={required}
             children={(field) => (
-              <FormControl>
-                <FormLabel>Resource type</FormLabel>
+              <FormField label="Resource type" errors={field.state.meta.errors}>
                 <Input
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                 />
-              </FormControl>
+              </FormField>
             )}
           />
           <form.Field
             name="service_providers"
+            validators={required}
             children={(field) => (
-              <FormControl>
-                <FormLabel>Service providers</FormLabel>
+              <FormField
+                errors={field.state.meta.errors}
+                label="Service providers"
+              >
                 <Autocomplete
+                  clearOnBlur
                   value={field.state.value}
-                  onChange={(_, value) => field.handleChange(value)}
+                  onChange={(_, value) => {
+                    console.log("chnginnnng", { value });
+                    field.handleChange(value);
+                  }}
                   freeSolo
                   multiple
                   options={[]}
+                  error={field.state.meta.errors.length > 0}
                 />
-              </FormControl>
+              </FormField>
             )}
           />
           <form.Field
             name="identifiers"
+            validators={required}
             children={(field) => (
-              <FormControl>
-                <FormLabel>Identifiers</FormLabel>
+              <FormField label="Identifiers" errors={field.state.meta.errors}>
                 <Autocomplete
                   value={field.state.value}
                   onChange={(_, value) => field.handleChange(value)}
@@ -115,14 +123,14 @@ function Component() {
                   multiple
                   options={[]}
                 />
-              </FormControl>
+              </FormField>
             )}
           />
           <form.Field
             name="attributes"
+            validators={required}
             children={(field) => (
-              <FormControl>
-                <FormLabel>Attributes</FormLabel>
+              <FormField label="Attributes" errors={field.state.meta.errors}>
                 <Autocomplete
                   value={field.state.value}
                   onChange={(_, value) => field.handleChange(value)}
@@ -130,7 +138,7 @@ function Component() {
                   multiple
                   options={[]}
                 />
-              </FormControl>
+              </FormField>
             )}
           />
           <Button type="submit">Submit</Button>
