@@ -1,24 +1,54 @@
-import { FormLabel, Input, Stack, Typography, Box } from "@mui/joy";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
+import {
+  createContext,
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useState,
+} from "react";
+import { Policy } from "../../network/policy-set";
 
 export const Route = createFileRoute("/__auth/new_policy_set")({
   component: Component,
 });
 
+type CreatePolicySet = {
+  access_subject: string;
+  policy_issuer: string;
+  policies: Omit<Policy, "id">[];
+};
+
+const defaultValue: CreatePolicySet = {
+  access_subject: "",
+  policy_issuer: "",
+  policies: [],
+};
+
+type Context = {
+  value: CreatePolicySet;
+  changeValue: Dispatch<SetStateAction<CreatePolicySet>>;
+};
+
+const newPolicySetContext = createContext<Context>({
+  value: defaultValue,
+  changeValue: () => {},
+});
+
+export function useCreatePolicySetContext() {
+  return useContext(newPolicySetContext);
+}
+
 function Component() {
+  const [value, setValue] = useState(defaultValue);
+
   return (
-    <div>
-      <Typography level="h2">New policy set</Typography>
-      <Stack paddingTop={2} spacing={1}>
-        <Box>
-          <FormLabel>Access subject</FormLabel>
-          <Input />
-        </Box>
-        <Box>
-          <FormLabel>Policy issuer</FormLabel>
-          <Input />
-        </Box>
-      </Stack>
-    </div>
+    <newPolicySetContext.Provider
+      value={{
+        value,
+        changeValue: setValue,
+      }}
+    >
+      <Outlet />
+    </newPolicySetContext.Provider>
   );
 }

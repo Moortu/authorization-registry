@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { z } from "zod";
 import { AddPolicyStepper } from "../../../components/add-policy-stepper";
 import {
   Autocomplete,
@@ -9,38 +8,29 @@ import {
   Stack,
   Select,
   Option,
+  Box,
+  FormHelperText,
+  Card,
+  Typography,
+  IconButton,
 } from "@mui/joy";
 import { useForm } from "@tanstack/react-form";
 import { FormField } from "../../../components/form-field";
 import { required } from "../../../form-field-validators";
-
-const searchSchema = z.object({
-  actions: z.array(z.string()),
-  resource_type: z.string(),
-  identifiers: z.array(z.string()),
-  attributes: z.array(z.string()),
-  service_providers: z.array(z.string()),
-  rules: z.array(
-    z.object({
-      resource_type: z.string(),
-      identifiers: z.array(z.string()),
-      attributes: z.array(z.string()),
-      actions: z.array(z.string()),
-    }),
-  ),
-});
+import { useAddPolicyContext } from "../policy_set.$policySetId.add_policy";
+import DeleteIcon from '@mui/icons-material/Delete';
 
 export const Route = createFileRoute(
   "/__auth/policy_set/$policySetId/add_policy/step2",
 )({
   component: Component,
-  validateSearch: searchSchema,
 });
 
 function Component() {
   const search = Route.useSearch();
   const navigate = useNavigate();
   const params = Route.useParams();
+  const { changeValue, value } = useAddPolicyContext();
 
   const form = useForm<{
     resource_type: string;
@@ -55,14 +45,23 @@ function Component() {
       actions: [],
     },
     onSubmit: ({ value }) => {
-      navigate({
-        to: "/policy_set/$policySetId/add_policy/step2",
-        params,
-        search: {
-          ...search,
-          rules: [...search.rules, value],
-        },
-      });
+      changeValue((oldValue) => ({
+        ...oldValue,
+        rules: [
+          ...oldValue.rules,
+          {
+            effect: "Deny",
+            target: {
+              actions: value.actions,
+              resource: {
+                type: value.resource_type,
+                identifiers: value.identifiers,
+                attributes: value.attributes,
+              },
+            },
+          },
+        ],
+      }));
     },
   });
 
@@ -118,6 +117,9 @@ function Component() {
                   multiple
                   options={[]}
                 />
+                <FormHelperText>
+                  Use an '*' to whitelist all values
+                </FormHelperText>
               </FormField>
             )}
           />
@@ -133,6 +135,9 @@ function Component() {
                   multiple
                   options={[]}
                 />
+                <FormHelperText>
+                  Use an '*' to whitelist all values
+                </FormHelperText>
               </FormField>
             )}
           />
@@ -143,8 +148,45 @@ function Component() {
       </form>
 
       <Divider />
+        {value.rules.length > 0 && (
+          <Stack spacing={1}>
+            {value.rules.map((r, idx) => (
+              r.effect === "Deny" ? (
+                <Card key={idx}>
+                  <Box display="flex" justifyContent="space-between">
+                    <Stack>
+                      <Typography level="body-sm">Actions: {r.target.actions}</Typography>
+                      <Typography level="body-sm">Resource type: {r.target.resource.type}</Typography>
+                      <Typography level="body-sm">Identifiers: {r.target.resource.identifiers}</Typography>
+                      <Typography level="body-sm">Attributes: {r.target.resource.attributes}</Typography>
+                    </Stack>
+                    <Box>
+                    <IconButton onClick={() => changeValue(oldValue => ({
+                      ...oldValue,
+                      rules: oldValue.rules.filter((_, idx2) => idx2 !== idx),
+                    }))}>
+                      <DeleteIcon />
+                    </IconButton>
+                    </Box>
+                  </Box>
+                </Card>
+              ) : <></>
+            ))}
+          </Stack>
+        )}
 
-      <Stack direction="row">
+      <Stack direction="row" spacing={1}>
+        <Button
+          variant="outlined"
+          onClick={() => {
+            navigate({
+              to: "/policy_set/$policySetId/add_policy/step1",
+              params,
+            });
+          }}
+        >
+          Back
+        </Button>
         <Button
           onClick={() =>
             navigate({

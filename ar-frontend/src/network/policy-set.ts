@@ -44,7 +44,7 @@ export function useAdminPolicySet({ policySetId }: { policySetId: string }) {
 
   return useQuery({
     throwOnError: true,
-    queryKey: ["admin", "policy-set", policySetId],
+    queryKey: ["admin", "policy-sets", policySetId],
     queryFn: async function () {
       const response = await authenticatedFetch(
         `${baseAPIUrl}/admin/policy-set/${policySetId}`,

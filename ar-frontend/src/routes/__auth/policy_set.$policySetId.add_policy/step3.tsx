@@ -1,50 +1,24 @@
 import { Button, Stack } from "@mui/joy";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AddPolicyStepper } from "../../../components/add-policy-stepper";
-import { z } from "zod";
 import { PolicyCard } from "../../../components/policy-card";
 import { useAddPolicyToPolicySet } from "../../../network/policy-set";
-
-const searchSchema = z.object({
-  actions: z.array(z.string()),
-  resource_type: z.string(),
-  identifiers: z.array(z.string()),
-  attributes: z.array(z.string()),
-  service_providers: z.array(z.string()),
-  rules: z.array(
-    z.object({
-      resource_type: z.string(),
-      identifiers: z.array(z.string()),
-      attributes: z.array(z.string()),
-      actions: z.array(z.string()),
-    }),
-  ),
-});
+import { useAddPolicyContext } from "../policy_set.$policySetId.add_policy";
 
 export const Route = createFileRoute(
   "/__auth/policy_set/$policySetId/add_policy/step3",
 )({
   component: Component,
-  validateSearch: searchSchema,
 });
 
 function Component() {
   const navigate = useNavigate();
   const params = Route.useParams();
-  const search = Route.useSearch();
-  const denyRules = search.rules.map((r) => ({
-    target: {
-      actions: r.actions,
-      resource: {
-        attributes: r.attributes,
-        identifiers: r.identifiers,
-        type: r.resource_type,
-      },
-    },
-    effect: "Deny" as const,
-  }));
-
-  const rules = [{ effect: "Permit" as const }, ...denyRules];
+  const { value } = useAddPolicyContext();
+  const policy = {
+    ...value,
+    rules: [{ effect: "Permit" as const }, ...value.rules],
+  };
 
   const { mutateAsync: addPolicy, isPending } = useAddPolicyToPolicySet({
     policySetId: params.policySetId,
@@ -53,17 +27,25 @@ function Component() {
   return (
     <Stack spacing={3}>
       <AddPolicyStepper activeStep={3} />
-      <PolicyCard policy={{ ...search, rules }} />
+      <PolicyCard policy={policy} />
 
-      <Stack direction="row">
+      <Stack direction="row" spacing={1}>
+        <Button
+          variant="outlined"
+          onClick={() => {
+            navigate({
+              to: "/policy_set/$policySetId/add_policy/step2",
+              params,
+            });
+          }}
+        >
+          Back
+        </Button>
         <Button
           disabled={isPending}
           onClick={() => {
             addPolicy({
-              policy: {
-                ...search,
-                rules,
-              },
+              policy,
             }).then(() => {
               navigate({ to: "/policy_set/$policySetId", params });
             });

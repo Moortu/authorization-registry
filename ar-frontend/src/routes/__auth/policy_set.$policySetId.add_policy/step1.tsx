@@ -1,17 +1,19 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import {
-  Typography,
   Stack,
+  Box,
   Button,
   Select,
   Option,
   Input,
   Autocomplete,
+  FormHelperText,
 } from "@mui/joy";
 import { AddPolicyStepper } from "../../../components/add-policy-stepper";
 import { required } from "../../../form-field-validators";
 import { FormField } from "../../../components/form-field";
+import { useAddPolicyContext } from "../policy_set.$policySetId.add_policy";
 
 export const Route = createFileRoute(
   "/__auth/policy_set/$policySetId/add_policy/step1",
@@ -22,6 +24,7 @@ export const Route = createFileRoute(
 function Component() {
   const navigate = useNavigate();
   const params = Route.useParams();
+  const { value, changeValue } = useAddPolicyContext();
 
   const form = useForm<{
     actions: string[];
@@ -30,14 +33,9 @@ function Component() {
     attributes: string[];
     service_providers: string[];
   }>({
-    defaultValues: {
-      actions: [],
-      resource_type: "",
-      identifiers: [],
-      attributes: [],
-      service_providers: [],
-    },
+    defaultValues: value,
     onSubmit: ({ value }) => {
+      changeValue((oldValue) => ({ ...oldValue, ...value }));
       navigate({
         to: "/policy_set/$policySetId/add_policy/step2",
         search: { ...value, rules: [] },
@@ -49,7 +47,6 @@ function Component() {
   return (
     <Stack spacing={3}>
       <AddPolicyStepper activeStep={1} />
-      <Typography level="h4">Add policy</Typography>
 
       <form
         onSubmit={(e) => {
@@ -123,6 +120,9 @@ function Component() {
                   multiple
                   options={[]}
                 />
+                <FormHelperText>
+                  Use an '*' to whitelist all values
+                </FormHelperText>
               </FormField>
             )}
           />
@@ -138,10 +138,17 @@ function Component() {
                   multiple
                   options={[]}
                 />
+                <FormHelperText>
+                  Use an '*' to whitelist all values
+                </FormHelperText>
               </FormField>
             )}
           />
-          <Button type="submit">Submit</Button>
+          <Box>
+            <Button size="md" type="submit">
+              Next step
+            </Button>
+          </Box>
         </Stack>
       </form>
     </Stack>

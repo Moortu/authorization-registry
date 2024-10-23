@@ -111,7 +111,7 @@ function Component() {
           />
         </Box>
         <Box>
-          <Button disabled onClick={() => navigate({ to: "/new_policy_set" })}>
+          <Button onClick={() => navigate({ to: "/new_policy_set/step1" })}>
             New policy set
           </Button>
         </Box>
