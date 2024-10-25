@@ -1,20 +1,20 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
   useAdminPolicySet,
   useDeletePolicyFromPolicySet,
   useDeletePolicySet,
-} from "../../network/policy-set";
-import { PageLoadingFallback } from "../../components/page-loading-fallback";
-import { CatchBoundary } from "../../components/catch-boundary";
-import { Box, Typography, Stack, Button, Card } from "@mui/joy";
-import { PolicyCard } from "../../components/policy-card";
-import { z } from "zod";
-import { ConfirmDialog } from "../../components/confirm-dialog";
+} from '../../../network/policy-set'
+import { PageLoadingFallback } from '../../../components/page-loading-fallback'
+import { CatchBoundary } from '../../../components/catch-boundary'
+import { Box, Typography, Stack, Button, Card } from '@mui/joy'
+import { PolicyCard } from '../../../components/policy-card'
+import { z } from 'zod'
+import { ConfirmDialog } from '../../../components/confirm-dialog'
 
 function DeletePolicyModal({ deletePolicyId }: { deletePolicyId: string }) {
-  const navigate = useNavigate();
-  const params = Route.useParams();
-  const search = Route.useSearch();
+  const navigate = useNavigate()
+  const params = Route.useParams()
+  const search = Route.useSearch()
 
   const {
     mutateAsync: deletePolicy,
@@ -22,26 +22,26 @@ function DeletePolicyModal({ deletePolicyId }: { deletePolicyId: string }) {
     error: deleteError,
   } = useDeletePolicyFromPolicySet({
     policySetId: params.policySetId,
-  });
+  })
 
   function onSubmit() {
     deletePolicy({ policyId: deletePolicyId }).then(() => {
       navigate({
         replace: true,
-        to: "/policy_set/$policySetId",
+        to: '/ui/policy_set/$policySetId',
         params,
         search: { ...search, delete_policy: undefined },
-      });
-    });
+      })
+    })
   }
 
   function onClose() {
     navigate({
       replace: true,
-      to: "/policy_set/$policySetId",
+      to: '/ui/policy_set/$policySetId',
       params,
       search: { ...search, delete_policy: undefined },
-    });
+    })
   }
 
   return (
@@ -57,13 +57,13 @@ function DeletePolicyModal({ deletePolicyId }: { deletePolicyId: string }) {
       description="Are you sure you want to delete this policy?"
       isDanger
     />
-  );
+  )
 }
 
 function DeletePolicySetModal() {
-  const navigate = useNavigate();
-  const params = Route.useParams();
-  const search = Route.useSearch();
+  const navigate = useNavigate()
+  const params = Route.useParams()
+  const search = Route.useSearch()
 
   const {
     mutateAsync: deletePolicySet,
@@ -71,24 +71,24 @@ function DeletePolicySetModal() {
     error: deleteError,
   } = useDeletePolicySet({
     policySetId: params.policySetId,
-  });
+  })
 
   function onSubmit() {
     deletePolicySet().then(() => {
       navigate({
         replace: true,
-        to: "/",
-      });
-    });
+        to: '/ui/',
+      })
+    })
   }
 
   function onClose() {
     navigate({
       replace: true,
-      to: "/policy_set/$policySetId",
+      to: '/ui/policy_set/$policySetId',
       params,
       search: { ...search, delete_policy_set: undefined },
-    });
+    })
   }
 
   return (
@@ -104,32 +104,32 @@ function DeletePolicySetModal() {
       description="Are you sure you want to delete this policy?"
       isDanger
     />
-  );
+  )
 }
 
 const searchSchema = z.object({
   add_policy: z.boolean().optional(),
   delete_policy: z.string().optional(),
   delete_policy_set: z.boolean().optional(),
-});
+})
 
-export const Route = createFileRoute("/__auth/policy_set/$policySetId/")({
+export const Route = createFileRoute('/ui/__auth/policy_set/$policySetId/')({
   component: Component,
   errorComponent: CatchBoundary,
   validateSearch: searchSchema,
-});
+})
 
 function Component() {
-  const navigate = useNavigate();
-  const params = Route.useParams();
-  const search = Route.useSearch();
-  const { policySetId } = Route.useParams();
+  const navigate = useNavigate()
+  const params = Route.useParams()
+  const search = Route.useSearch()
+  const { policySetId } = Route.useParams()
 
   const { data: policySet, isLoading } = useAdminPolicySet({
     policySetId,
-  });
+  })
 
-  const deletePolicyId = search.delete_policy;
+  const deletePolicyId = search.delete_policy
 
   return (
     <PageLoadingFallback isLoading={isLoading}>
@@ -168,7 +168,7 @@ function Component() {
                           <Button
                             onClick={() =>
                               navigate({
-                                to: "/policy_set/$policySetId",
+                                to: '/ui/policy_set/$policySetId',
                                 params,
                                 search: { ...search, delete_policy: p.id },
                               })
@@ -191,7 +191,7 @@ function Component() {
                   size="lg"
                   onClick={() =>
                     navigate({
-                      to: "/policy_set/$policySetId/add_policy/step1",
+                      to: '/ui/policy_set/$policySetId/add_policy/step1',
                       params: { policySetId },
                     })
                   }
@@ -203,7 +203,7 @@ function Component() {
                   color="danger"
                   onClick={() =>
                     navigate({
-                      to: "/policy_set/$policySetId",
+                      to: '/ui/policy_set/$policySetId',
                       params,
                       search: { ...search, delete_policy_set: true },
                     })
@@ -217,5 +217,5 @@ function Component() {
         </>
       )}
     </PageLoadingFallback>
-  );
+  )
 }

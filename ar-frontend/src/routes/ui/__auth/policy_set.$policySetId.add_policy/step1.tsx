@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useForm } from "@tanstack/react-form";
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useForm } from '@tanstack/react-form'
 import {
   Stack,
   Box,
@@ -9,40 +9,40 @@ import {
   Input,
   Autocomplete,
   FormHelperText,
-} from "@mui/joy";
-import { AddPolicyStepper } from "../../../components/add-policy-stepper";
-import { required } from "../../../form-field-validators";
-import { FormField } from "../../../components/form-field";
-import { useAddPolicyContext } from "../policy_set.$policySetId.add_policy";
+} from '@mui/joy'
+import { AddPolicyStepper } from '../../../../components/add-policy-stepper'
+import { required } from '../../../../form-field-validators'
+import { FormField } from '../../../../components/form-field'
+import { useAddPolicyContext } from '../policy_set.$policySetId.add_policy'
 
 export const Route = createFileRoute(
-  "/__auth/policy_set/$policySetId/add_policy/step1",
+  '/ui/__auth/policy_set/$policySetId/add_policy/step1',
 )({
   component: Component,
-});
+})
 
 function Component() {
-  const navigate = useNavigate();
-  const params = Route.useParams();
-  const { value, changeValue } = useAddPolicyContext();
+  const navigate = useNavigate()
+  const params = Route.useParams()
+  const { value, changeValue } = useAddPolicyContext()
 
   const form = useForm<{
-    actions: string[];
-    resource_type: string;
-    identifiers: string[];
-    attributes: string[];
-    service_providers: string[];
+    actions: string[]
+    resource_type: string
+    identifiers: string[]
+    attributes: string[]
+    service_providers: string[]
   }>({
     defaultValues: value,
     onSubmit: ({ value }) => {
-      changeValue((oldValue) => ({ ...oldValue, ...value }));
+      changeValue((oldValue) => ({ ...oldValue, ...value }))
       navigate({
-        to: "/policy_set/$policySetId/add_policy/step2",
+        to: '/ui/policy_set/$policySetId/add_policy/step2',
         search: { ...value, rules: [] },
         params,
-      });
+      })
     },
-  });
+  })
 
   return (
     <Stack spacing={3}>
@@ -50,9 +50,9 @@ function Component() {
 
       <form
         onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          form.handleSubmit();
+          e.preventDefault()
+          e.stopPropagation()
+          form.handleSubmit()
         }}
       >
         <Stack spacing={1}>
@@ -97,8 +97,8 @@ function Component() {
                   clearOnBlur
                   value={field.state.value}
                   onChange={(_, value) => {
-                    console.log("chnginnnng", { value });
-                    field.handleChange(value);
+                    console.log('chnginnnng', { value })
+                    field.handleChange(value)
                   }}
                   freeSolo
                   multiple
@@ -152,5 +152,5 @@ function Component() {
         </Stack>
       </form>
     </Stack>
-  );
+  )
 }
