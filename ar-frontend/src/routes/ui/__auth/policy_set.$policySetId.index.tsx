@@ -77,7 +77,7 @@ function DeletePolicySetModal() {
     deletePolicySet().then(() => {
       navigate({
         replace: true,
-        to: '/ui/',
+        to: '/ui',
       })
     })
   }
