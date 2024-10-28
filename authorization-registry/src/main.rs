@@ -161,7 +161,9 @@ async fn main() {
 
     let app = get_app(db, app_state);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:4000").await.unwrap();
+    let listener = tokio::net::TcpListener::bind(config.listen_address)
+        .await
+        .unwrap();
 
     axum::serve(listener, app).await.unwrap();
 }
