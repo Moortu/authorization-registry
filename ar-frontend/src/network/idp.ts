@@ -1,7 +1,6 @@
 import { baseAPIUrl } from "./fetch";
 
-export const IDP_URL =
-  "https://idp.dev.dexes.eu/realms/dmi_dexspace_smartcity/protocol/openid-connect/";
+export const IDP_URL = new URL("/protocol/openid-connect", import.meta.env.VITE_IDP_URL)
 
 export function initLogin() {
   const redirectUrl = encodeURIComponent(window.location.href);

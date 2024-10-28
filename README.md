@@ -8,3 +8,10 @@ Make sure that a postgres database exists with the name 'authorization_registry'
 - To apply all pending migration: `cargo run -- up`
 - To roll-back the last migration: `cargo run -- down`
 - To see more example: [authorization-registry/migration/README.md](./authorization-registry/migration/README.md)
+
+## To run frontend
+- Edit `./ar-frontend/.env` and set `VITE_IDP_URL` to the location of the idp
+When running in dev mode
+- Edit `./ar-frontend/.env` and set `VITE_BASE_API_URL` to the clearing backend (usually `http://localhost:4000`)
+When running in production
+- `npm run build`
