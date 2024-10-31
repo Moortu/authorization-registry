@@ -96,7 +96,7 @@ export function useAdminPolicySets({
   });
 }
 
-export function useAddPolicyToPolicySet({
+export function useAddAdminPolicyToPolicySet({
   policySetId,
 }: {
   policySetId: string;
@@ -107,7 +107,7 @@ export function useAddPolicyToPolicySet({
   return useMutation({
     mutationFn: async ({ policy }: { policy: Omit<Policy, "id"> }) => {
       await authenticatedFetch(
-        `${baseAPIUrl}/policy-set/${policySetId}/policy`,
+        `${baseAPIUrl}/admin/policy-set/${policySetId}/policy`,
         {
           method: "POST",
           body: JSON.stringify({
@@ -141,7 +141,7 @@ export function useAddPolicyToPolicySet({
   });
 }
 
-export function useDeletePolicyFromPolicySet({
+export function useDeleteAdminPolicyFromPolicySet({
   policySetId,
 }: {
   policySetId: string;
@@ -152,7 +152,7 @@ export function useDeletePolicyFromPolicySet({
   return useMutation<void, ErrorResponse, { policyId: string }>({
     mutationFn: async ({ policyId }: { policyId: string }) => {
       await authenticatedFetch(
-        `${baseAPIUrl}/policy-set/${policySetId}/policy/${policyId}`,
+        `${baseAPIUrl}/admin/policy-set/${policySetId}/policy/${policyId}`,
         {
           method: "DELETE",
         },
@@ -169,15 +169,22 @@ export function useDeletePolicyFromPolicySet({
   });
 }
 
-export function useDeletePolicySet({ policySetId }: { policySetId: string }) {
+export function useDeleteAdminPolicySet({
+  policySetId,
+}: {
+  policySetId: string;
+}) {
   const authenticatedFetch = useAuthenticatedFetch();
   const queryClient = useQueryClient();
 
   return useMutation<void, ErrorResponse, void>({
     mutationFn: async () => {
-      await authenticatedFetch(`${baseAPIUrl}/policy-set/${policySetId}`, {
-        method: "DELETE",
-      });
+      await authenticatedFetch(
+        `${baseAPIUrl}/admin/policy-set/${policySetId}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       queryClient.invalidateQueries({
         queryKey: ["admin", "policy-sets"],

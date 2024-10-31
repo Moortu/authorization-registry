@@ -1,8 +1,9 @@
 use anyhow::Context;
+use ar_entity::delegation_evidence::Policy;
 use axum::{
     extract::{Path, Query, State},
     middleware::{from_fn, from_fn_with_state},
-    routing::{get, post},
+    routing::{delete, get, post},
     Extension, Json, Router,
 };
 use axum_extra::extract::WithRejection;
@@ -29,13 +30,53 @@ pub fn get_admin_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
             "/policy-set",
             post(insert_policy_set).get(get_all_policy_sets),
         )
-        .route("/policy-set/:id", get(get_policy_set))
+        .route(
+            "/policy-set/:id",
+            get(get_policy_set).delete(delete_policy_set),
+        )
+        .route("/policy-set/:id/policy", post(add_policy_to_policy_set))
+        .route(
+            "/policy-set/:id/policy/:policy_id",
+            delete(delete_policy_from_policy_set),
+        )
         .layer(from_fn_with_state(
             vec!["dexspace_admin".to_owned()],
             auth_role_middleware,
         ))
         .layer(from_fn(extract_human_middleware))
         .layer(from_fn_with_state(server_token, extract_role_middleware));
+}
+
+#[axum_macros::debug_handler]
+async fn add_policy_to_policy_set(
+    Extension(db): Extension<DatabaseConnection>,
+    WithRejection(Path(id), _): WithRejection<Path<Uuid>, AppError>,
+    Json(body): Json<Policy>,
+) -> Result<Json<ar_entity::policy::Model>, AppError> {
+    let policy = policy_store::add_policy_to_policy_set(&id, body, &db).await?;
+
+    Ok(Json(policy))
+}
+
+async fn delete_policy_set(
+    Extension(db): Extension<DatabaseConnection>,
+    WithRejection(Path(id), _): WithRejection<Path<Uuid>, AppError>,
+) -> Result<(), AppError> {
+    policy_store::delete_policy_set(&id, &db).await?;
+
+    Ok(())
+}
+
+async fn delete_policy_from_policy_set(
+    Extension(db): Extension<DatabaseConnection>,
+    WithRejection(Path((_policy_set_id, policy_id)), _): WithRejection<
+        Path<(Uuid, Uuid)>,
+        AppError,
+    >,
+) -> Result<(), AppError> {
+    policy_store::delete_policy(&policy_id, &db).await?;
+
+    Ok(())
 }
 
 async fn get_policy_set(
