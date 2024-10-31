@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   useAdminPolicySet,
-  useDeletePolicyFromPolicySet,
-  useDeletePolicySet,
+  useDeleteAdminPolicyFromPolicySet,
+  useDeleteAdminPolicySet,
 } from "../../network/policy-set";
 import { PageLoadingFallback } from "../../components/page-loading-fallback";
 import { CatchBoundary } from "../../components/catch-boundary";
@@ -20,7 +20,7 @@ function DeletePolicyModal({ deletePolicyId }: { deletePolicyId: string }) {
     mutateAsync: deletePolicy,
     isPending: isDeletePending,
     error: deleteError,
-  } = useDeletePolicyFromPolicySet({
+  } = useDeleteAdminPolicyFromPolicySet({
     policySetId: params.policySetId,
   });
 
@@ -69,7 +69,7 @@ function DeletePolicySetModal() {
     mutateAsync: deletePolicySet,
     isPending: isDeletePending,
     error: deleteError,
-  } = useDeletePolicySet({
+  } = useDeleteAdminPolicySet({
     policySetId: params.policySetId,
   });
 

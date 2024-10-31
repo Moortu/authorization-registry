@@ -2,7 +2,7 @@ import { Button, Stack } from "@mui/joy";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AddPolicyStepper } from "../../../components/add-policy-stepper";
 import { PolicyCard } from "../../../components/policy-card";
-import { useAddPolicyToPolicySet } from "../../../network/policy-set";
+import { useAddAdminPolicyToPolicySet } from "../../../network/policy-set";
 import { useAddPolicyContext } from "../policy_set.$policySetId.add_policy";
 
 export const Route = createFileRoute(
@@ -20,7 +20,7 @@ function Component() {
     rules: [{ effect: "Permit" as const }, ...value.rules],
   };
 
-  const { mutateAsync: addPolicy, isPending } = useAddPolicyToPolicySet({
+  const { mutateAsync: addPolicy, isPending } = useAddAdminPolicyToPolicySet({
     policySetId: params.policySetId,
   });
 
