@@ -1,17 +1,17 @@
-import { Button, Input, Stack, Typography } from "@mui/joy";
-import { createFileRoute } from "@tanstack/react-router";
-import { AddPolicySetStepper } from "../../../components/add-policy-set-stepper";
-import { useCreatePolicySetContext } from "../new_policy_set";
-import { useForm } from "@tanstack/react-form";
-import { FormField } from "../../../components/form-field";
-import { required } from "../../../form-field-validators";
+import { Button, Input, Stack, Typography } from '@mui/joy'
+import { createFileRoute } from '@tanstack/react-router'
+import { AddPolicySetStepper } from '../../../../components/add-policy-set-stepper'
+import { useCreatePolicySetContext } from '../new_policy_set'
+import { useForm } from '@tanstack/react-form'
+import { FormField } from '../../../../components/form-field'
+import { required } from '../../../../form-field-validators'
 
-export const Route = createFileRoute("/__auth/new_policy_set/step1")({
+export const Route = createFileRoute('/ui/__auth/new_policy_set/step1')({
   component: Component,
-});
+})
 
 function Component() {
-  const { value, changeValue } = useCreatePolicySetContext();
+  const { value, changeValue } = useCreatePolicySetContext()
 
   const form = useForm({
     defaultValues: {
@@ -19,9 +19,9 @@ function Component() {
       policy_issuer: value.policy_issuer,
     },
     onSubmit: ({ value }) => {
-      changeValue((oldValue) => ({ ...oldValue, ...value }));
+      changeValue((oldValue) => ({ ...oldValue, ...value }))
     },
-  });
+  })
 
   return (
     <div>
@@ -31,9 +31,9 @@ function Component() {
       <AddPolicySetStepper activeStep={1} />
       <form
         onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          form.handleSubmit();
+          e.preventDefault()
+          e.stopPropagation()
+          form.handleSubmit()
         }}
       >
         <Stack paddingTop={2} spacing={1}>
@@ -70,5 +70,5 @@ function Component() {
         </Stack>
       </form>
     </div>
-  );
+  )
 }

@@ -1,8 +1,8 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import {
   PolicySetWithPolicies,
   useAdminPolicySets,
-} from "../../network/policy-set";
+} from '../../../network/policy-set'
 import {
   Box,
   Button,
@@ -11,23 +11,23 @@ import {
   Input,
   Stack,
   Typography,
-} from "@mui/joy";
-import { z } from "zod";
-import { useDebounce } from "@uidotdev/usehooks";
-import { PageLoadingFallback } from "../../components/page-loading-fallback";
-import { CatchBoundary } from "../../components/catch-boundary";
-import { PolicyCard } from "../../components/policy-card";
+} from '@mui/joy'
+import { z } from 'zod'
+import { useDebounce } from '@uidotdev/usehooks'
+import { PageLoadingFallback } from '../../../components/page-loading-fallback'
+import { CatchBoundary } from '../../../components/catch-boundary'
+import { PolicyCard } from '../../../components/policy-card'
 
 const searchSchema = z.object({
   access_subject: z.string().optional(),
   policy_issuer: z.string().optional(),
-});
+})
 
-export const Route = createFileRoute("/__auth/")({
+export const Route = createFileRoute('/ui/__auth/')({
   component: Component,
   validateSearch: searchSchema,
   errorComponent: CatchBoundary,
-});
+})
 
 function PolicySetCard({ policySet }: { policySet: PolicySetWithPolicies }) {
   return (
@@ -49,9 +49,9 @@ function PolicySetCard({ policySet }: { policySet: PolicySetWithPolicies }) {
             <Box
               key={p.id}
               width={{
-                xs: "100%",
-                sm: "47%",
-                md: "32%",
+                xs: '100%',
+                sm: '47%',
+                md: '32%',
               }}
               height="100%"
             >
@@ -61,18 +61,18 @@ function PolicySetCard({ policySet }: { policySet: PolicySetWithPolicies }) {
         </Stack>
       </Box>
     </Card>
-  );
+  )
 }
 
 function Component() {
-  const search = Route.useSearch();
-  const accessSubject = useDebounce(search.access_subject, 300);
-  const policyIssuer = useDebounce(search.policy_issuer, 300);
-  const navigate = useNavigate();
+  const search = Route.useSearch()
+  const accessSubject = useDebounce(search.access_subject, 300)
+  const policyIssuer = useDebounce(search.policy_issuer, 300)
+  const navigate = useNavigate()
   const { data: policySets, isLoading } = useAdminPolicySets({
     accessSubject,
     policyIssuer,
-  });
+  })
 
   return (
     <div>
@@ -82,10 +82,10 @@ function Component() {
           <FormLabel>Access subject</FormLabel>
           <Input
             size="sm"
-            defaultValue={search.access_subject || ""}
+            defaultValue={search.access_subject || ''}
             onChange={(e) =>
               navigate({
-                to: "/",
+                to: '/ui',
                 search: {
                   ...search,
                   access_subject: e.target.value,
@@ -98,10 +98,10 @@ function Component() {
           <FormLabel>Policy issuer</FormLabel>
           <Input
             size="sm"
-            defaultValue={search.policy_issuer || ""}
+            defaultValue={search.policy_issuer || ''}
             onChange={(e) =>
               navigate({
-                to: "/",
+                to: '/ui',
                 search: {
                   ...search,
                   policy_issuer: e.target.value,
@@ -111,7 +111,7 @@ function Component() {
           />
         </Box>
         <Box>
-          <Button onClick={() => navigate({ to: "/new_policy_set/step1" })}>
+          <Button onClick={() => navigate({ to: '/ui/new_policy_set/step1' })}>
             New policy set
           </Button>
         </Box>
@@ -122,9 +122,9 @@ function Component() {
             <Link
               key={ps.policy_set_id}
               style={{
-                textDecorationLine: "none",
+                textDecorationLine: 'none',
               }}
-              to="/policy_set/$policySetId"
+              to="/ui/policy_set/$policySetId"
               params={{
                 policySetId: ps.policy_set_id,
               }}
@@ -135,5 +135,5 @@ function Component() {
         </Stack>
       </PageLoadingFallback>
     </div>
-  );
+  )
 }
