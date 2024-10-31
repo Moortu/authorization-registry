@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { AddPolicyStepper } from '../../../../components/add-policy-stepper'
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { AddPolicyStepper } from "../../../components/add-policy-stepper";
 import {
   Autocomplete,
   Button,
@@ -13,33 +13,33 @@ import {
   Card,
   Typography,
   IconButton,
-} from '@mui/joy'
-import { useForm } from '@tanstack/react-form'
-import { FormField } from '../../../../components/form-field'
-import { required } from '../../../../form-field-validators'
-import { useAddPolicyContext } from '../policy_set.$policySetId.add_policy'
-import DeleteIcon from '@mui/icons-material/Delete'
+} from "@mui/joy";
+import { useForm } from "@tanstack/react-form";
+import { FormField } from "../../../components/form-field";
+import { required } from "../../../form-field-validators";
+import { useAddPolicyContext } from "../policy_set.$policySetId.add_policy";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 export const Route = createFileRoute(
-  '/ui/__auth/policy_set/$policySetId/add_policy/step2',
+  "/__auth/policy_set/$policySetId/add_policy/step2",
 )({
   component: Component,
-})
+});
 
 function Component() {
-  const search = Route.useSearch()
-  const navigate = useNavigate()
-  const params = Route.useParams()
-  const { changeValue, value } = useAddPolicyContext()
+  const search = Route.useSearch();
+  const navigate = useNavigate();
+  const params = Route.useParams();
+  const { changeValue, value } = useAddPolicyContext();
 
   const form = useForm<{
-    resource_type: string
-    identifiers: string[]
-    attributes: string[]
-    actions: string[]
+    resource_type: string;
+    identifiers: string[];
+    attributes: string[];
+    actions: string[];
   }>({
     defaultValues: {
-      resource_type: '',
+      resource_type: "",
       identifiers: [],
       attributes: [],
       actions: [],
@@ -50,7 +50,7 @@ function Component() {
         rules: [
           ...oldValue.rules,
           {
-            effect: 'Deny',
+            effect: "Deny",
             target: {
               actions: value.actions,
               resource: {
@@ -61,18 +61,18 @@ function Component() {
             },
           },
         ],
-      }))
+      }));
     },
-  })
+  });
 
   return (
     <Stack spacing={3}>
       <AddPolicyStepper activeStep={2} />
       <form
         onSubmit={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          form.handleSubmit()
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
         }}
       >
         <Stack spacing={1}>
@@ -151,7 +151,7 @@ function Component() {
       {value.rules.length > 0 && (
         <Stack spacing={1}>
           {value.rules.map((r, idx) =>
-            r.effect === 'Deny' ? (
+            r.effect === "Deny" ? (
               <Card key={idx}>
                 <Box display="flex" justifyContent="space-between">
                   <Stack>
@@ -196,9 +196,9 @@ function Component() {
           variant="outlined"
           onClick={() => {
             navigate({
-              to: '/ui/policy_set/$policySetId/add_policy/step1',
+              to: "/policy_set/$policySetId/add_policy/step1",
               params,
-            })
+            });
           }}
         >
           Back
@@ -206,7 +206,7 @@ function Component() {
         <Button
           onClick={() =>
             navigate({
-              to: '/ui/policy_set/$policySetId/add_policy/step3',
+              to: "/policy_set/$policySetId/add_policy/step3",
               params,
               search,
             })
@@ -216,5 +216,5 @@ function Component() {
         </Button>
       </Stack>
     </Stack>
-  )
+  );
 }
