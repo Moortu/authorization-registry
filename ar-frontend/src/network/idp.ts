@@ -1,6 +1,9 @@
 import { baseAPIUrl } from "./fetch";
 
-export const IDP_URL = new URL("/protocol/openid-connect", import.meta.env.VITE_IDP_URL)
+export const IDP_URL = new URL(
+  "protocol/openid-connect",
+  import.meta.env.VITE_IDP_URL,
+);
 
 export function initLogin() {
   const redirectUrl = encodeURIComponent(window.location.href);

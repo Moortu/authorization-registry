@@ -10,320 +10,294 @@
 
 // Import Routes
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as UiImport } from './routes/ui'
-import { Route as UiauthImport } from './routes/ui/__auth'
-import { Route as UiauthIndexImport } from './routes/ui/__auth/index'
-import { Route as UiauthNewpolicysetImport } from './routes/ui/__auth/new_policy_set'
-import { Route as UiauthNewpolicysetStep2Import } from './routes/ui/__auth/new_policy_set/step2'
-import { Route as UiauthNewpolicysetStep1Import } from './routes/ui/__auth/new_policy_set/step1'
-import { Route as UiauthPolicysetPolicySetIdIndexImport } from './routes/ui/__auth/policy_set.$policySetId.index'
-import { Route as UiauthPolicysetPolicySetIdAddpolicyImport } from './routes/ui/__auth/policy_set.$policySetId.add_policy'
-import { Route as UiauthPolicysetPolicySetIdAddpolicyStep3Import } from './routes/ui/__auth/policy_set.$policySetId.add_policy/step3'
-import { Route as UiauthPolicysetPolicySetIdAddpolicyStep2Import } from './routes/ui/__auth/policy_set.$policySetId.add_policy/step2'
-import { Route as UiauthPolicysetPolicySetIdAddpolicyStep1Import } from './routes/ui/__auth/policy_set.$policySetId.add_policy/step1'
+import { Route as rootRoute } from "./routes/__root";
+import { Route as authImport } from "./routes/__auth";
+import { Route as authIndexImport } from "./routes/__auth/index";
+import { Route as authNewpolicysetImport } from "./routes/__auth/new_policy_set";
+import { Route as authNewpolicysetStep2Import } from "./routes/__auth/new_policy_set/step2";
+import { Route as authNewpolicysetStep1Import } from "./routes/__auth/new_policy_set/step1";
+import { Route as authPolicysetPolicySetIdIndexImport } from "./routes/__auth/policy_set.$policySetId.index";
+import { Route as authPolicysetPolicySetIdAddpolicyImport } from "./routes/__auth/policy_set.$policySetId.add_policy";
+import { Route as authPolicysetPolicySetIdAddpolicyStep3Import } from "./routes/__auth/policy_set.$policySetId.add_policy/step3";
+import { Route as authPolicysetPolicySetIdAddpolicyStep2Import } from "./routes/__auth/policy_set.$policySetId.add_policy/step2";
+import { Route as authPolicysetPolicySetIdAddpolicyStep1Import } from "./routes/__auth/policy_set.$policySetId.add_policy/step1";
 
 // Create/Update Routes
 
-const UiRoute = UiImport.update({
-  path: '/ui',
+const authRoute = authImport.update({
+  id: "/__auth",
   getParentRoute: () => rootRoute,
-} as any)
+} as any);
 
-const UiauthRoute = UiauthImport.update({
-  id: '/__auth',
-  getParentRoute: () => UiRoute,
-} as any)
+const authIndexRoute = authIndexImport.update({
+  path: "/",
+  getParentRoute: () => authRoute,
+} as any);
 
-const UiauthIndexRoute = UiauthIndexImport.update({
-  path: '/',
-  getParentRoute: () => UiauthRoute,
-} as any)
+const authNewpolicysetRoute = authNewpolicysetImport.update({
+  path: "/new_policy_set",
+  getParentRoute: () => authRoute,
+} as any);
 
-const UiauthNewpolicysetRoute = UiauthNewpolicysetImport.update({
-  path: '/new_policy_set',
-  getParentRoute: () => UiauthRoute,
-} as any)
+const authNewpolicysetStep2Route = authNewpolicysetStep2Import.update({
+  path: "/step2",
+  getParentRoute: () => authNewpolicysetRoute,
+} as any);
 
-const UiauthNewpolicysetStep2Route = UiauthNewpolicysetStep2Import.update({
-  path: '/step2',
-  getParentRoute: () => UiauthNewpolicysetRoute,
-} as any)
+const authNewpolicysetStep1Route = authNewpolicysetStep1Import.update({
+  path: "/step1",
+  getParentRoute: () => authNewpolicysetRoute,
+} as any);
 
-const UiauthNewpolicysetStep1Route = UiauthNewpolicysetStep1Import.update({
-  path: '/step1',
-  getParentRoute: () => UiauthNewpolicysetRoute,
-} as any)
+const authPolicysetPolicySetIdIndexRoute =
+  authPolicysetPolicySetIdIndexImport.update({
+    path: "/policy_set/$policySetId/",
+    getParentRoute: () => authRoute,
+  } as any);
 
-const UiauthPolicysetPolicySetIdIndexRoute =
-  UiauthPolicysetPolicySetIdIndexImport.update({
-    path: '/policy_set/$policySetId/',
-    getParentRoute: () => UiauthRoute,
-  } as any)
+const authPolicysetPolicySetIdAddpolicyRoute =
+  authPolicysetPolicySetIdAddpolicyImport.update({
+    path: "/policy_set/$policySetId/add_policy",
+    getParentRoute: () => authRoute,
+  } as any);
 
-const UiauthPolicysetPolicySetIdAddpolicyRoute =
-  UiauthPolicysetPolicySetIdAddpolicyImport.update({
-    path: '/policy_set/$policySetId/add_policy',
-    getParentRoute: () => UiauthRoute,
-  } as any)
+const authPolicysetPolicySetIdAddpolicyStep3Route =
+  authPolicysetPolicySetIdAddpolicyStep3Import.update({
+    path: "/step3",
+    getParentRoute: () => authPolicysetPolicySetIdAddpolicyRoute,
+  } as any);
 
-const UiauthPolicysetPolicySetIdAddpolicyStep3Route =
-  UiauthPolicysetPolicySetIdAddpolicyStep3Import.update({
-    path: '/step3',
-    getParentRoute: () => UiauthPolicysetPolicySetIdAddpolicyRoute,
-  } as any)
+const authPolicysetPolicySetIdAddpolicyStep2Route =
+  authPolicysetPolicySetIdAddpolicyStep2Import.update({
+    path: "/step2",
+    getParentRoute: () => authPolicysetPolicySetIdAddpolicyRoute,
+  } as any);
 
-const UiauthPolicysetPolicySetIdAddpolicyStep2Route =
-  UiauthPolicysetPolicySetIdAddpolicyStep2Import.update({
-    path: '/step2',
-    getParentRoute: () => UiauthPolicysetPolicySetIdAddpolicyRoute,
-  } as any)
-
-const UiauthPolicysetPolicySetIdAddpolicyStep1Route =
-  UiauthPolicysetPolicySetIdAddpolicyStep1Import.update({
-    path: '/step1',
-    getParentRoute: () => UiauthPolicysetPolicySetIdAddpolicyRoute,
-  } as any)
+const authPolicysetPolicySetIdAddpolicyStep1Route =
+  authPolicysetPolicySetIdAddpolicyStep1Import.update({
+    path: "/step1",
+    getParentRoute: () => authPolicysetPolicySetIdAddpolicyRoute,
+  } as any);
 
 // Populate the FileRoutesByPath interface
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/ui': {
-      id: '/ui'
-      path: '/ui'
-      fullPath: '/ui'
-      preLoaderRoute: typeof UiImport
-      parentRoute: typeof rootRoute
-    }
-    '/ui/__auth': {
-      id: '/ui/__auth'
-      path: ''
-      fullPath: '/ui'
-      preLoaderRoute: typeof UiauthImport
-      parentRoute: typeof UiImport
-    }
-    '/ui/__auth/new_policy_set': {
-      id: '/ui/__auth/new_policy_set'
-      path: '/new_policy_set'
-      fullPath: '/ui/new_policy_set'
-      preLoaderRoute: typeof UiauthNewpolicysetImport
-      parentRoute: typeof UiauthImport
-    }
-    '/ui/__auth/': {
-      id: '/ui/__auth/'
-      path: '/'
-      fullPath: '/ui/'
-      preLoaderRoute: typeof UiauthIndexImport
-      parentRoute: typeof UiauthImport
-    }
-    '/ui/__auth/new_policy_set/step1': {
-      id: '/ui/__auth/new_policy_set/step1'
-      path: '/step1'
-      fullPath: '/ui/new_policy_set/step1'
-      preLoaderRoute: typeof UiauthNewpolicysetStep1Import
-      parentRoute: typeof UiauthNewpolicysetImport
-    }
-    '/ui/__auth/new_policy_set/step2': {
-      id: '/ui/__auth/new_policy_set/step2'
-      path: '/step2'
-      fullPath: '/ui/new_policy_set/step2'
-      preLoaderRoute: typeof UiauthNewpolicysetStep2Import
-      parentRoute: typeof UiauthNewpolicysetImport
-    }
-    '/ui/__auth/policy_set/$policySetId/add_policy': {
-      id: '/ui/__auth/policy_set/$policySetId/add_policy'
-      path: '/policy_set/$policySetId/add_policy'
-      fullPath: '/ui/policy_set/$policySetId/add_policy'
-      preLoaderRoute: typeof UiauthPolicysetPolicySetIdAddpolicyImport
-      parentRoute: typeof UiauthImport
-    }
-    '/ui/__auth/policy_set/$policySetId/': {
-      id: '/ui/__auth/policy_set/$policySetId/'
-      path: '/policy_set/$policySetId'
-      fullPath: '/ui/policy_set/$policySetId'
-      preLoaderRoute: typeof UiauthPolicysetPolicySetIdIndexImport
-      parentRoute: typeof UiauthImport
-    }
-    '/ui/__auth/policy_set/$policySetId/add_policy/step1': {
-      id: '/ui/__auth/policy_set/$policySetId/add_policy/step1'
-      path: '/step1'
-      fullPath: '/ui/policy_set/$policySetId/add_policy/step1'
-      preLoaderRoute: typeof UiauthPolicysetPolicySetIdAddpolicyStep1Import
-      parentRoute: typeof UiauthPolicysetPolicySetIdAddpolicyImport
-    }
-    '/ui/__auth/policy_set/$policySetId/add_policy/step2': {
-      id: '/ui/__auth/policy_set/$policySetId/add_policy/step2'
-      path: '/step2'
-      fullPath: '/ui/policy_set/$policySetId/add_policy/step2'
-      preLoaderRoute: typeof UiauthPolicysetPolicySetIdAddpolicyStep2Import
-      parentRoute: typeof UiauthPolicysetPolicySetIdAddpolicyImport
-    }
-    '/ui/__auth/policy_set/$policySetId/add_policy/step3': {
-      id: '/ui/__auth/policy_set/$policySetId/add_policy/step3'
-      path: '/step3'
-      fullPath: '/ui/policy_set/$policySetId/add_policy/step3'
-      preLoaderRoute: typeof UiauthPolicysetPolicySetIdAddpolicyStep3Import
-      parentRoute: typeof UiauthPolicysetPolicySetIdAddpolicyImport
-    }
+    "/__auth": {
+      id: "/__auth";
+      path: "";
+      fullPath: "";
+      preLoaderRoute: typeof authImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/__auth/new_policy_set": {
+      id: "/__auth/new_policy_set";
+      path: "/new_policy_set";
+      fullPath: "/new_policy_set";
+      preLoaderRoute: typeof authNewpolicysetImport;
+      parentRoute: typeof authImport;
+    };
+    "/__auth/": {
+      id: "/__auth/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof authIndexImport;
+      parentRoute: typeof authImport;
+    };
+    "/__auth/new_policy_set/step1": {
+      id: "/__auth/new_policy_set/step1";
+      path: "/step1";
+      fullPath: "/new_policy_set/step1";
+      preLoaderRoute: typeof authNewpolicysetStep1Import;
+      parentRoute: typeof authNewpolicysetImport;
+    };
+    "/__auth/new_policy_set/step2": {
+      id: "/__auth/new_policy_set/step2";
+      path: "/step2";
+      fullPath: "/new_policy_set/step2";
+      preLoaderRoute: typeof authNewpolicysetStep2Import;
+      parentRoute: typeof authNewpolicysetImport;
+    };
+    "/__auth/policy_set/$policySetId/add_policy": {
+      id: "/__auth/policy_set/$policySetId/add_policy";
+      path: "/policy_set/$policySetId/add_policy";
+      fullPath: "/policy_set/$policySetId/add_policy";
+      preLoaderRoute: typeof authPolicysetPolicySetIdAddpolicyImport;
+      parentRoute: typeof authImport;
+    };
+    "/__auth/policy_set/$policySetId/": {
+      id: "/__auth/policy_set/$policySetId/";
+      path: "/policy_set/$policySetId";
+      fullPath: "/policy_set/$policySetId";
+      preLoaderRoute: typeof authPolicysetPolicySetIdIndexImport;
+      parentRoute: typeof authImport;
+    };
+    "/__auth/policy_set/$policySetId/add_policy/step1": {
+      id: "/__auth/policy_set/$policySetId/add_policy/step1";
+      path: "/step1";
+      fullPath: "/policy_set/$policySetId/add_policy/step1";
+      preLoaderRoute: typeof authPolicysetPolicySetIdAddpolicyStep1Import;
+      parentRoute: typeof authPolicysetPolicySetIdAddpolicyImport;
+    };
+    "/__auth/policy_set/$policySetId/add_policy/step2": {
+      id: "/__auth/policy_set/$policySetId/add_policy/step2";
+      path: "/step2";
+      fullPath: "/policy_set/$policySetId/add_policy/step2";
+      preLoaderRoute: typeof authPolicysetPolicySetIdAddpolicyStep2Import;
+      parentRoute: typeof authPolicysetPolicySetIdAddpolicyImport;
+    };
+    "/__auth/policy_set/$policySetId/add_policy/step3": {
+      id: "/__auth/policy_set/$policySetId/add_policy/step3";
+      path: "/step3";
+      fullPath: "/policy_set/$policySetId/add_policy/step3";
+      preLoaderRoute: typeof authPolicysetPolicySetIdAddpolicyStep3Import;
+      parentRoute: typeof authPolicysetPolicySetIdAddpolicyImport;
+    };
   }
 }
 
 // Create and export the route tree
 
-interface UiauthNewpolicysetRouteChildren {
-  UiauthNewpolicysetStep1Route: typeof UiauthNewpolicysetStep1Route
-  UiauthNewpolicysetStep2Route: typeof UiauthNewpolicysetStep2Route
+interface authNewpolicysetRouteChildren {
+  authNewpolicysetStep1Route: typeof authNewpolicysetStep1Route;
+  authNewpolicysetStep2Route: typeof authNewpolicysetStep2Route;
 }
 
-const UiauthNewpolicysetRouteChildren: UiauthNewpolicysetRouteChildren = {
-  UiauthNewpolicysetStep1Route: UiauthNewpolicysetStep1Route,
-  UiauthNewpolicysetStep2Route: UiauthNewpolicysetStep2Route,
+const authNewpolicysetRouteChildren: authNewpolicysetRouteChildren = {
+  authNewpolicysetStep1Route: authNewpolicysetStep1Route,
+  authNewpolicysetStep2Route: authNewpolicysetStep2Route,
+};
+
+const authNewpolicysetRouteWithChildren =
+  authNewpolicysetRoute._addFileChildren(authNewpolicysetRouteChildren);
+
+interface authPolicysetPolicySetIdAddpolicyRouteChildren {
+  authPolicysetPolicySetIdAddpolicyStep1Route: typeof authPolicysetPolicySetIdAddpolicyStep1Route;
+  authPolicysetPolicySetIdAddpolicyStep2Route: typeof authPolicysetPolicySetIdAddpolicyStep2Route;
+  authPolicysetPolicySetIdAddpolicyStep3Route: typeof authPolicysetPolicySetIdAddpolicyStep3Route;
 }
 
-const UiauthNewpolicysetRouteWithChildren =
-  UiauthNewpolicysetRoute._addFileChildren(UiauthNewpolicysetRouteChildren)
-
-interface UiauthPolicysetPolicySetIdAddpolicyRouteChildren {
-  UiauthPolicysetPolicySetIdAddpolicyStep1Route: typeof UiauthPolicysetPolicySetIdAddpolicyStep1Route
-  UiauthPolicysetPolicySetIdAddpolicyStep2Route: typeof UiauthPolicysetPolicySetIdAddpolicyStep2Route
-  UiauthPolicysetPolicySetIdAddpolicyStep3Route: typeof UiauthPolicysetPolicySetIdAddpolicyStep3Route
-}
-
-const UiauthPolicysetPolicySetIdAddpolicyRouteChildren: UiauthPolicysetPolicySetIdAddpolicyRouteChildren =
+const authPolicysetPolicySetIdAddpolicyRouteChildren: authPolicysetPolicySetIdAddpolicyRouteChildren =
   {
-    UiauthPolicysetPolicySetIdAddpolicyStep1Route:
-      UiauthPolicysetPolicySetIdAddpolicyStep1Route,
-    UiauthPolicysetPolicySetIdAddpolicyStep2Route:
-      UiauthPolicysetPolicySetIdAddpolicyStep2Route,
-    UiauthPolicysetPolicySetIdAddpolicyStep3Route:
-      UiauthPolicysetPolicySetIdAddpolicyStep3Route,
-  }
+    authPolicysetPolicySetIdAddpolicyStep1Route:
+      authPolicysetPolicySetIdAddpolicyStep1Route,
+    authPolicysetPolicySetIdAddpolicyStep2Route:
+      authPolicysetPolicySetIdAddpolicyStep2Route,
+    authPolicysetPolicySetIdAddpolicyStep3Route:
+      authPolicysetPolicySetIdAddpolicyStep3Route,
+  };
 
-const UiauthPolicysetPolicySetIdAddpolicyRouteWithChildren =
-  UiauthPolicysetPolicySetIdAddpolicyRoute._addFileChildren(
-    UiauthPolicysetPolicySetIdAddpolicyRouteChildren,
-  )
+const authPolicysetPolicySetIdAddpolicyRouteWithChildren =
+  authPolicysetPolicySetIdAddpolicyRoute._addFileChildren(
+    authPolicysetPolicySetIdAddpolicyRouteChildren,
+  );
 
-interface UiauthRouteChildren {
-  UiauthNewpolicysetRoute: typeof UiauthNewpolicysetRouteWithChildren
-  UiauthIndexRoute: typeof UiauthIndexRoute
-  UiauthPolicysetPolicySetIdAddpolicyRoute: typeof UiauthPolicysetPolicySetIdAddpolicyRouteWithChildren
-  UiauthPolicysetPolicySetIdIndexRoute: typeof UiauthPolicysetPolicySetIdIndexRoute
+interface authRouteChildren {
+  authNewpolicysetRoute: typeof authNewpolicysetRouteWithChildren;
+  authIndexRoute: typeof authIndexRoute;
+  authPolicysetPolicySetIdAddpolicyRoute: typeof authPolicysetPolicySetIdAddpolicyRouteWithChildren;
+  authPolicysetPolicySetIdIndexRoute: typeof authPolicysetPolicySetIdIndexRoute;
 }
 
-const UiauthRouteChildren: UiauthRouteChildren = {
-  UiauthNewpolicysetRoute: UiauthNewpolicysetRouteWithChildren,
-  UiauthIndexRoute: UiauthIndexRoute,
-  UiauthPolicysetPolicySetIdAddpolicyRoute:
-    UiauthPolicysetPolicySetIdAddpolicyRouteWithChildren,
-  UiauthPolicysetPolicySetIdIndexRoute: UiauthPolicysetPolicySetIdIndexRoute,
-}
+const authRouteChildren: authRouteChildren = {
+  authNewpolicysetRoute: authNewpolicysetRouteWithChildren,
+  authIndexRoute: authIndexRoute,
+  authPolicysetPolicySetIdAddpolicyRoute:
+    authPolicysetPolicySetIdAddpolicyRouteWithChildren,
+  authPolicysetPolicySetIdIndexRoute: authPolicysetPolicySetIdIndexRoute,
+};
 
-const UiauthRouteWithChildren =
-  UiauthRoute._addFileChildren(UiauthRouteChildren)
-
-interface UiRouteChildren {
-  UiauthRoute: typeof UiauthRouteWithChildren
-}
-
-const UiRouteChildren: UiRouteChildren = {
-  UiauthRoute: UiauthRouteWithChildren,
-}
-
-const UiRouteWithChildren = UiRoute._addFileChildren(UiRouteChildren)
+const authRouteWithChildren = authRoute._addFileChildren(authRouteChildren);
 
 export interface FileRoutesByFullPath {
-  '/ui': typeof UiauthRouteWithChildren
-  '/ui/new_policy_set': typeof UiauthNewpolicysetRouteWithChildren
-  '/ui/': typeof UiauthIndexRoute
-  '/ui/new_policy_set/step1': typeof UiauthNewpolicysetStep1Route
-  '/ui/new_policy_set/step2': typeof UiauthNewpolicysetStep2Route
-  '/ui/policy_set/$policySetId/add_policy': typeof UiauthPolicysetPolicySetIdAddpolicyRouteWithChildren
-  '/ui/policy_set/$policySetId': typeof UiauthPolicysetPolicySetIdIndexRoute
-  '/ui/policy_set/$policySetId/add_policy/step1': typeof UiauthPolicysetPolicySetIdAddpolicyStep1Route
-  '/ui/policy_set/$policySetId/add_policy/step2': typeof UiauthPolicysetPolicySetIdAddpolicyStep2Route
-  '/ui/policy_set/$policySetId/add_policy/step3': typeof UiauthPolicysetPolicySetIdAddpolicyStep3Route
+  "": typeof authRouteWithChildren;
+  "/new_policy_set": typeof authNewpolicysetRouteWithChildren;
+  "/": typeof authIndexRoute;
+  "/new_policy_set/step1": typeof authNewpolicysetStep1Route;
+  "/new_policy_set/step2": typeof authNewpolicysetStep2Route;
+  "/policy_set/$policySetId/add_policy": typeof authPolicysetPolicySetIdAddpolicyRouteWithChildren;
+  "/policy_set/$policySetId": typeof authPolicysetPolicySetIdIndexRoute;
+  "/policy_set/$policySetId/add_policy/step1": typeof authPolicysetPolicySetIdAddpolicyStep1Route;
+  "/policy_set/$policySetId/add_policy/step2": typeof authPolicysetPolicySetIdAddpolicyStep2Route;
+  "/policy_set/$policySetId/add_policy/step3": typeof authPolicysetPolicySetIdAddpolicyStep3Route;
 }
 
 export interface FileRoutesByTo {
-  '/ui': typeof UiauthIndexRoute
-  '/ui/new_policy_set': typeof UiauthNewpolicysetRouteWithChildren
-  '/ui/new_policy_set/step1': typeof UiauthNewpolicysetStep1Route
-  '/ui/new_policy_set/step2': typeof UiauthNewpolicysetStep2Route
-  '/ui/policy_set/$policySetId/add_policy': typeof UiauthPolicysetPolicySetIdAddpolicyRouteWithChildren
-  '/ui/policy_set/$policySetId': typeof UiauthPolicysetPolicySetIdIndexRoute
-  '/ui/policy_set/$policySetId/add_policy/step1': typeof UiauthPolicysetPolicySetIdAddpolicyStep1Route
-  '/ui/policy_set/$policySetId/add_policy/step2': typeof UiauthPolicysetPolicySetIdAddpolicyStep2Route
-  '/ui/policy_set/$policySetId/add_policy/step3': typeof UiauthPolicysetPolicySetIdAddpolicyStep3Route
+  "/new_policy_set": typeof authNewpolicysetRouteWithChildren;
+  "/": typeof authIndexRoute;
+  "/new_policy_set/step1": typeof authNewpolicysetStep1Route;
+  "/new_policy_set/step2": typeof authNewpolicysetStep2Route;
+  "/policy_set/$policySetId/add_policy": typeof authPolicysetPolicySetIdAddpolicyRouteWithChildren;
+  "/policy_set/$policySetId": typeof authPolicysetPolicySetIdIndexRoute;
+  "/policy_set/$policySetId/add_policy/step1": typeof authPolicysetPolicySetIdAddpolicyStep1Route;
+  "/policy_set/$policySetId/add_policy/step2": typeof authPolicysetPolicySetIdAddpolicyStep2Route;
+  "/policy_set/$policySetId/add_policy/step3": typeof authPolicysetPolicySetIdAddpolicyStep3Route;
 }
 
 export interface FileRoutesById {
-  __root__: typeof rootRoute
-  '/ui': typeof UiRouteWithChildren
-  '/ui/__auth': typeof UiauthRouteWithChildren
-  '/ui/__auth/new_policy_set': typeof UiauthNewpolicysetRouteWithChildren
-  '/ui/__auth/': typeof UiauthIndexRoute
-  '/ui/__auth/new_policy_set/step1': typeof UiauthNewpolicysetStep1Route
-  '/ui/__auth/new_policy_set/step2': typeof UiauthNewpolicysetStep2Route
-  '/ui/__auth/policy_set/$policySetId/add_policy': typeof UiauthPolicysetPolicySetIdAddpolicyRouteWithChildren
-  '/ui/__auth/policy_set/$policySetId/': typeof UiauthPolicysetPolicySetIdIndexRoute
-  '/ui/__auth/policy_set/$policySetId/add_policy/step1': typeof UiauthPolicysetPolicySetIdAddpolicyStep1Route
-  '/ui/__auth/policy_set/$policySetId/add_policy/step2': typeof UiauthPolicysetPolicySetIdAddpolicyStep2Route
-  '/ui/__auth/policy_set/$policySetId/add_policy/step3': typeof UiauthPolicysetPolicySetIdAddpolicyStep3Route
+  __root__: typeof rootRoute;
+  "/__auth": typeof authRouteWithChildren;
+  "/__auth/new_policy_set": typeof authNewpolicysetRouteWithChildren;
+  "/__auth/": typeof authIndexRoute;
+  "/__auth/new_policy_set/step1": typeof authNewpolicysetStep1Route;
+  "/__auth/new_policy_set/step2": typeof authNewpolicysetStep2Route;
+  "/__auth/policy_set/$policySetId/add_policy": typeof authPolicysetPolicySetIdAddpolicyRouteWithChildren;
+  "/__auth/policy_set/$policySetId/": typeof authPolicysetPolicySetIdIndexRoute;
+  "/__auth/policy_set/$policySetId/add_policy/step1": typeof authPolicysetPolicySetIdAddpolicyStep1Route;
+  "/__auth/policy_set/$policySetId/add_policy/step2": typeof authPolicysetPolicySetIdAddpolicyStep2Route;
+  "/__auth/policy_set/$policySetId/add_policy/step3": typeof authPolicysetPolicySetIdAddpolicyStep3Route;
 }
 
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
-    | '/ui'
-    | '/ui/new_policy_set'
-    | '/ui/'
-    | '/ui/new_policy_set/step1'
-    | '/ui/new_policy_set/step2'
-    | '/ui/policy_set/$policySetId/add_policy'
-    | '/ui/policy_set/$policySetId'
-    | '/ui/policy_set/$policySetId/add_policy/step1'
-    | '/ui/policy_set/$policySetId/add_policy/step2'
-    | '/ui/policy_set/$policySetId/add_policy/step3'
-  fileRoutesByTo: FileRoutesByTo
+    | ""
+    | "/new_policy_set"
+    | "/"
+    | "/new_policy_set/step1"
+    | "/new_policy_set/step2"
+    | "/policy_set/$policySetId/add_policy"
+    | "/policy_set/$policySetId"
+    | "/policy_set/$policySetId/add_policy/step1"
+    | "/policy_set/$policySetId/add_policy/step2"
+    | "/policy_set/$policySetId/add_policy/step3";
+  fileRoutesByTo: FileRoutesByTo;
   to:
-    | '/ui'
-    | '/ui/new_policy_set'
-    | '/ui/new_policy_set/step1'
-    | '/ui/new_policy_set/step2'
-    | '/ui/policy_set/$policySetId/add_policy'
-    | '/ui/policy_set/$policySetId'
-    | '/ui/policy_set/$policySetId/add_policy/step1'
-    | '/ui/policy_set/$policySetId/add_policy/step2'
-    | '/ui/policy_set/$policySetId/add_policy/step3'
+    | "/new_policy_set"
+    | "/"
+    | "/new_policy_set/step1"
+    | "/new_policy_set/step2"
+    | "/policy_set/$policySetId/add_policy"
+    | "/policy_set/$policySetId"
+    | "/policy_set/$policySetId/add_policy/step1"
+    | "/policy_set/$policySetId/add_policy/step2"
+    | "/policy_set/$policySetId/add_policy/step3";
   id:
-    | '__root__'
-    | '/ui'
-    | '/ui/__auth'
-    | '/ui/__auth/new_policy_set'
-    | '/ui/__auth/'
-    | '/ui/__auth/new_policy_set/step1'
-    | '/ui/__auth/new_policy_set/step2'
-    | '/ui/__auth/policy_set/$policySetId/add_policy'
-    | '/ui/__auth/policy_set/$policySetId/'
-    | '/ui/__auth/policy_set/$policySetId/add_policy/step1'
-    | '/ui/__auth/policy_set/$policySetId/add_policy/step2'
-    | '/ui/__auth/policy_set/$policySetId/add_policy/step3'
-  fileRoutesById: FileRoutesById
+    | "__root__"
+    | "/__auth"
+    | "/__auth/new_policy_set"
+    | "/__auth/"
+    | "/__auth/new_policy_set/step1"
+    | "/__auth/new_policy_set/step2"
+    | "/__auth/policy_set/$policySetId/add_policy"
+    | "/__auth/policy_set/$policySetId/"
+    | "/__auth/policy_set/$policySetId/add_policy/step1"
+    | "/__auth/policy_set/$policySetId/add_policy/step2"
+    | "/__auth/policy_set/$policySetId/add_policy/step3";
+  fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
-  UiRoute: typeof UiRouteWithChildren
+  authRoute: typeof authRouteWithChildren;
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  UiRoute: UiRouteWithChildren,
-}
+  authRoute: authRouteWithChildren,
+};
 
 export const routeTree = rootRoute
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
 /* prettier-ignore-end */
 
@@ -333,69 +307,62 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/ui"
+        "/__auth"
       ]
     },
-    "/ui": {
-      "filePath": "ui.tsx",
+    "/__auth": {
+      "filePath": "__auth.tsx",
       "children": [
-        "/ui/__auth"
+        "/__auth/new_policy_set",
+        "/__auth/",
+        "/__auth/policy_set/$policySetId/add_policy",
+        "/__auth/policy_set/$policySetId/"
       ]
     },
-    "/ui/__auth": {
-      "filePath": "ui/__auth.tsx",
-      "parent": "/ui",
+    "/__auth/new_policy_set": {
+      "filePath": "__auth/new_policy_set.tsx",
+      "parent": "/__auth",
       "children": [
-        "/ui/__auth/new_policy_set",
-        "/ui/__auth/",
-        "/ui/__auth/policy_set/$policySetId/add_policy",
-        "/ui/__auth/policy_set/$policySetId/"
+        "/__auth/new_policy_set/step1",
+        "/__auth/new_policy_set/step2"
       ]
     },
-    "/ui/__auth/new_policy_set": {
-      "filePath": "ui/__auth/new_policy_set.tsx",
-      "parent": "/ui/__auth",
+    "/__auth/": {
+      "filePath": "__auth/index.tsx",
+      "parent": "/__auth"
+    },
+    "/__auth/new_policy_set/step1": {
+      "filePath": "__auth/new_policy_set/step1.tsx",
+      "parent": "/__auth/new_policy_set"
+    },
+    "/__auth/new_policy_set/step2": {
+      "filePath": "__auth/new_policy_set/step2.tsx",
+      "parent": "/__auth/new_policy_set"
+    },
+    "/__auth/policy_set/$policySetId/add_policy": {
+      "filePath": "__auth/policy_set.$policySetId.add_policy.tsx",
+      "parent": "/__auth",
       "children": [
-        "/ui/__auth/new_policy_set/step1",
-        "/ui/__auth/new_policy_set/step2"
+        "/__auth/policy_set/$policySetId/add_policy/step1",
+        "/__auth/policy_set/$policySetId/add_policy/step2",
+        "/__auth/policy_set/$policySetId/add_policy/step3"
       ]
     },
-    "/ui/__auth/": {
-      "filePath": "ui/__auth/index.tsx",
-      "parent": "/ui/__auth"
+    "/__auth/policy_set/$policySetId/": {
+      "filePath": "__auth/policy_set.$policySetId.index.tsx",
+      "parent": "/__auth"
     },
-    "/ui/__auth/new_policy_set/step1": {
-      "filePath": "ui/__auth/new_policy_set/step1.tsx",
-      "parent": "/ui/__auth/new_policy_set"
+    "/__auth/policy_set/$policySetId/add_policy/step1": {
+      "filePath": "__auth/policy_set.$policySetId.add_policy/step1.tsx",
+      "parent": "/__auth/policy_set/$policySetId/add_policy"
     },
-    "/ui/__auth/new_policy_set/step2": {
-      "filePath": "ui/__auth/new_policy_set/step2.tsx",
-      "parent": "/ui/__auth/new_policy_set"
+    "/__auth/policy_set/$policySetId/add_policy/step2": {
+      "filePath": "__auth/policy_set.$policySetId.add_policy/step2.tsx",
+      "parent": "/__auth/policy_set/$policySetId/add_policy"
     },
-    "/ui/__auth/policy_set/$policySetId/add_policy": {
-      "filePath": "ui/__auth/policy_set.$policySetId.add_policy.tsx",
-      "parent": "/ui/__auth",
-      "children": [
-        "/ui/__auth/policy_set/$policySetId/add_policy/step1",
-        "/ui/__auth/policy_set/$policySetId/add_policy/step2",
-        "/ui/__auth/policy_set/$policySetId/add_policy/step3"
-      ]
-    },
-    "/ui/__auth/policy_set/$policySetId/": {
-      "filePath": "ui/__auth/policy_set.$policySetId.index.tsx",
-      "parent": "/ui/__auth"
-    },
-    "/ui/__auth/policy_set/$policySetId/add_policy/step1": {
-      "filePath": "ui/__auth/policy_set.$policySetId.add_policy/step1.tsx",
-      "parent": "/ui/__auth/policy_set/$policySetId/add_policy"
-    },
-    "/ui/__auth/policy_set/$policySetId/add_policy/step2": {
-      "filePath": "ui/__auth/policy_set.$policySetId.add_policy/step2.tsx",
-      "parent": "/ui/__auth/policy_set/$policySetId/add_policy"
-    },
-    "/ui/__auth/policy_set/$policySetId/add_policy/step3": {
-      "filePath": "ui/__auth/policy_set.$policySetId.add_policy/step3.tsx",
-      "parent": "/ui/__auth/policy_set/$policySetId/add_policy"
+    "/__auth/policy_set/$policySetId/add_policy/step3": {
+      "filePath": "__auth/policy_set.$policySetId.add_policy/step3.tsx",
+      "parent": "/__auth/policy_set/$policySetId/add_policy"
     }
   }
 }
