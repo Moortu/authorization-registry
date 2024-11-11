@@ -1,5 +1,5 @@
 import { Button, Input, Stack, Typography } from "@mui/joy";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AddPolicySetStepper } from "../../../components/add-policy-set-stepper";
 import { useCreatePolicySetContext } from "../new_policy_set";
 import { useForm } from "@tanstack/react-form";
@@ -11,6 +11,7 @@ export const Route = createFileRoute("/__auth/new_policy_set/step1")({
 });
 
 function Component() {
+  const navigate = useNavigate();
   const { value, changeValue } = useCreatePolicySetContext();
 
   const form = useForm({
@@ -20,12 +21,15 @@ function Component() {
     },
     onSubmit: ({ value }) => {
       changeValue((oldValue) => ({ ...oldValue, ...value }));
+
+      // have to validate here
+      navigate({ to: "/new_policy_set/step2" });
     },
   });
 
   return (
     <div>
-      <Typography paddingY={2} level="h2">
+      <Typography paddingY={2} level="h3">
         New policy set
       </Typography>
       <AddPolicySetStepper activeStep={1} />

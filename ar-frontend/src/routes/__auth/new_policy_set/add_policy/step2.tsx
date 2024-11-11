@@ -1,19 +1,15 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Stack } from "@mui/joy";
-
-import { useAddPolicyContext } from "../../../components/add-policy-context";
 import { Step2, Step2FormFields } from "@/components/add-policy";
+import { useAddPolicyContext } from "@/components/add-policy-context";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-export const Route = createFileRoute(
-  "/__auth/policy_set/$policySetId/add_policy/step2",
-)({
-  component: Component,
-});
+export const Route = createFileRoute("/__auth/new_policy_set/add_policy/step2")(
+  {
+    component: Component,
+  },
+);
 
 function Component() {
-  const search = Route.useSearch();
   const navigate = useNavigate();
-  const params = Route.useParams();
   const { changeValue } = useAddPolicyContext();
 
   function onSubmit({ value }: { value: Step2FormFields }) {
@@ -38,22 +34,18 @@ function Component() {
 
   function onBack() {
     navigate({
-      to: "/policy_set/$policySetId/add_policy/step1",
-      params,
+      to: "/new_policy_set/add_policy/step1",
     });
   }
 
   function onNext() {
     navigate({
-      to: "/policy_set/$policySetId/add_policy/step3",
-      params,
-      search,
+      to: "/new_policy_set/add_policy/step3",
     });
   }
-
   return (
-    <Stack spacing={3}>
-      <Step2 onSubmit={onSubmit} onBack={onBack} onNext={onNext} />
-    </Stack>
+    <div>
+      <Step2 onSubmit={onSubmit} onNext={onNext} onBack={onBack} />
+    </div>
   );
 }

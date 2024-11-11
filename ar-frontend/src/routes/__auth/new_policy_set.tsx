@@ -12,7 +12,7 @@ export const Route = createFileRoute("/__auth/new_policy_set")({
   component: Component,
 });
 
-type CreatePolicySet = {
+export type CreatePolicySet = {
   access_subject: string;
   policy_issuer: string;
   policies: Omit<Policy, "id">[];

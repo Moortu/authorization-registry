@@ -19,7 +19,7 @@ export function AddPolicySetStepper({ activeStep }: { activeStep: 1 | 2 | 3 }) {
           Define policy set
         </Typography>
       </Step>
-      {/* <Step
+      <Step
         indicator={
           <StepIndicator variant={activeStep === 2 ? "solid" : "outlined"}>
             2
@@ -29,9 +29,9 @@ export function AddPolicySetStepper({ activeStep }: { activeStep: 1 | 2 | 3 }) {
         <Typography
           textColor={activeStep === 2 ? "neutral.700" : "neutral.500"}
         >
-          Define exception rules
+          Add policies
         </Typography>
-      </Step> */}
+      </Step>
       <Step
         indicator={
           <StepIndicator variant={activeStep === 3 ? "solid" : "outlined"}>

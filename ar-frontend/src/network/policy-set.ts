@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { baseAPIUrl, ErrorResponse, useAuthenticatedFetch } from "./fetch";
 import { z } from "zod";
+import { CreatePolicySet } from "@/routes/__auth/new_policy_set";
 
 const policySchema = z.object({
   id: z.string(),
@@ -192,6 +193,48 @@ export function useDeleteAdminPolicySet({
 
       queryClient.invalidateQueries({
         queryKey: ["admin", "policy-sets", policySetId],
+      });
+    },
+  });
+}
+
+export function useAdminCreatePolicySet() {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ErrorResponse, CreatePolicySet>({
+    mutationFn: async (policySet: CreatePolicySet) => {
+      await authenticatedFetch(`${baseAPIUrl}/admin/policy-set`, {
+        method: "POST",
+        body: JSON.stringify({
+          target: {
+            accessSubject: policySet.access_subject,
+          },
+          licences: ["ISHARE.0001"],
+          maxDelegationDepth: 1,
+          policies: policySet.policies.map((p) => ({
+            rules: p.rules,
+            target: {
+              actions: p.actions,
+              resource: {
+                type: p.resource_type,
+                identifiers: p.identifiers,
+                attributes: p.attributes,
+              },
+              environment: {
+                serviceProviders: p.service_providers,
+              },
+            },
+          })),
+          policyIssuer: policySet.policy_issuer,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "policy-sets"],
       });
     },
   });
