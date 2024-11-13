@@ -1,5 +1,5 @@
-import { Step1, Step1FormFields } from "@/components/add-policy";
-import { useAddPolicyContext } from "@/components/add-policy-context";
+import { Step1, Step1FormFields } from "@/components/add-edit-policy";
+import { useAddPolicyContext } from "@/components/add-edit-policy-context";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/__auth/new_policy_set/add_policy/step1")(

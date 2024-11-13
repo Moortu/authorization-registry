@@ -1,8 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Stack } from "@mui/joy";
-import { AddPolicyStepper } from "../../../components/add-policy-stepper";
-import { useAddPolicyContext } from "../../../components/add-policy-context";
-import { Step1, Step1FormFields } from "@/components/add-policy";
+import { useAddPolicyContext } from "@/components/add-edit-policy-context";
+import { Step1, Step1FormFields } from "@/components/add-edit-policy";
 
 export const Route = createFileRoute(
   "/__auth/policy_set/$policySetId/add_policy/step1",
@@ -23,11 +21,5 @@ function Component() {
     });
   }
 
-  return (
-    <Stack spacing={3}>
-      <AddPolicyStepper activeStep={1} />
-
-      <Step1 onSubmit={onSubmit} />
-    </Stack>
-  );
+  return <Step1 onSubmit={onSubmit} />;
 }

@@ -31,8 +31,14 @@ export function useAddPolicyContext() {
   return useContext(policyContext);
 }
 
-export function AddPolicyContext({ children }: { children: ReactNode }) {
-  const [value, setValue] = useState(defaultValue);
+export function AddEditPolicyContext({
+  children,
+  initialValue,
+}: {
+  children: ReactNode;
+  initialValue?: Omit<Policy, "id">;
+}) {
+  const [value, setValue] = useState(initialValue || defaultValue);
 
   return (
     <policyContext.Provider

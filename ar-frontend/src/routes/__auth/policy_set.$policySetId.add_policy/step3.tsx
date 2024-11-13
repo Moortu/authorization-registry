@@ -3,7 +3,7 @@ import {
   Policy,
   useAddAdminPolicyToPolicySet,
 } from "../../../network/policy-set";
-import { Step3 } from "@/components/add-policy";
+import { Step3 } from "@/components/add-edit-policy";
 
 export const Route = createFileRoute(
   "/__auth/policy_set/$policySetId/add_policy/step3",

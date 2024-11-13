@@ -23,9 +23,13 @@ import { Route as authPolicysetPolicySetIdAddpolicyImport } from "./routes/__aut
 import { Route as authNewpolicysetAddpolicyStep3Import } from "./routes/__auth/new_policy_set/add_policy/step3";
 import { Route as authNewpolicysetAddpolicyStep2Import } from "./routes/__auth/new_policy_set/add_policy/step2";
 import { Route as authNewpolicysetAddpolicyStep1Import } from "./routes/__auth/new_policy_set/add_policy/step1";
+import { Route as authPolicysetPolicySetIdEditpolicyPolicyIdImport } from "./routes/__auth/policy_set.$policySetId.edit_policy.$policyId";
 import { Route as authPolicysetPolicySetIdAddpolicyStep3Import } from "./routes/__auth/policy_set.$policySetId.add_policy/step3";
 import { Route as authPolicysetPolicySetIdAddpolicyStep2Import } from "./routes/__auth/policy_set.$policySetId.add_policy/step2";
 import { Route as authPolicysetPolicySetIdAddpolicyStep1Import } from "./routes/__auth/policy_set.$policySetId.add_policy/step1";
+import { Route as authPolicysetPolicySetIdEditpolicyPolicyIdStep3Import } from "./routes/__auth/policy_set.$policySetId.edit_policy.$policyId/step3";
+import { Route as authPolicysetPolicySetIdEditpolicyPolicyIdStep2Import } from "./routes/__auth/policy_set.$policySetId.edit_policy.$policyId/step2";
+import { Route as authPolicysetPolicySetIdEditpolicyPolicyIdStep1Import } from "./routes/__auth/policy_set.$policySetId.edit_policy.$policyId/step1";
 
 // Create/Update Routes
 
@@ -94,6 +98,12 @@ const authNewpolicysetAddpolicyStep1Route =
     getParentRoute: () => authNewpolicysetAddpolicyRoute,
   } as any);
 
+const authPolicysetPolicySetIdEditpolicyPolicyIdRoute =
+  authPolicysetPolicySetIdEditpolicyPolicyIdImport.update({
+    path: "/policy_set/$policySetId/edit_policy/$policyId",
+    getParentRoute: () => authRoute,
+  } as any);
+
 const authPolicysetPolicySetIdAddpolicyStep3Route =
   authPolicysetPolicySetIdAddpolicyStep3Import.update({
     path: "/step3",
@@ -110,6 +120,24 @@ const authPolicysetPolicySetIdAddpolicyStep1Route =
   authPolicysetPolicySetIdAddpolicyStep1Import.update({
     path: "/step1",
     getParentRoute: () => authPolicysetPolicySetIdAddpolicyRoute,
+  } as any);
+
+const authPolicysetPolicySetIdEditpolicyPolicyIdStep3Route =
+  authPolicysetPolicySetIdEditpolicyPolicyIdStep3Import.update({
+    path: "/step3",
+    getParentRoute: () => authPolicysetPolicySetIdEditpolicyPolicyIdRoute,
+  } as any);
+
+const authPolicysetPolicySetIdEditpolicyPolicyIdStep2Route =
+  authPolicysetPolicySetIdEditpolicyPolicyIdStep2Import.update({
+    path: "/step2",
+    getParentRoute: () => authPolicysetPolicySetIdEditpolicyPolicyIdRoute,
+  } as any);
+
+const authPolicysetPolicySetIdEditpolicyPolicyIdStep1Route =
+  authPolicysetPolicySetIdEditpolicyPolicyIdStep1Import.update({
+    path: "/step1",
+    getParentRoute: () => authPolicysetPolicySetIdEditpolicyPolicyIdRoute,
   } as any);
 
 // Populate the FileRoutesByPath interface
@@ -221,6 +249,34 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof authPolicysetPolicySetIdAddpolicyStep3Import;
       parentRoute: typeof authPolicysetPolicySetIdAddpolicyImport;
     };
+    "/__auth/policy_set/$policySetId/edit_policy/$policyId": {
+      id: "/__auth/policy_set/$policySetId/edit_policy/$policyId";
+      path: "/policy_set/$policySetId/edit_policy/$policyId";
+      fullPath: "/policy_set/$policySetId/edit_policy/$policyId";
+      preLoaderRoute: typeof authPolicysetPolicySetIdEditpolicyPolicyIdImport;
+      parentRoute: typeof authImport;
+    };
+    "/__auth/policy_set/$policySetId/edit_policy/$policyId/step1": {
+      id: "/__auth/policy_set/$policySetId/edit_policy/$policyId/step1";
+      path: "/step1";
+      fullPath: "/policy_set/$policySetId/edit_policy/$policyId/step1";
+      preLoaderRoute: typeof authPolicysetPolicySetIdEditpolicyPolicyIdStep1Import;
+      parentRoute: typeof authPolicysetPolicySetIdEditpolicyPolicyIdImport;
+    };
+    "/__auth/policy_set/$policySetId/edit_policy/$policyId/step2": {
+      id: "/__auth/policy_set/$policySetId/edit_policy/$policyId/step2";
+      path: "/step2";
+      fullPath: "/policy_set/$policySetId/edit_policy/$policyId/step2";
+      preLoaderRoute: typeof authPolicysetPolicySetIdEditpolicyPolicyIdStep2Import;
+      parentRoute: typeof authPolicysetPolicySetIdEditpolicyPolicyIdImport;
+    };
+    "/__auth/policy_set/$policySetId/edit_policy/$policyId/step3": {
+      id: "/__auth/policy_set/$policySetId/edit_policy/$policyId/step3";
+      path: "/step3";
+      fullPath: "/policy_set/$policySetId/edit_policy/$policyId/step3";
+      preLoaderRoute: typeof authPolicysetPolicySetIdEditpolicyPolicyIdStep3Import;
+      parentRoute: typeof authPolicysetPolicySetIdEditpolicyPolicyIdImport;
+    };
   }
 }
 
@@ -282,11 +338,33 @@ const authPolicysetPolicySetIdAddpolicyRouteWithChildren =
     authPolicysetPolicySetIdAddpolicyRouteChildren,
   );
 
+interface authPolicysetPolicySetIdEditpolicyPolicyIdRouteChildren {
+  authPolicysetPolicySetIdEditpolicyPolicyIdStep1Route: typeof authPolicysetPolicySetIdEditpolicyPolicyIdStep1Route;
+  authPolicysetPolicySetIdEditpolicyPolicyIdStep2Route: typeof authPolicysetPolicySetIdEditpolicyPolicyIdStep2Route;
+  authPolicysetPolicySetIdEditpolicyPolicyIdStep3Route: typeof authPolicysetPolicySetIdEditpolicyPolicyIdStep3Route;
+}
+
+const authPolicysetPolicySetIdEditpolicyPolicyIdRouteChildren: authPolicysetPolicySetIdEditpolicyPolicyIdRouteChildren =
+  {
+    authPolicysetPolicySetIdEditpolicyPolicyIdStep1Route:
+      authPolicysetPolicySetIdEditpolicyPolicyIdStep1Route,
+    authPolicysetPolicySetIdEditpolicyPolicyIdStep2Route:
+      authPolicysetPolicySetIdEditpolicyPolicyIdStep2Route,
+    authPolicysetPolicySetIdEditpolicyPolicyIdStep3Route:
+      authPolicysetPolicySetIdEditpolicyPolicyIdStep3Route,
+  };
+
+const authPolicysetPolicySetIdEditpolicyPolicyIdRouteWithChildren =
+  authPolicysetPolicySetIdEditpolicyPolicyIdRoute._addFileChildren(
+    authPolicysetPolicySetIdEditpolicyPolicyIdRouteChildren,
+  );
+
 interface authRouteChildren {
   authNewpolicysetRoute: typeof authNewpolicysetRouteWithChildren;
   authIndexRoute: typeof authIndexRoute;
   authPolicysetPolicySetIdAddpolicyRoute: typeof authPolicysetPolicySetIdAddpolicyRouteWithChildren;
   authPolicysetPolicySetIdIndexRoute: typeof authPolicysetPolicySetIdIndexRoute;
+  authPolicysetPolicySetIdEditpolicyPolicyIdRoute: typeof authPolicysetPolicySetIdEditpolicyPolicyIdRouteWithChildren;
 }
 
 const authRouteChildren: authRouteChildren = {
@@ -295,6 +373,8 @@ const authRouteChildren: authRouteChildren = {
   authPolicysetPolicySetIdAddpolicyRoute:
     authPolicysetPolicySetIdAddpolicyRouteWithChildren,
   authPolicysetPolicySetIdIndexRoute: authPolicysetPolicySetIdIndexRoute,
+  authPolicysetPolicySetIdEditpolicyPolicyIdRoute:
+    authPolicysetPolicySetIdEditpolicyPolicyIdRouteWithChildren,
 };
 
 const authRouteWithChildren = authRoute._addFileChildren(authRouteChildren);
@@ -315,6 +395,10 @@ export interface FileRoutesByFullPath {
   "/policy_set/$policySetId/add_policy/step1": typeof authPolicysetPolicySetIdAddpolicyStep1Route;
   "/policy_set/$policySetId/add_policy/step2": typeof authPolicysetPolicySetIdAddpolicyStep2Route;
   "/policy_set/$policySetId/add_policy/step3": typeof authPolicysetPolicySetIdAddpolicyStep3Route;
+  "/policy_set/$policySetId/edit_policy/$policyId": typeof authPolicysetPolicySetIdEditpolicyPolicyIdRouteWithChildren;
+  "/policy_set/$policySetId/edit_policy/$policyId/step1": typeof authPolicysetPolicySetIdEditpolicyPolicyIdStep1Route;
+  "/policy_set/$policySetId/edit_policy/$policyId/step2": typeof authPolicysetPolicySetIdEditpolicyPolicyIdStep2Route;
+  "/policy_set/$policySetId/edit_policy/$policyId/step3": typeof authPolicysetPolicySetIdEditpolicyPolicyIdStep3Route;
 }
 
 export interface FileRoutesByTo {
@@ -332,6 +416,10 @@ export interface FileRoutesByTo {
   "/policy_set/$policySetId/add_policy/step1": typeof authPolicysetPolicySetIdAddpolicyStep1Route;
   "/policy_set/$policySetId/add_policy/step2": typeof authPolicysetPolicySetIdAddpolicyStep2Route;
   "/policy_set/$policySetId/add_policy/step3": typeof authPolicysetPolicySetIdAddpolicyStep3Route;
+  "/policy_set/$policySetId/edit_policy/$policyId": typeof authPolicysetPolicySetIdEditpolicyPolicyIdRouteWithChildren;
+  "/policy_set/$policySetId/edit_policy/$policyId/step1": typeof authPolicysetPolicySetIdEditpolicyPolicyIdStep1Route;
+  "/policy_set/$policySetId/edit_policy/$policyId/step2": typeof authPolicysetPolicySetIdEditpolicyPolicyIdStep2Route;
+  "/policy_set/$policySetId/edit_policy/$policyId/step3": typeof authPolicysetPolicySetIdEditpolicyPolicyIdStep3Route;
 }
 
 export interface FileRoutesById {
@@ -351,6 +439,10 @@ export interface FileRoutesById {
   "/__auth/policy_set/$policySetId/add_policy/step1": typeof authPolicysetPolicySetIdAddpolicyStep1Route;
   "/__auth/policy_set/$policySetId/add_policy/step2": typeof authPolicysetPolicySetIdAddpolicyStep2Route;
   "/__auth/policy_set/$policySetId/add_policy/step3": typeof authPolicysetPolicySetIdAddpolicyStep3Route;
+  "/__auth/policy_set/$policySetId/edit_policy/$policyId": typeof authPolicysetPolicySetIdEditpolicyPolicyIdRouteWithChildren;
+  "/__auth/policy_set/$policySetId/edit_policy/$policyId/step1": typeof authPolicysetPolicySetIdEditpolicyPolicyIdStep1Route;
+  "/__auth/policy_set/$policySetId/edit_policy/$policyId/step2": typeof authPolicysetPolicySetIdEditpolicyPolicyIdStep2Route;
+  "/__auth/policy_set/$policySetId/edit_policy/$policyId/step3": typeof authPolicysetPolicySetIdEditpolicyPolicyIdStep3Route;
 }
 
 export interface FileRouteTypes {
@@ -370,7 +462,11 @@ export interface FileRouteTypes {
     | "/policy_set/$policySetId"
     | "/policy_set/$policySetId/add_policy/step1"
     | "/policy_set/$policySetId/add_policy/step2"
-    | "/policy_set/$policySetId/add_policy/step3";
+    | "/policy_set/$policySetId/add_policy/step3"
+    | "/policy_set/$policySetId/edit_policy/$policyId"
+    | "/policy_set/$policySetId/edit_policy/$policyId/step1"
+    | "/policy_set/$policySetId/edit_policy/$policyId/step2"
+    | "/policy_set/$policySetId/edit_policy/$policyId/step3";
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/new_policy_set"
@@ -386,7 +482,11 @@ export interface FileRouteTypes {
     | "/policy_set/$policySetId"
     | "/policy_set/$policySetId/add_policy/step1"
     | "/policy_set/$policySetId/add_policy/step2"
-    | "/policy_set/$policySetId/add_policy/step3";
+    | "/policy_set/$policySetId/add_policy/step3"
+    | "/policy_set/$policySetId/edit_policy/$policyId"
+    | "/policy_set/$policySetId/edit_policy/$policyId/step1"
+    | "/policy_set/$policySetId/edit_policy/$policyId/step2"
+    | "/policy_set/$policySetId/edit_policy/$policyId/step3";
   id:
     | "__root__"
     | "/__auth"
@@ -403,7 +503,11 @@ export interface FileRouteTypes {
     | "/__auth/policy_set/$policySetId/"
     | "/__auth/policy_set/$policySetId/add_policy/step1"
     | "/__auth/policy_set/$policySetId/add_policy/step2"
-    | "/__auth/policy_set/$policySetId/add_policy/step3";
+    | "/__auth/policy_set/$policySetId/add_policy/step3"
+    | "/__auth/policy_set/$policySetId/edit_policy/$policyId"
+    | "/__auth/policy_set/$policySetId/edit_policy/$policyId/step1"
+    | "/__auth/policy_set/$policySetId/edit_policy/$policyId/step2"
+    | "/__auth/policy_set/$policySetId/edit_policy/$policyId/step3";
   fileRoutesById: FileRoutesById;
 }
 
@@ -436,7 +540,8 @@ export const routeTree = rootRoute
         "/__auth/new_policy_set",
         "/__auth/",
         "/__auth/policy_set/$policySetId/add_policy",
-        "/__auth/policy_set/$policySetId/"
+        "/__auth/policy_set/$policySetId/",
+        "/__auth/policy_set/$policySetId/edit_policy/$policyId"
       ]
     },
     "/__auth/new_policy_set": {
@@ -510,6 +615,27 @@ export const routeTree = rootRoute
     "/__auth/policy_set/$policySetId/add_policy/step3": {
       "filePath": "__auth/policy_set.$policySetId.add_policy/step3.tsx",
       "parent": "/__auth/policy_set/$policySetId/add_policy"
+    },
+    "/__auth/policy_set/$policySetId/edit_policy/$policyId": {
+      "filePath": "__auth/policy_set.$policySetId.edit_policy.$policyId.tsx",
+      "parent": "/__auth",
+      "children": [
+        "/__auth/policy_set/$policySetId/edit_policy/$policyId/step1",
+        "/__auth/policy_set/$policySetId/edit_policy/$policyId/step2",
+        "/__auth/policy_set/$policySetId/edit_policy/$policyId/step3"
+      ]
+    },
+    "/__auth/policy_set/$policySetId/edit_policy/$policyId/step1": {
+      "filePath": "__auth/policy_set.$policySetId.edit_policy.$policyId/step1.tsx",
+      "parent": "/__auth/policy_set/$policySetId/edit_policy/$policyId"
+    },
+    "/__auth/policy_set/$policySetId/edit_policy/$policyId/step2": {
+      "filePath": "__auth/policy_set.$policySetId.edit_policy.$policyId/step2.tsx",
+      "parent": "/__auth/policy_set/$policySetId/edit_policy/$policyId"
+    },
+    "/__auth/policy_set/$policySetId/edit_policy/$policyId/step3": {
+      "filePath": "__auth/policy_set.$policySetId.edit_policy.$policyId/step3.tsx",
+      "parent": "/__auth/policy_set/$policySetId/edit_policy/$policyId"
     }
   }
 }

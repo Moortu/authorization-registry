@@ -14,12 +14,13 @@ import {
   IconButton,
 } from "@mui/joy";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { AddPolicyStepper } from "@/components/add-policy-stepper";
+import { AddEditPolicyStepper } from "@/components/add-edit-policy-stepper";
 import { required } from "@/form-field-validators";
 import { FormField } from "@/components/form-field";
-import { useAddPolicyContext } from "@/components/add-policy-context";
+import { useAddPolicyContext } from "@/components/add-edit-policy-context";
 import { PolicyCard } from "./policy-card";
 import { Policy } from "@/network/policy-set";
+import { Fragment } from "react/jsx-runtime";
 
 export type Step1FormFields = {
   actions: string[];
@@ -36,6 +37,8 @@ export function Step1({
 }) {
   const { value } = useAddPolicyContext();
 
+  console.log({ value });
+
   const form = useForm<Step1FormFields>({
     defaultValues: value,
     onSubmit,
@@ -43,7 +46,7 @@ export function Step1({
 
   return (
     <Stack spacing={3}>
-      <AddPolicyStepper activeStep={1} />
+      <AddEditPolicyStepper activeStep={1} />
 
       <form
         onSubmit={(e) => {
@@ -63,9 +66,10 @@ export function Step1({
                   onChange={(_, newValue) => field.handleChange(newValue)}
                   multiple
                 >
-                  <Option value="read">Read</Option>
-                  <Option value="edit">Edit</Option>
-                  <Option value="delete">Delete</Option>
+                  <Option value="Read">Read</Option>
+                  <Option value="Edit">Edit</Option>
+                  <Option value="Delete">Delete</Option>
+                  <Option value="Create">Create</Option>
                 </Select>
               </FormField>
             )}
@@ -160,11 +164,9 @@ export type Step2FormFields = {
 };
 
 export function Step2({
-  onSubmit,
   onNext,
   onBack,
 }: {
-  onSubmit: ({ value }: { value: Step2FormFields }) => void;
   onNext: () => void;
   onBack: () => void;
 }) {
@@ -177,12 +179,30 @@ export function Step2({
       attributes: [],
       actions: [],
     },
-    onSubmit,
+    onSubmit: ({ value }) => {
+      changeValue((oldValue) => ({
+        ...oldValue,
+        rules: [
+          ...oldValue.rules,
+          {
+            effect: "Deny",
+            target: {
+              actions: value.actions,
+              resource: {
+                type: value.resource_type,
+                identifiers: value.identifiers,
+                attributes: value.attributes,
+              },
+            },
+          },
+        ],
+      }));
+    },
   });
 
   return (
     <Stack spacing={3}>
-      <AddPolicyStepper activeStep={2} />
+      <AddEditPolicyStepper activeStep={2} />
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -300,7 +320,7 @@ export function Step2({
                 </Box>
               </Card>
             ) : (
-              <></>
+              <Fragment key={idx}></Fragment>
             ),
           )}
         </Stack>
@@ -333,7 +353,7 @@ export function Step3({
 
   return (
     <Stack spacing={3}>
-      <AddPolicyStepper activeStep={3} />
+      <AddEditPolicyStepper activeStep={3} />
       <PolicyCard policy={policy} />
 
       <Stack direction="row" spacing={1}>

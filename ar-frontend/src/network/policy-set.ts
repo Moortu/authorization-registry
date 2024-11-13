@@ -142,6 +142,57 @@ export function useAddAdminPolicyToPolicySet({
   });
 }
 
+export function useReplaceAdminPolicyToPolicySet({
+  policySetId,
+  policyId,
+}: {
+  policySetId: string;
+  policyId: string;
+}) {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ policy }: { policy: Omit<Policy, "id"> }) => {
+      await authenticatedFetch(
+        `${baseAPIUrl}/admin/policy-set/${policySetId}/policy/${policyId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            target: {
+              actions: policy.actions,
+              environment: {
+                serviceProviders: policy.service_providers,
+              },
+              resource: {
+                type: policy.resource_type,
+                identifiers: policy.identifiers,
+                attributes: policy.attributes,
+              },
+            },
+            rules: policy.rules,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "policy-sets"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "policy-sets", policySetId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "policy-set", policySetId, "policy", policyId],
+      });
+    },
+  });
+}
+
 export function useDeleteAdminPolicyFromPolicySet({
   policySetId,
 }: {
@@ -166,6 +217,28 @@ export function useDeleteAdminPolicyFromPolicySet({
       queryClient.invalidateQueries({
         queryKey: ["admin", "policy-sets", policySetId],
       });
+    },
+  });
+}
+
+export function useAdminGetPolicy({
+  policyId,
+  policySetId,
+}: {
+  policyId: string;
+  policySetId: string;
+}) {
+  const authenticatedFetch = useAuthenticatedFetch();
+
+  return useQuery({
+    throwOnError: true,
+    queryKey: ["admin", "policy-set", policySetId, "policy", policyId],
+    queryFn: async () => {
+      const response = await authenticatedFetch(
+        `${baseAPIUrl}/admin/policy-set/${policySetId}/policy/${policyId}`,
+      );
+      const json = await response.json();
+      return policySchema.parse(json);
     },
   });
 }

@@ -1,4 +1,4 @@
-use anyhow::Context;
+use anyhow::{bail, Context};
 use ar_entity::delegation_evidence::{Policy, ResourceRule};
 use sea_orm::{self, ConnectionTrait, QueryFilter, TransactionTrait};
 use sea_orm::{
@@ -7,6 +7,21 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+pub async fn get_policy(
+    policy_set_id: Uuid,
+    policy_id: Uuid,
+    db: &DatabaseConnection,
+) -> anyhow::Result<Option<ar_entity::policy::Model>> {
+    let policy = ar_entity::policy::Entity::find()
+        .filter(ar_entity::policy::Column::Id.eq(policy_id))
+        .filter(ar_entity::policy::Column::PolicySet.eq(policy_set_id))
+        .one(db)
+        .await
+        .context("Error fetching policy from db")?;
+
+    Ok(policy)
+}
 
 pub async fn _get_all_policies(
     db: &DatabaseConnection,
@@ -285,6 +300,42 @@ pub async fn insert_policy<C: ConnectionTrait>(
         .last_insert_id;
 
     Ok(policy_id)
+}
+
+pub async fn replace_policy<C: ConnectionTrait>(
+    policy_set_id: Uuid,
+    policy_id: Uuid,
+    new_policy: &ar_entity::delegation_evidence::Policy,
+    db: &C,
+) -> anyhow::Result<ar_entity::policy::Model> {
+    let policy = ar_entity::policy::Entity::find_by_id(policy_id)
+        .filter(ar_entity::policy::Column::PolicySet.eq(policy_set_id))
+        .one(db)
+        .await
+        .context("Error retrieving policy from db")?;
+
+    let mut active_policy = match policy {
+        None => bail!("policy with id '{}' not found", policy_id),
+        Some(policy) => policy.into_active_model(),
+    };
+
+    active_policy.attributes = ActiveValue::set(new_policy.target.resource.attributes.clone());
+    active_policy.identifiers = ActiveValue::set(new_policy.target.resource.identifiers.clone());
+    active_policy.service_providers =
+        ActiveValue::set(new_policy.target.environment.service_providers.clone());
+    active_policy.actions = ActiveValue::set(new_policy.target.actions.clone());
+    active_policy.resource_type =
+        ActiveValue::set(new_policy.target.resource.resource_type.clone());
+    active_policy.rules = ActiveValue::set(new_policy.rules.clone());
+
+    let active_policy = active_policy
+        .save(db)
+        .await
+        .context("Error saving update policy to db")?;
+
+    let policy = active_policy.try_into_model()?;
+
+    Ok(policy)
 }
 
 pub async fn delete_policy_set(

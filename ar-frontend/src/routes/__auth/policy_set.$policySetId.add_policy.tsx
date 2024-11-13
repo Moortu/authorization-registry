@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { AddPolicyContext } from "../../components/add-policy-context";
+import { AddEditPolicyContext } from "@/components/add-edit-policy-context";
 
 export const Route = createFileRoute(
   "/__auth/policy_set/$policySetId/add_policy",
@@ -9,8 +9,8 @@ export const Route = createFileRoute(
 
 function Component() {
   return (
-    <AddPolicyContext>
+    <AddEditPolicyContext>
       <Outlet />
-    </AddPolicyContext>
+    </AddEditPolicyContext>
   );
 }

@@ -178,7 +178,20 @@ function Component() {
                           >
                             Delete
                           </Button>
-                          <Button variant="outlined">Edit</Button>
+                          <Button
+                            onClick={() => {
+                              navigate({
+                                to: "/policy_set/$policySetId/edit_policy/$policyId/step1",
+                                params: {
+                                  policyId: p.id,
+                                  policySetId: params.policySetId,
+                                },
+                              });
+                            }}
+                            variant="outlined"
+                          >
+                            Edit
+                          </Button>
                         </Stack>
                       }
                     />

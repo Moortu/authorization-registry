@@ -1,7 +1,7 @@
 import { Policy } from "@/network/policy-set";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCreatePolicySetContext } from "../../new_policy_set";
-import { Step3 } from "@/components/add-policy";
+import { Step3 } from "@/components/add-edit-policy";
 
 export const Route = createFileRoute("/__auth/new_policy_set/add_policy/step3")(
   {

@@ -37,7 +37,9 @@ pub fn get_admin_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
         .route("/policy-set/:id/policy", post(add_policy_to_policy_set))
         .route(
             "/policy-set/:id/policy/:policy_id",
-            delete(delete_policy_from_policy_set),
+            delete(delete_policy_from_policy_set)
+                .put(replace_policy_in_policy_set)
+                .get(get_policy),
         )
         .layer(from_fn_with_state(
             vec!["dexspace_admin".to_owned()],
@@ -48,12 +50,44 @@ pub fn get_admin_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
 }
 
 #[axum_macros::debug_handler]
+async fn get_policy(
+    Extension(db): Extension<DatabaseConnection>,
+    WithRejection(Path((policy_set_id, policy_id)), _): WithRejection<Path<(Uuid, Uuid)>, AppError>,
+) -> Result<Json<ar_entity::policy::Model>, AppError> {
+    let policy = policy_store::get_policy(policy_set_id.clone(), policy_id.clone(), &db).await?;
+
+    match policy {
+        None => Err(AppError::Expected(ExpectedError {
+            status_code: StatusCode::NOT_FOUND,
+            message: "Can't find policy".to_owned(),
+            reason: format!(
+                "Unable to find policy with id '{}' and policy set id '{}",
+                &policy_id, &policy_set_id
+            ),
+            metadata: None,
+        })),
+        Some(p) => Ok(Json(p)),
+    }
+}
+
+#[axum_macros::debug_handler]
 async fn add_policy_to_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     WithRejection(Path(id), _): WithRejection<Path<Uuid>, AppError>,
     Json(body): Json<Policy>,
 ) -> Result<Json<ar_entity::policy::Model>, AppError> {
     let policy = policy_store::add_policy_to_policy_set(&id, body, &db).await?;
+
+    Ok(Json(policy))
+}
+
+#[axum_macros::debug_handler]
+async fn replace_policy_in_policy_set(
+    Extension(db): Extension<DatabaseConnection>,
+    WithRejection(Path((policy_set_id, policy_id)), _): WithRejection<Path<(Uuid, Uuid)>, AppError>,
+    Json(body): Json<Policy>,
+) -> Result<Json<ar_entity::policy::Model>, AppError> {
+    let policy = policy_store::replace_policy(policy_set_id, policy_id, &body, &db).await?;
 
     Ok(Json(policy))
 }
