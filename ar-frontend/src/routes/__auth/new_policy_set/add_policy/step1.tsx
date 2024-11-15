@@ -1,5 +1,4 @@
-import { Step1, Step1FormFields } from "@/components/add-edit-policy";
-import { useAddPolicyContext } from "@/components/add-edit-policy-context";
+import { Step1 } from "@/components/add-edit-policy";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/__auth/new_policy_set/add_policy/step1")(
@@ -9,11 +8,9 @@ export const Route = createFileRoute("/__auth/new_policy_set/add_policy/step1")(
 );
 
 function Component() {
-  const { changeValue } = useAddPolicyContext();
   const navigate = useNavigate();
 
-  function onSubmit({ value }: { value: Step1FormFields }) {
-    changeValue((oldValue) => ({ ...oldValue, ...value }));
+  function onSubmit() {
     navigate({
       to: "/new_policy_set/add_policy/step2",
     });

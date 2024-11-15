@@ -30,18 +30,15 @@ export type Step1FormFields = {
   service_providers: string[];
 };
 
-export function Step1({
-  onSubmit,
-}: {
-  onSubmit: ({ value }: { value: Step1FormFields }) => void;
-}) {
-  const { value } = useAddPolicyContext();
-
-  console.log({ value });
+export function Step1({ onSubmit }: { onSubmit: () => void }) {
+  const { value, changeValue } = useAddPolicyContext();
 
   const form = useForm<Step1FormFields>({
     defaultValues: value,
-    onSubmit,
+    onSubmit: ({ value }) => {
+      changeValue((oldValue) => ({ ...oldValue, ...value }));
+      onSubmit();
+    },
   });
 
   return (
@@ -98,7 +95,6 @@ export function Step1({
                   clearOnBlur
                   value={field.state.value}
                   onChange={(_, value) => {
-                    console.log("chnginnnng", { value });
                     field.handleChange(value);
                   }}
                   freeSolo
@@ -328,7 +324,7 @@ export function Step2({
 
       <Stack direction="row" spacing={1}>
         <Button variant="outlined" onClick={onBack}>
-          Back
+          Previous step
         </Button>
         <Button onClick={onNext}>Review and submit</Button>
       </Stack>
@@ -348,7 +344,10 @@ export function Step3({
   const { value } = useAddPolicyContext();
   const policy = {
     ...value,
-    rules: [{ effect: "Permit" as const }, ...value.rules],
+    rules:
+      value.rules?.[0]?.effect === "Permit"
+        ? value.rules
+        : [{ effect: "Permit" as const }, ...value.rules],
   };
 
   return (
@@ -358,10 +357,10 @@ export function Step3({
 
       <Stack direction="row" spacing={1}>
         <Button variant="outlined" onClick={onBack}>
-          Back
+          Previous step
         </Button>
         <Button disabled={isSubmitting} onClick={() => onSubmit({ policy })}>
-          Add policy
+          Submit policy
         </Button>
       </Stack>
     </Stack>

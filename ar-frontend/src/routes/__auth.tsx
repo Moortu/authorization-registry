@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { z } from "zod";
 import { isAuthenticated, useAuth } from "../auth";
 import { initLogin } from "../network/idp";
-import { Box } from "@mui/joy";
+import { Box, Button } from "@mui/joy";
 import { Logo } from "../components/logo";
 
 const searchSchema = z
@@ -51,8 +51,21 @@ function Component() {
 
   return (
     <Box>
-      <Box paddingY={2}>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        paddingY={2}
+      >
         <Logo />
+        <Button
+          variant="plain"
+          color="neutral"
+          onClick={() => navigate({ to: "/" })}
+        >
+          Policy sets
+        </Button>
+        <div />
       </Box>
       <Outlet />
     </Box>

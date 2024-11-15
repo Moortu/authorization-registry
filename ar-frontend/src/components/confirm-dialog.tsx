@@ -32,7 +32,6 @@ export function ConfirmDialog({
   isDanger: boolean;
   error: ErrorResponse | null;
 }) {
-  console.log("hereeee???", error);
   return (
     <Modal open={isOpen} onClose={onClose}>
       <ModalDialog size="lg">

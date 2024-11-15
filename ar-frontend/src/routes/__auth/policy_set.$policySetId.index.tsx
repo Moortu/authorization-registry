@@ -142,6 +142,8 @@ function Component() {
           <DeletePolicySetModal />
 
           <Stack spacing={3}>
+            <Typography level="h2">Policy set</Typography>
+
             <Card>
               <Stack direction="row" spacing={2}>
                 <Box>
@@ -164,7 +166,7 @@ function Component() {
                       policy={p}
                       key={p.id}
                       actions={
-                        <Stack spacing={1} direction="row">
+                        <Stack padding={0} spacing={1} direction="row">
                           <Button
                             onClick={() =>
                               navigate({
