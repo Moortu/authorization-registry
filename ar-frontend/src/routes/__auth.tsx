@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { z } from "zod";
 import { isAuthenticated, useAuth } from "../auth";
-import { initLogin } from "../network/idp";
+import { initLogin, initLogout } from "../network/idp";
 import { Box, Button } from "@mui/joy";
 import { Logo } from "../components/logo";
 
@@ -65,7 +65,9 @@ function Component() {
         >
           Policy sets
         </Button>
-        <div />
+        <Button variant="soft" onClick={() => initLogout()}>
+          Logout
+        </Button>
       </Box>
       <Outlet />
     </Box>

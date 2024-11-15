@@ -17,6 +17,7 @@ import { useDebounce } from "@uidotdev/usehooks";
 import { PageLoadingFallback } from "../../components/page-loading-fallback";
 import { CatchBoundary } from "../../components/catch-boundary";
 import { PolicyCard } from "../../components/policy-card";
+import { getTokenContent, useAuth } from "@/auth";
 
 const searchSchema = z.object({
   access_subject: z.string().optional(),
@@ -73,6 +74,12 @@ function Component() {
     accessSubject,
     policyIssuer,
   });
+
+  const { getToken } = useAuth();
+  const token = getToken();
+  const tokenContent = getTokenContent(token);
+
+  console.log({ tokenContent });
 
   return (
     <div>

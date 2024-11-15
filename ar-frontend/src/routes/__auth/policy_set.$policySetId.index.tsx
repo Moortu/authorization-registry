@@ -199,20 +199,22 @@ function Component() {
                     />
                   ))}
                 </Stack>
+                <Box>
+                  <Button
+                    variant="soft"
+                    onClick={() =>
+                      navigate({
+                        to: "/policy_set/$policySetId/add_policy/step1",
+                        params: { policySetId },
+                      })
+                    }
+                  >
+                    Add policy
+                  </Button>
+                </Box>
               </Card>
 
-              <Stack padding={2} direction="row" spacing={1}>
-                <Button
-                  size="lg"
-                  onClick={() =>
-                    navigate({
-                      to: "/policy_set/$policySetId/add_policy/step1",
-                      params: { policySetId },
-                    })
-                  }
-                >
-                  Add policy
-                </Button>
+              <Stack paddingY={2} direction="row" spacing={1}>
                 <Button
                   size="lg"
                   color="danger"
