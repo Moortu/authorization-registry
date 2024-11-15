@@ -2,7 +2,7 @@ import { Step2 } from "@/components/add-edit-policy";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
-  "/__auth/policy_set/$policySetId/edit_policy/$policyId/step2",
+  "/__auth/admin/policy_set/$policySetId/edit_policy/$policyId/step2",
 )({
   component: Component,
 });
@@ -13,14 +13,14 @@ function Component() {
 
   function onBack() {
     navigate({
-      to: "/policy_set/$policySetId/edit_policy/$policyId/step1",
+      to: "/admin/policy_set/$policySetId/edit_policy/$policyId/step1",
       params,
     });
   }
 
   function onNext() {
     navigate({
-      to: "/policy_set/$policySetId/edit_policy/$policyId/step3",
+      to: "/admin/policy_set/$policySetId/edit_policy/$policyId/step3",
       params,
     });
   }

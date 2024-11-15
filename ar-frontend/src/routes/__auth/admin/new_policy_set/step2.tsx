@@ -4,7 +4,7 @@ import { Typography, Button, Stack, Box, Divider, Card } from "@mui/joy";
 import { useCreatePolicySetContext } from "../new_policy_set";
 import { PolicyCard } from "../../../components/policy-card";
 
-export const Route = createFileRoute("/__auth/new_policy_set/step2")({
+export const Route = createFileRoute("/__auth/admin/new_policy_set/step2")({
   component: Component,
 });
 

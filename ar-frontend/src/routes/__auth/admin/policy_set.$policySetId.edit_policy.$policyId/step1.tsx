@@ -2,7 +2,7 @@ import { Step1 } from "@/components/add-edit-policy";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
-  "/__auth/policy_set/$policySetId/edit_policy/$policyId/step1",
+  "/__auth/admin/policy_set/$policySetId/edit_policy/$policyId/step1",
 )({
   component: Component,
 });
@@ -13,7 +13,7 @@ function Component() {
 
   function onSubmit() {
     navigate({
-      to: "/policy_set/$policySetId/edit_policy/$policyId/step2",
+      to: "/admin/policy_set/$policySetId/edit_policy/$policyId/step2",
       params,
     });
   }

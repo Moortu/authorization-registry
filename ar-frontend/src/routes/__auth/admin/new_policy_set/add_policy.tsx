@@ -2,9 +2,11 @@ import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { AddEditPolicyContext } from "@/components/add-edit-policy-context";
 import { Button, Stack, Typography, Box } from "@mui/joy";
 
-export const Route = createFileRoute("/__auth/new_policy_set/add_policy")({
-  component: Component,
-});
+export const Route = createFileRoute("/__auth/admin/new_policy_set/add_policy")(
+  {
+    component: Component,
+  },
+);
 
 function Component() {
   const navigate = useNavigate();

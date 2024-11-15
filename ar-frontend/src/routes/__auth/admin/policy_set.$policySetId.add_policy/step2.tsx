@@ -3,7 +3,7 @@ import { Stack } from "@mui/joy";
 import { Step2 } from "@/components/add-edit-policy";
 
 export const Route = createFileRoute(
-  "/__auth/policy_set/$policySetId/add_policy/step2",
+  "/__auth/admin/policy_set/$policySetId/add_policy/step2",
 )({
   component: Component,
 });

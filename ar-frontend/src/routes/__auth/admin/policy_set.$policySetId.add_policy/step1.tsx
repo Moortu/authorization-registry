@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Step1 } from "@/components/add-edit-policy";
 
 export const Route = createFileRoute(
-  "/__auth/policy_set/$policySetId/add_policy/step1",
+  "/__auth/admin/policy_set/$policySetId/add_policy/step1",
 )({
   component: Component,
 });

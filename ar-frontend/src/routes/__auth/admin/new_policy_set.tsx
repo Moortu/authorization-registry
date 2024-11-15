@@ -6,10 +6,10 @@ import {
   useContext,
   useState,
 } from "react";
-import { Policy } from "../../network/policy-set";
+import { Policy } from "@/network/policy-set";
 import { Typography } from "@mui/joy";
 
-export const Route = createFileRoute("/__auth/new_policy_set")({
+export const Route = createFileRoute("/__auth/admin/new_policy_set")({
   component: Component,
 });
 

@@ -6,7 +6,7 @@ import {
 import { Step3 } from "@/components/add-edit-policy";
 
 export const Route = createFileRoute(
-  "/__auth/policy_set/$policySetId/add_policy/step3",
+  "/__auth/admin/policy_set/$policySetId/add_policy/step3",
 )({
   component: Component,
 });

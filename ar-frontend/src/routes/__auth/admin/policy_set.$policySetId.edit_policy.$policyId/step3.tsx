@@ -3,7 +3,7 @@ import { Policy, useReplaceAdminPolicyToPolicySet } from "@/network/policy-set";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
-  "/__auth/policy_set/$policySetId/edit_policy/$policyId/step3",
+  "/__auth/admin/policy_set/$policySetId/edit_policy/$policyId/step3",
 )({
   component: Component,
 });
@@ -22,7 +22,7 @@ function Component() {
 
   function onBack() {
     navigate({
-      to: "/policy_set/$policySetId/edit_policy/$policyId/step2",
+      to: "/admin/policy_set/$policySetId/edit_policy/$policyId/step2",
       params,
     });
   }
@@ -30,7 +30,7 @@ function Component() {
   function onSubmit({ policy }: { policy: Omit<Policy, "id"> }) {
     replacePolicy({ policy }).then(() => {
       navigate({
-        to: "/policy_set/$policySetId",
+        to: "/admin/policy_set/$policySetId",
         params: {
           policySetId: params.policySetId,
         },

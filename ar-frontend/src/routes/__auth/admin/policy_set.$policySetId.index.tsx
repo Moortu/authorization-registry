@@ -3,13 +3,13 @@ import {
   useAdminPolicySet,
   useDeleteAdminPolicyFromPolicySet,
   useDeleteAdminPolicySet,
-} from "../../network/policy-set";
-import { PageLoadingFallback } from "../../components/page-loading-fallback";
-import { CatchBoundary } from "../../components/catch-boundary";
+} from "@/network/policy-set";
+import { PageLoadingFallback } from "@/components/page-loading-fallback";
+import { CatchBoundary } from "@/components/catch-boundary";
 import { Box, Typography, Stack, Button, Card } from "@mui/joy";
-import { PolicyCard } from "../../components/policy-card";
+import { PolicyCard } from "@/components/policy-card";
 import { z } from "zod";
-import { ConfirmDialog } from "../../components/confirm-dialog";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 function DeletePolicyModal({ deletePolicyId }: { deletePolicyId: string }) {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ function DeletePolicyModal({ deletePolicyId }: { deletePolicyId: string }) {
     deletePolicy({ policyId: deletePolicyId }).then(() => {
       navigate({
         replace: true,
-        to: "/policy_set/$policySetId",
+        to: "/admin/policy_set/$policySetId",
         params,
         search: { ...search, delete_policy: undefined },
       });
@@ -38,7 +38,7 @@ function DeletePolicyModal({ deletePolicyId }: { deletePolicyId: string }) {
   function onClose() {
     navigate({
       replace: true,
-      to: "/policy_set/$policySetId",
+      to: "/admin/policy_set/$policySetId",
       params,
       search: { ...search, delete_policy: undefined },
     });
@@ -77,7 +77,7 @@ function DeletePolicySetModal() {
     deletePolicySet().then(() => {
       navigate({
         replace: true,
-        to: "/",
+        to: "/admin",
       });
     });
   }
@@ -85,7 +85,7 @@ function DeletePolicySetModal() {
   function onClose() {
     navigate({
       replace: true,
-      to: "/policy_set/$policySetId",
+      to: "/admin/policy_set/$policySetId",
       params,
       search: { ...search, delete_policy_set: undefined },
     });
@@ -113,7 +113,7 @@ const searchSchema = z.object({
   delete_policy_set: z.boolean().optional(),
 });
 
-export const Route = createFileRoute("/__auth/policy_set/$policySetId/")({
+export const Route = createFileRoute("/__auth/admin/policy_set/$policySetId/")({
   component: Component,
   errorComponent: CatchBoundary,
   validateSearch: searchSchema,
@@ -170,7 +170,7 @@ function Component() {
                           <Button
                             onClick={() =>
                               navigate({
-                                to: "/policy_set/$policySetId",
+                                to: "/admin/policy_set/$policySetId",
                                 params,
                                 search: { ...search, delete_policy: p.id },
                               })
@@ -183,7 +183,7 @@ function Component() {
                           <Button
                             onClick={() => {
                               navigate({
-                                to: "/policy_set/$policySetId/edit_policy/$policyId/step1",
+                                to: "/admin/policy_set/$policySetId/edit_policy/$policyId/step1",
                                 params: {
                                   policyId: p.id,
                                   policySetId: params.policySetId,
@@ -204,7 +204,7 @@ function Component() {
                     variant="soft"
                     onClick={() =>
                       navigate({
-                        to: "/policy_set/$policySetId/add_policy/step1",
+                        to: "/admin/policy_set/$policySetId/add_policy/step1",
                         params: { policySetId },
                       })
                     }
@@ -220,7 +220,7 @@ function Component() {
                   color="danger"
                   onClick={() =>
                     navigate({
-                      to: "/policy_set/$policySetId",
+                      to: "/admin/policy_set/$policySetId",
                       params,
                       search: { ...search, delete_policy_set: true },
                     })

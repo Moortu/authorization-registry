@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   PolicySetWithPolicies,
   useAdminPolicySets,
-} from "../../network/policy-set";
+} from "@/network/policy-set";
 import {
   Box,
   Button,
@@ -14,9 +14,9 @@ import {
 } from "@mui/joy";
 import { z } from "zod";
 import { useDebounce } from "@uidotdev/usehooks";
-import { PageLoadingFallback } from "../../components/page-loading-fallback";
-import { CatchBoundary } from "../../components/catch-boundary";
-import { PolicyCard } from "../../components/policy-card";
+import { PageLoadingFallback } from "@/components/page-loading-fallback";
+import { CatchBoundary } from "@/components/catch-boundary";
+import { PolicyCard } from "@/components/policy-card";
 import { getTokenContent, useAuth } from "@/auth";
 
 const searchSchema = z.object({
@@ -24,7 +24,7 @@ const searchSchema = z.object({
   policy_issuer: z.string().optional(),
 });
 
-export const Route = createFileRoute("/__auth/")({
+export const Route = createFileRoute("/__auth/admin/")({
   component: Component,
   validateSearch: searchSchema,
   errorComponent: CatchBoundary,
@@ -92,7 +92,7 @@ function Component() {
             defaultValue={search.access_subject || ""}
             onChange={(e) =>
               navigate({
-                to: "/",
+                to: "/admin",
                 search: {
                   ...search,
                   access_subject: e.target.value,
@@ -108,7 +108,7 @@ function Component() {
             defaultValue={search.policy_issuer || ""}
             onChange={(e) =>
               navigate({
-                to: "/",
+                to: "/admin",
                 search: {
                   ...search,
                   policy_issuer: e.target.value,
@@ -118,7 +118,7 @@ function Component() {
           />
         </Box>
         <Box>
-          <Button onClick={() => navigate({ to: "/new_policy_set/step1" })}>
+          <Button onClick={() => navigate({ to: "/admin/new_policy_set/step1" })}>
             New policy set
           </Button>
         </Box>
@@ -131,7 +131,7 @@ function Component() {
               style={{
                 textDecorationLine: "none",
               }}
-              to="/policy_set/$policySetId"
+              to="/admin/policy_set/$policySetId"
               params={{
                 policySetId: ps.policy_set_id,
               }}

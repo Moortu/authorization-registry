@@ -6,7 +6,7 @@ import { useForm } from "@tanstack/react-form";
 import { FormField } from "@/components/form-field";
 import { required } from "@/form-field-validators";
 
-export const Route = createFileRoute("/__auth/new_policy_set/step1")({
+export const Route = createFileRoute("/__auth/admin/new_policy_set/step1")({
   component: Component,
 });
 

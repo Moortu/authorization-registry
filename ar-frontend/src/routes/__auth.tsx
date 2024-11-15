@@ -1,7 +1,7 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate, Redirect } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { z } from "zod";
-import { isAuthenticated, useAuth } from "../auth";
+import { getTokenContent, isAuthenticated, useAuth } from "../auth";
 import { initLogin, initLogout } from "../network/idp";
 import { Box, Button } from "@mui/joy";
 import { Logo } from "../components/logo";
@@ -45,31 +45,17 @@ function Component() {
     }
   }, [token, search?.token, search, setToken, navigate]);
 
-  if (!isAuthenticated(token)) {
+  if (!isAuthenticated(token) || !token) {
     return null;
   }
 
-  return (
-    <Box>
-      <Box
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-        paddingY={2}
-      >
-        <Logo />
-        <Button
-          variant="plain"
-          color="neutral"
-          onClick={() => navigate({ to: "/" })}
-        >
-          Policy sets
-        </Button>
-        <Button variant="soft" onClick={() => initLogout()}>
-          Logout
-        </Button>
-      </Box>
-      <Outlet />
-    </Box>
-  );
+  const tokenContent = getTokenContent(token);
+
+  if (tokenContent.realm_access_roles.includes("dexpace_admin")) {
+    navigate({ to: "/admin" })
+  } else {
+    navigate({ to: "/member" })
+  }
+
+  return null
 }

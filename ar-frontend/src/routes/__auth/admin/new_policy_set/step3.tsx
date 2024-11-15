@@ -4,7 +4,7 @@ import { useCreatePolicySetContext } from "../new_policy_set";
 import { PolicyCard } from "@/components/policy-card";
 import { useAdminCreatePolicySet } from "@/network/policy-set";
 
-export const Route = createFileRoute("/__auth/new_policy_set/step3")({
+export const Route = createFileRoute("/__auth/admin/new_policy_set/step3")({
   component: Component,
 });
 
