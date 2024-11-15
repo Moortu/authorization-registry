@@ -12,6 +12,7 @@ import {
   Typography,
   Card,
   IconButton,
+  Alert,
 } from "@mui/joy";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { AddEditPolicyStepper } from "@/components/add-edit-policy-stepper";
@@ -21,6 +22,7 @@ import { useAddPolicyContext } from "@/components/add-edit-policy-context";
 import { PolicyCard } from "./policy-card";
 import { Policy } from "@/network/policy-set";
 import { Fragment } from "react/jsx-runtime";
+import { ErrorResponse } from "@/network/fetch";
 
 export type Step1FormFields = {
   actions: string[];
@@ -336,10 +338,12 @@ export function Step3({
   onSubmit,
   isSubmitting,
   onBack,
+  error,
 }: {
   onSubmit: ({ policy }: { policy: Omit<Policy, "id"> }) => void;
   isSubmitting?: boolean;
   onBack: () => void;
+  error?: ErrorResponse | null;
 }) {
   const { value } = useAddPolicyContext();
   const policy = {
@@ -353,6 +357,13 @@ export function Step3({
   return (
     <Stack spacing={3}>
       <AddEditPolicyStepper activeStep={3} />
+      {error && (
+        <Box paddingY={2}>
+          <Alert color="danger">
+            <Box>{error.message}</Box>
+          </Alert>
+        </Box>
+      )}
       <PolicyCard policy={policy} />
 
       <Stack direction="row" spacing={1}>

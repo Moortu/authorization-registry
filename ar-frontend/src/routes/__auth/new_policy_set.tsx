@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { Policy } from "../../network/policy-set";
+import { Typography } from "@mui/joy";
 
 export const Route = createFileRoute("/__auth/new_policy_set")({
   component: Component,
@@ -48,6 +49,9 @@ function Component() {
         changeValue: setValue,
       }}
     >
+      <Typography paddingBottom={2} level="h2">
+        New policy set
+      </Typography>
       <Outlet />
     </newPolicySetContext.Provider>
   );

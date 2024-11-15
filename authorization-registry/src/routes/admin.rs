@@ -74,8 +74,27 @@ async fn get_policy(
 async fn add_policy_to_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     WithRejection(Path(id), _): WithRejection<Path<Uuid>, AppError>,
+    State(app_state): State<AppState>,
     Json(body): Json<Policy>,
 ) -> Result<Json<ar_entity::policy::Model>, AppError> {
+    for sp in body.target.environment.service_providers.iter() {
+        app_state
+            .satellite_provider
+            .validate_party(sp)
+            .await
+            .map_err(|e| {
+                AppError::Expected(ExpectedError {
+                    status_code: StatusCode::BAD_REQUEST,
+                    message: format!(
+                        "Unable to verify service provider '{}' as valid iSHARE party",
+                        &sp
+                    ),
+                    reason: format!("{:?}", e),
+                    metadata: None,
+                })
+            })?;
+    }
+
     let policy = policy_store::add_policy_to_policy_set(&id, body, &db).await?;
 
     Ok(Json(policy))
@@ -85,8 +104,27 @@ async fn add_policy_to_policy_set(
 async fn replace_policy_in_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     WithRejection(Path((policy_set_id, policy_id)), _): WithRejection<Path<(Uuid, Uuid)>, AppError>,
+    State(app_state): State<AppState>,
     Json(body): Json<Policy>,
 ) -> Result<Json<ar_entity::policy::Model>, AppError> {
+    for sp in body.target.environment.service_providers.iter() {
+        app_state
+            .satellite_provider
+            .validate_party(sp)
+            .await
+            .map_err(|e| {
+                AppError::Expected(ExpectedError {
+                    status_code: StatusCode::BAD_REQUEST,
+                    message: format!(
+                        "Unable to verify service provider '{}' as valid iSHARE party",
+                        &sp
+                    ),
+                    reason: format!("{:?}", e),
+                    metadata: None,
+                })
+            })?;
+    }
+
     let policy = policy_store::replace_policy(policy_set_id, policy_id, &body, &db).await?;
 
     Ok(Json(policy))

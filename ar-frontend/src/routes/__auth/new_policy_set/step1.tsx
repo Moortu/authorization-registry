@@ -1,10 +1,10 @@
-import { Button, Input, Stack, Typography } from "@mui/joy";
+import { Button, Input, Stack } from "@mui/joy";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AddPolicySetStepper } from "../../../components/add-policy-set-stepper";
+import { AddPolicySetStepper } from "@/components/add-policy-set-stepper";
 import { useCreatePolicySetContext } from "../new_policy_set";
 import { useForm } from "@tanstack/react-form";
-import { FormField } from "../../../components/form-field";
-import { required } from "../../../form-field-validators";
+import { FormField } from "@/components/form-field";
+import { required } from "@/form-field-validators";
 
 export const Route = createFileRoute("/__auth/new_policy_set/step1")({
   component: Component,
@@ -29,9 +29,6 @@ function Component() {
 
   return (
     <div>
-      <Typography paddingY={2} level="h3">
-        New policy set
-      </Typography>
       <AddPolicySetStepper activeStep={1} />
       <form
         onSubmit={(e) => {

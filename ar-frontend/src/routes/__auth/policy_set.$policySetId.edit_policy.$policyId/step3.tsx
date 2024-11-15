@@ -11,11 +11,14 @@ export const Route = createFileRoute(
 function Component() {
   const navigate = useNavigate();
   const params = Route.useParams();
-  const { mutateAsync: replacePolicy, isPending } =
-    useReplaceAdminPolicyToPolicySet({
-      policyId: params.policyId,
-      policySetId: params.policySetId,
-    });
+  const {
+    mutateAsync: replacePolicy,
+    isPending,
+    error,
+  } = useReplaceAdminPolicyToPolicySet({
+    policyId: params.policyId,
+    policySetId: params.policySetId,
+  });
 
   function onBack() {
     navigate({
@@ -35,5 +38,12 @@ function Component() {
     });
   }
 
-  return <Step3 onBack={onBack} onSubmit={onSubmit} isSubmitting={isPending} />;
+  return (
+    <Step3
+      onBack={onBack}
+      onSubmit={onSubmit}
+      isSubmitting={isPending}
+      error={error}
+    />
+  );
 }

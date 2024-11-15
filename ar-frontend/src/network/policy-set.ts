@@ -105,7 +105,7 @@ export function useAddAdminPolicyToPolicySet({
   const authenticatedFetch = useAuthenticatedFetch();
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<void, ErrorResponse, { policy: Omit<Policy, "id"> }>({
     mutationFn: async ({ policy }: { policy: Omit<Policy, "id"> }) => {
       await authenticatedFetch(
         `${baseAPIUrl}/admin/policy-set/${policySetId}/policy`,
@@ -152,7 +152,7 @@ export function useReplaceAdminPolicyToPolicySet({
   const authenticatedFetch = useAuthenticatedFetch();
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<void, ErrorResponse, { policy: Omit<Policy, "id"> }>({
     mutationFn: async ({ policy }: { policy: Omit<Policy, "id"> }) => {
       await authenticatedFetch(
         `${baseAPIUrl}/admin/policy-set/${policySetId}/policy/${policyId}`,
