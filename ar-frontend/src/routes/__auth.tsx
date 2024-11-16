@@ -24,7 +24,7 @@ function Component() {
     if (search?.token && isAuthenticated(token) && token) {
       const tokenContent = getTokenContent(token);
       navigate({
-        to: tokenContent.realm_access_roles.includes("dexspace_admiasdf")
+        to: tokenContent.realm_access_roles.includes("dexspace_admin")
           ? "/admin"
           : "/member",
         replace: true,
