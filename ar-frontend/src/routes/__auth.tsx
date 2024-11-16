@@ -2,14 +2,11 @@ import {
   createFileRoute,
   Outlet,
   useNavigate,
-  Redirect,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { z } from "zod";
 import { getTokenContent, isAuthenticated, useAuth } from "../auth";
-import { initLogin, initLogout } from "../network/idp";
-import { Box, Button } from "@mui/joy";
-import { Logo } from "../components/logo";
+import { initLogin } from "../network/idp";
 
 const searchSchema = z
   .object({
