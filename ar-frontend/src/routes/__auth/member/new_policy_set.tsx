@@ -2,7 +2,7 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { Typography } from "@mui/joy";
 import { CreatePolicySetContext } from "@/components/create-policy-set-context";
 
-export const Route = createFileRoute("/__auth/admin/new_policy_set")({
+export const Route = createFileRoute("/__auth/member/new_policy_set")({
   component: Component,
 });
 

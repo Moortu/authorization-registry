@@ -502,3 +502,46 @@ export function useAdminCreatePolicySet() {
     },
   });
 }
+
+
+export function useCreatePolicySet() {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ErrorResponse, CreatePolicySet>({
+    mutationFn: async (policySet: CreatePolicySet) => {
+      await authenticatedFetch(`${baseAPIUrl}/policy-set`, {
+        method: "POST",
+        body: JSON.stringify({
+          target: {
+            accessSubject: policySet.access_subject,
+          },
+          licences: ["ISHARE.0001"],
+          maxDelegationDepth: 1,
+          policies: policySet.policies.map((p) => ({
+            rules: p.rules,
+            target: {
+              actions: p.actions,
+              resource: {
+                type: p.resource_type,
+                identifiers: p.identifiers,
+                attributes: p.attributes,
+              },
+              environment: {
+                serviceProviders: p.service_providers,
+              },
+            },
+          })),
+          policyIssuer: policySet.policy_issuer,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets"],
+      });
+    },
+  });
+}

@@ -33,7 +33,7 @@ function Component() {
         <Box>
           <Button
             variant="plain"
-            onClick={() => navigate({ to: "/admin/new_policy_set/step1" })}
+            onClick={() => navigate({ to: "/member/new_policy_set/step1" })}
           >
             New policy set
           </Button>

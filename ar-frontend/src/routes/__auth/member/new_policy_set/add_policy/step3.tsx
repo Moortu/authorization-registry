@@ -4,7 +4,7 @@ import { useCreatePolicySetContext } from "@/components/create-policy-set-contex
 import { Step3 } from "@/components/add-edit-policy";
 
 export const Route = createFileRoute(
-  "/__auth/admin/new_policy_set/add_policy/step3",
+  "/__auth/member/new_policy_set/add_policy/step3",
 )({
   component: Component,
 });
@@ -20,13 +20,13 @@ function Component() {
     }));
 
     navigate({
-      to: "/admin/new_policy_set/step2",
+      to: "/member/new_policy_set/step2",
     });
   }
 
   function onBack() {
     navigate({
-      to: "/admin/new_policy_set/add_policy/step2",
+      to: "/member/new_policy_set/add_policy/step2",
     });
   }
 

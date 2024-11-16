@@ -2,9 +2,9 @@ import { Stack, Typography, Box, Button, Divider, Alert } from "@mui/joy";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCreatePolicySetContext } from "@/components/create-policy-set-context";
 import { PolicyCard } from "@/components/policy-card";
-import { useAdminCreatePolicySet } from "@/network/policy-set";
+import { useCreatePolicySet } from "@/network/policy-set";
 
-export const Route = createFileRoute("/__auth/admin/new_policy_set/step3")({
+export const Route = createFileRoute("/__auth/member/new_policy_set/step3")({
   component: Component,
 });
 
@@ -14,12 +14,12 @@ function Component() {
     mutateAsync: createPolicySet,
     isPending,
     error: submitError,
-  } = useAdminCreatePolicySet();
+  } = useCreatePolicySet();
   const { value } = useCreatePolicySetContext();
 
   function onBack() {
     navigate({
-      to: "/admin/new_policy_set/step2",
+      to: "/member/new_policy_set/step2",
     });
   }
 
@@ -65,7 +65,7 @@ function Component() {
           onClick={() =>
             createPolicySet(value).then(() => {
               navigate({
-                to: "/admin",
+                to: "/member",
               });
             })
           }
