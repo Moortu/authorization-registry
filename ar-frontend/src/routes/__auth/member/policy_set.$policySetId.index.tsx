@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
-  useAdminPolicySet,
-  useDeleteAdminPolicyFromPolicySet,
-  useDeleteAdminPolicySet,
+  usePolicySet,
+  useDeletePolicySet,
+  useDeletePolicyFromPolicySet,
 } from "@/network/policy-set";
 import { PageLoadingFallback } from "@/components/page-loading-fallback";
 import { CatchBoundary } from "@/components/catch-boundary";
@@ -20,7 +20,7 @@ function DeletePolicyModal({ deletePolicyId }: { deletePolicyId: string }) {
     mutateAsync: deletePolicy,
     isPending: isDeletePending,
     error: deleteError,
-  } = useDeleteAdminPolicyFromPolicySet({
+  } = useDeletePolicyFromPolicySet({
     policySetId: params.policySetId,
   });
 
@@ -69,7 +69,7 @@ function DeletePolicySetModal() {
     mutateAsync: deletePolicySet,
     isPending: isDeletePending,
     error: deleteError,
-  } = useDeleteAdminPolicySet({
+  } = useDeletePolicySet({
     policySetId: params.policySetId,
   });
 
@@ -113,11 +113,13 @@ const searchSchema = z.object({
   delete_policy_set: z.boolean().optional(),
 });
 
-export const Route = createFileRoute("/__auth/member/policy_set/$policySetId/")({
-  component: Component,
-  errorComponent: CatchBoundary,
-  validateSearch: searchSchema,
-});
+export const Route = createFileRoute("/__auth/member/policy_set/$policySetId/")(
+  {
+    component: Component,
+    errorComponent: CatchBoundary,
+    validateSearch: searchSchema,
+  },
+);
 
 function Component() {
   const navigate = useNavigate();
@@ -125,7 +127,7 @@ function Component() {
   const search = Route.useSearch();
   const { policySetId } = Route.useParams();
 
-  const { data: policySet, isLoading } = useAdminPolicySet({
+  const { data: policySet, isLoading } = usePolicySet({
     policySetId,
   });
 
@@ -147,12 +149,12 @@ function Component() {
             <Card>
               <Stack direction="row" spacing={2}>
                 <Box>
-                  <Typography level="title-md">Access subject</Typography>
-                  <Typography>{policySet.access_subject}</Typography>
-                </Box>
-                <Box>
                   <Typography level="title-md">Policy issuer</Typography>
                   <Typography>{policySet.policy_issuer}</Typography>
+                </Box>
+                <Box>
+                  <Typography level="title-md">Access subject</Typography>
+                  <Typography>{policySet.access_subject}</Typography>
                 </Box>
               </Stack>
             </Card>
@@ -204,7 +206,7 @@ function Component() {
                     variant="soft"
                     onClick={() =>
                       navigate({
-                        to: "/admin/policy_set/$policySetId/add_policy/step1",
+                        to: "/member/policy_set/$policySetId/add_policy/step1",
                         params: { policySetId },
                       })
                     }
@@ -220,7 +222,7 @@ function Component() {
                   color="danger"
                   onClick={() =>
                     navigate({
-                      to: "/admin/policy_set/$policySetId",
+                      to: "/member/policy_set/$policySetId",
                       params,
                       search: { ...search, delete_policy_set: true },
                     })

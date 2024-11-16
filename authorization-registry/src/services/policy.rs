@@ -4,7 +4,6 @@ use ishare::delegation_evidence::verify_delegation_evidence;
 use ishare::delegation_request::{DelegationRequest, DelegationTarget, ResourceTarget};
 use reqwest::StatusCode;
 use sea_orm::DatabaseConnection;
-use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::db::policy::{self as policy_store, InsertPolicySetWithPolicies, MatchingPolicySetRow};
@@ -86,6 +85,7 @@ pub async fn insert_policy_set_with_policies(
         requester_company_id,
         &PolicySetAction::Create,
         &args.policy_issuer,
+        &args.target.access_subject,
         identifiers,
         time_provider,
         &db,
@@ -123,7 +123,6 @@ pub async fn insert_policy_set_with_policies_admin(
     Ok(policy_set_id)
 }
 
-
 pub enum PolicySetAction {
     Read,
     Edit,
@@ -146,6 +145,7 @@ pub async fn verify_policy_set_access(
     requestor_company_id: &str,
     action: &PolicySetAction,
     policy_issuer: &str,
+    access_subject: &str,
     identifiers: Vec<String>,
     time_provider: std::sync::Arc<dyn TimeProvider>,
     db: &DatabaseConnection,
@@ -158,6 +158,11 @@ pub async fn verify_policy_set_access(
 
     if requestor_company_id == policy_issuer {
         tracing::info!("access granted because issuer matches requestor");
+        return Ok(true);
+    }
+
+    if matches!(action, PolicySetAction::Read) && requestor_company_id == access_subject {
+        tracing::info!("access granted for action read because access subject matches requestor");
         return Ok(true);
     }
 
@@ -247,6 +252,7 @@ pub async fn delete_policy_set(
         &requester_company_id,
         &PolicySetAction::Delete,
         &policy_set.policy_issuer,
+        &policy_set.access_subject,
         identifiers,
         time_provider,
         &db,
@@ -275,6 +281,7 @@ pub async fn add_policy_to_policy_set(
     policy_set_id: &Uuid,
     policy: ar_entity::delegation_evidence::Policy,
     time_provider: std::sync::Arc<dyn TimeProvider>,
+    satellite_provider: std::sync::Arc<dyn SatelliteProvider>,
     db: &DatabaseConnection,
 ) -> Result<ar_entity::policy::Model, AppError> {
     match policy.rules.get(0) {
@@ -287,6 +294,20 @@ pub async fn add_policy_to_policy_set(
                 metadata: None,
             }))
         }
+    }
+
+    for sp in policy.target.environment.service_providers.iter() {
+        satellite_provider.validate_party(sp).await.map_err(|e| {
+            AppError::Expected(ExpectedError {
+                status_code: StatusCode::BAD_REQUEST,
+                message: format!(
+                    "Unable to verify service provider '{}' as valid iSHARE party",
+                    &sp
+                ),
+                reason: format!("{:?}", e),
+                metadata: None,
+            })
+        })?;
     }
 
     let policy_set = match policy_store::get_policy_set_by_id(&policy_set_id, &db)
@@ -317,6 +338,7 @@ pub async fn add_policy_to_policy_set(
         &requester_company_id,
         &PolicySetAction::Edit,
         &policy_set.policy_issuer,
+        &policy_set.access_subject,
         identifiers,
         time_provider,
         &db,
@@ -346,6 +368,7 @@ pub async fn replace_policy_in_policy_set(
     policy_id: Uuid,
     policy: ar_entity::delegation_evidence::Policy,
     time_provider: std::sync::Arc<dyn TimeProvider>,
+    satellite_provider: std::sync::Arc<dyn SatelliteProvider>,
     db: &DatabaseConnection,
 ) -> Result<ar_entity::policy::Model, AppError> {
     match policy.rules.get(0) {
@@ -358,6 +381,20 @@ pub async fn replace_policy_in_policy_set(
                 metadata: None,
             }))
         }
+    }
+
+    for sp in policy.target.environment.service_providers.iter() {
+        satellite_provider.validate_party(sp).await.map_err(|e| {
+            AppError::Expected(ExpectedError {
+                status_code: StatusCode::BAD_REQUEST,
+                message: format!(
+                    "Unable to verify service provider '{}' as valid iSHARE party",
+                    &sp
+                ),
+                reason: format!("{:?}", e),
+                metadata: None,
+            })
+        })?;
     }
 
     let policy_set = match policy_store::get_policy_set_by_id(&policy_set_id, &db)
@@ -388,6 +425,7 @@ pub async fn replace_policy_in_policy_set(
         &requester_company_id,
         &PolicySetAction::Edit,
         &policy_set.policy_issuer,
+        &policy_set.access_subject,
         identifiers,
         time_provider,
         &db,
@@ -445,6 +483,7 @@ pub async fn get_policy_set_with_policies(
         &requester_company_id,
         &PolicySetAction::Read,
         &policy_set.policy_issuer,
+        &policy_set.access_subject,
         identifiers,
         time_provider,
         &db,
@@ -513,6 +552,7 @@ pub async fn remove_policy_from_policy_set(
         &requester_company_id,
         &PolicySetAction::Delete,
         &policy_set.policy_issuer,
+        &policy_set.access_subject,
         identifiers,
         time_provider,
         &db,

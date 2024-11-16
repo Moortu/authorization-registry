@@ -19,12 +19,17 @@ export const Route = createFileRoute("/__auth/member/")({
 
 function Component() {
   const navigate = useNavigate();
-  const { data: policySets, isLoading } = usePolicySets()
+  const { data: policySets, isLoading } = usePolicySets();
 
   return (
     <div>
-      <Stack paddingBottom={2} direction="row" justifyContent="space-between" spacing={1}>
-      <Typography level="h2">Policy sets</Typography>
+      <Stack
+        paddingBottom={2}
+        direction="row"
+        justifyContent="space-between"
+        spacing={1}
+      >
+        <Typography level="h2">Policy sets</Typography>
         <Box>
           <Button
             variant="plain"

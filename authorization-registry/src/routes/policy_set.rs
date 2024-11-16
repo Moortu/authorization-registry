@@ -26,7 +26,7 @@ pub fn get_policy_set_routes(server_token: Arc<ServerToken>) -> Router<AppState>
         .route("/:id/policy", post(add_policy_to_policy_set))
         .route(
             "/:id/policy/:policy_id",
-            delete(delete_policy_from_policy_set),
+            delete(delete_policy_from_policy_set).put(replace_policy_in_policy_set),
         )
         .layer(from_fn_with_state(server_token, extract_role_middleware));
 }
@@ -86,6 +86,28 @@ async fn get_policy_set(
 }
 
 #[axum_macros::debug_handler]
+async fn replace_policy_in_policy_set(
+    Extension(db): Extension<DatabaseConnection>,
+    Extension(role): Extension<Role>,
+    WithRejection(Path((policy_set_id, policy_id)), _): WithRejection<Path<(Uuid, Uuid)>, AppError>,
+    State(app_state): State<AppState>,
+    Json(body): Json<Policy>,
+) -> Result<Json<ar_entity::policy::Model>, AppError> {
+    let policy = policy_service::replace_policy_in_policy_set(
+        &role.get_company_id(),
+        policy_set_id,
+        policy_id,
+        body,
+        app_state.time_provider,
+        app_state.satellite_provider,
+        &db,
+    )
+    .await?;
+
+    Ok(Json(policy))
+}
+
+#[axum_macros::debug_handler]
 async fn add_policy_to_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     Extension(role): Extension<Role>,
@@ -98,6 +120,7 @@ async fn add_policy_to_policy_set(
         &id,
         body,
         app_state.time_provider,
+        app_state.satellite_provider,
         &db,
     )
     .await?;

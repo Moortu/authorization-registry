@@ -66,6 +66,27 @@ export function useAdminPolicySet({ policySetId }: { policySetId: string }) {
   });
 }
 
+export function usePolicySet({ policySetId }: { policySetId: string }) {
+  const authenticatedFetch = useAuthenticatedFetch();
+
+  return useQuery({
+    throwOnError: true,
+    queryKey: ["member", "policy-sets", policySetId],
+    queryFn: async function () {
+      const response = await authenticatedFetch(
+        `${baseAPIUrl}/policy-set/${policySetId}`,
+      );
+      const json = await response.json();
+
+      try {
+        return policySetWithPoliciesSchema.parse(json);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+  });
+}
+
 export function useAdminPolicySets({
   accessSubject,
   policyIssuer,
@@ -102,7 +123,6 @@ export function useAdminPolicySets({
   });
 }
 
-
 export function usePolicySets() {
   const authenticatedFetch = useAuthenticatedFetch();
 
@@ -110,9 +130,7 @@ export function usePolicySets() {
     throwOnError: true,
     queryKey: ["member", "policy-sets"],
     queryFn: async function () {
-      const response = await authenticatedFetch(
-        `${baseAPIUrl}/policy-set`,
-      );
+      const response = await authenticatedFetch(`${baseAPIUrl}/policy-set`);
       const json = await response.json();
 
       try {
@@ -164,6 +182,51 @@ export function useAddAdminPolicyToPolicySet({
 
       queryClient.invalidateQueries({
         queryKey: ["admin", "policy-sets", policySetId],
+      });
+    },
+  });
+}
+
+export function useAddPolicyToPolicySet({
+  policySetId,
+}: {
+  policySetId: string;
+}) {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ErrorResponse, { policy: Omit<Policy, "id"> }>({
+    mutationFn: async ({ policy }: { policy: Omit<Policy, "id"> }) => {
+      await authenticatedFetch(
+        `${baseAPIUrl}/policy-set/${policySetId}/policy`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            target: {
+              actions: policy.actions,
+              environment: {
+                serviceProviders: policy.service_providers,
+              },
+              resource: {
+                type: policy.resource_type,
+                identifiers: policy.identifiers,
+                attributes: policy.attributes,
+              },
+            },
+            rules: policy.rules,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets", policySetId],
       });
     },
   });
@@ -271,8 +334,6 @@ export function useReplacePolicyToPolicySet({
   });
 }
 
-
-
 export function useDeleteAdminPolicyFromPolicySet({
   policySetId,
 }: {
@@ -296,6 +357,34 @@ export function useDeleteAdminPolicyFromPolicySet({
 
       queryClient.invalidateQueries({
         queryKey: ["admin", "policy-sets", policySetId],
+      });
+    },
+  });
+}
+
+export function useDeletePolicyFromPolicySet({
+  policySetId,
+}: {
+  policySetId: string;
+}) {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ErrorResponse, { policyId: string }>({
+    mutationFn: async ({ policyId }: { policyId: string }) => {
+      await authenticatedFetch(
+        `${baseAPIUrl}/policy-set/${policySetId}/policy/${policyId}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets", policySetId],
       });
     },
   });
@@ -346,6 +435,27 @@ export function useDeleteAdminPolicySet({
 
       queryClient.invalidateQueries({
         queryKey: ["admin", "policy-sets", policySetId],
+      });
+    },
+  });
+}
+
+export function useDeletePolicySet({ policySetId }: { policySetId: string }) {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ErrorResponse, void>({
+    mutationFn: async () => {
+      await authenticatedFetch(`${baseAPIUrl}/policy-set/${policySetId}`, {
+        method: "DELETE",
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets", policySetId],
       });
     },
   });
