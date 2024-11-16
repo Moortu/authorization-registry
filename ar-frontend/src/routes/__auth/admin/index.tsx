@@ -1,23 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import {
-  PolicySetWithPolicies,
-  useAdminPolicySets,
-} from "@/network/policy-set";
-import {
-  Box,
-  Button,
-  Card,
-  FormLabel,
-  Input,
-  Stack,
-  Typography,
-} from "@mui/joy";
+import { useAdminPolicySets } from "@/network/policy-set";
+import { Box, Button, FormLabel, Input, Stack, Typography } from "@mui/joy";
 import { z } from "zod";
 import { useDebounce } from "@uidotdev/usehooks";
 import { PageLoadingFallback } from "@/components/page-loading-fallback";
 import { CatchBoundary } from "@/components/catch-boundary";
-import { PolicyCard } from "@/components/policy-card";
-import { getTokenContent, useAuth } from "@/auth";
+import { PolicySetCard } from "@/components/policy-set-list-page";
 
 const searchSchema = z.object({
   access_subject: z.string().optional(),
@@ -30,41 +18,6 @@ export const Route = createFileRoute("/__auth/admin/")({
   errorComponent: CatchBoundary,
 });
 
-function PolicySetCard({ policySet }: { policySet: PolicySetWithPolicies }) {
-  return (
-    <Card>
-      <Stack direction="row" spacing={2}>
-        <Box>
-          <Typography level="title-sm">Access subject</Typography>
-          <Typography level="body-xs">{policySet.access_subject}</Typography>
-        </Box>
-        <Box>
-          <Typography level="title-sm">Policy issuer</Typography>
-          <Typography level="body-xs">{policySet.policy_issuer}</Typography>
-        </Box>
-      </Stack>
-      <Box>
-        <Typography>Policies</Typography>
-        <Stack spacing={2} direction="row" flexWrap="wrap" useFlexGap>
-          {policySet.policies.map((p) => (
-            <Box
-              key={p.id}
-              width={{
-                xs: "100%",
-                sm: "47%",
-                md: "32%",
-              }}
-              height="100%"
-            >
-              <PolicyCard policy={p} />
-            </Box>
-          ))}
-        </Stack>
-      </Box>
-    </Card>
-  );
-}
-
 function Component() {
   const search = Route.useSearch();
   const accessSubject = useDebounce(search.access_subject, 300);
@@ -74,12 +27,6 @@ function Component() {
     accessSubject,
     policyIssuer,
   });
-
-  const { getToken } = useAuth();
-  const token = getToken();
-  const tokenContent = getTokenContent(token);
-
-  console.log({ tokenContent });
 
   return (
     <div>
@@ -118,7 +65,9 @@ function Component() {
           />
         </Box>
         <Box>
-          <Button onClick={() => navigate({ to: "/admin/new_policy_set/step1" })}>
+          <Button
+            onClick={() => navigate({ to: "/admin/new_policy_set/step1" })}
+          >
             New policy set
           </Button>
         </Box>

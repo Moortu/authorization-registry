@@ -1,4 +1,9 @@
-import { createFileRoute, Outlet, useNavigate, Redirect } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Outlet,
+  useNavigate,
+  Redirect,
+} from "@tanstack/react-router";
 import { useEffect } from "react";
 import { z } from "zod";
 import { getTokenContent, isAuthenticated, useAuth } from "../auth";
@@ -23,8 +28,12 @@ function Component() {
   const { token, setToken } = useAuth();
 
   useEffect(() => {
-    if (search?.token && isAuthenticated(token)) {
+    if (search?.token && isAuthenticated(token) && token) {
+      const tokenContent = getTokenContent(token);
       navigate({
+        to: tokenContent.realm_access_roles.includes("dexspace_admi")
+          ? "/admin"
+          : "/member",
         replace: true,
         search: {
           ...search,
@@ -49,13 +58,5 @@ function Component() {
     return null;
   }
 
-  const tokenContent = getTokenContent(token);
-
-  if (tokenContent.realm_access_roles.includes("dexpace_admin")) {
-    navigate({ to: "/admin" })
-  } else {
-    navigate({ to: "/member" })
-  }
-
-  return null
+  return <Outlet />;
 }

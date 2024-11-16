@@ -4,6 +4,7 @@ use ishare::delegation_evidence::verify_delegation_evidence;
 use ishare::delegation_request::{DelegationRequest, DelegationTarget, ResourceTarget};
 use reqwest::StatusCode;
 use sea_orm::DatabaseConnection;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::db::policy::{self as policy_store, InsertPolicySetWithPolicies, MatchingPolicySetRow};
@@ -83,7 +84,7 @@ pub async fn insert_policy_set_with_policies(
 
     let access = verify_policy_set_access(
         requester_company_id,
-        "Create",
+        &PolicySetAction::Create,
         &args.policy_issuer,
         identifiers,
         time_provider,
@@ -122,9 +123,28 @@ pub async fn insert_policy_set_with_policies_admin(
     Ok(policy_set_id)
 }
 
+
+pub enum PolicySetAction {
+    Read,
+    Edit,
+    Create,
+    Delete,
+}
+
+impl PolicySetAction {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Read => "Read".to_owned(),
+            Self::Edit => "Edit".to_owned(),
+            Self::Create => "Create".to_owned(),
+            Self::Delete => "Delete".to_owned(),
+        }
+    }
+}
+
 pub async fn verify_policy_set_access(
     requestor_company_id: &str,
-    action: &str,
+    action: &PolicySetAction,
     policy_issuer: &str,
     identifiers: Vec<String>,
     time_provider: std::sync::Arc<dyn TimeProvider>,
@@ -133,7 +153,7 @@ pub async fn verify_policy_set_access(
     tracing::info!(
         "requestor from '{}' requesting policy set access '{}' ",
         requestor_company_id,
-        action
+        action.to_string()
     );
 
     if requestor_company_id == policy_issuer {
@@ -169,7 +189,7 @@ pub async fn verify_policy_set_access(
     tracing::info!(
         "checking if delegation evidence exists that '{}' can {} policies of type '{:?}' on behalf of '{}'",
         requestor_company_id,
-        action,
+        action.to_string(),
         &identifiers,
         policy_issuer
     );
@@ -225,7 +245,7 @@ pub async fn delete_policy_set(
 
     let access = verify_policy_set_access(
         &requester_company_id,
-        "Delete",
+        &PolicySetAction::Delete,
         &policy_set.policy_issuer,
         identifiers,
         time_provider,
@@ -295,7 +315,7 @@ pub async fn add_policy_to_policy_set(
 
     let access = verify_policy_set_access(
         &requester_company_id,
-        "Edit",
+        &PolicySetAction::Edit,
         &policy_set.policy_issuer,
         identifiers,
         time_provider,
@@ -314,6 +334,77 @@ pub async fn add_policy_to_policy_set(
     }
 
     let policy = policy_store::add_policy_to_policy_set(policy_set_id, policy, db)
+        .await
+        .context("Error adding policy to policy set")?;
+
+    Ok(policy)
+}
+
+pub async fn replace_policy_in_policy_set(
+    requester_company_id: &str,
+    policy_set_id: Uuid,
+    policy_id: Uuid,
+    policy: ar_entity::delegation_evidence::Policy,
+    time_provider: std::sync::Arc<dyn TimeProvider>,
+    db: &DatabaseConnection,
+) -> Result<ar_entity::policy::Model, AppError> {
+    match policy.rules.get(0) {
+        Some(ResourceRule::Permit) => {}
+        _ => {
+            return Err(AppError::Expected(ExpectedError {
+                status_code: StatusCode::BAD_REQUEST,
+                message: "First rule must have effect 'Permit'".to_owned(),
+                reason: "First rule must have effect 'Permit'".to_owned(),
+                metadata: None,
+            }))
+        }
+    }
+
+    let policy_set = match policy_store::get_policy_set_by_id(&policy_set_id, &db)
+        .await
+        .context("Error getting policy set")?
+    {
+        None => {
+            return Err(AppError::Expected(ExpectedError {
+                status_code: StatusCode::NOT_FOUND,
+                message: "Can't find policy set".to_owned(),
+                reason: "not found".to_owned(),
+                metadata: None,
+            }));
+        }
+        Some(ps) => ps,
+    };
+
+    let policies = policy_store::get_policies_by_policy_set(&policy_set_id, db)
+        .await
+        .context(format!(
+            "Error getting policies from db for policy set: {}",
+            policy_set_id
+        ))?;
+
+    let identifiers = policies.iter().map(|p| p.resource_type.clone()).collect();
+
+    let access = verify_policy_set_access(
+        &requester_company_id,
+        &PolicySetAction::Edit,
+        &policy_set.policy_issuer,
+        identifiers,
+        time_provider,
+        &db,
+    )
+    .await
+    .context("error verifying if access to edit policy set")?;
+
+    if !access {
+        return Err(AppError::Expected(ExpectedError {
+            status_code: StatusCode::FORBIDDEN,
+            message: "not allowed to edit policy set".to_owned(),
+            reason: "not allowed to edit policy set".to_owned(),
+            metadata: None,
+        }));
+    }
+
+    let policy = policy_store::replace_policy(policy_set_id, policy_id, &policy, db)
         .await
         .context("Error adding policy to policy set")?;
 
@@ -352,7 +443,7 @@ pub async fn get_policy_set_with_policies(
 
     let access = verify_policy_set_access(
         &requester_company_id,
-        "Read",
+        &PolicySetAction::Read,
         &policy_set.policy_issuer,
         identifiers,
         time_provider,
@@ -420,7 +511,7 @@ pub async fn remove_policy_from_policy_set(
 
     let access = verify_policy_set_access(
         &requester_company_id,
-        "Delete",
+        &PolicySetAction::Delete,
         &policy_set.policy_issuer,
         identifiers,
         time_provider,

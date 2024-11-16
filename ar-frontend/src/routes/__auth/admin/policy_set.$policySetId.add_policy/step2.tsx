@@ -15,14 +15,14 @@ function Component() {
 
   function onBack() {
     navigate({
-      to: "/policy_set/$policySetId/add_policy/step1",
+      to: "/admin/policy_set/$policySetId/add_policy/step1",
       params,
     });
   }
 
   function onNext() {
     navigate({
-      to: "/policy_set/$policySetId/add_policy/step3",
+      to: "/admin/policy_set/$policySetId/add_policy/step3",
       params,
       search,
     });

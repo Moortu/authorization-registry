@@ -1,3 +1,4 @@
+use anyhow::Context;
 use ar_entity::delegation_evidence::Policy;
 use axum::extract::Path;
 use axum::routing::delete;
@@ -20,7 +21,7 @@ use crate::{middleware::extract_role_middleware, services::server_token::ServerT
 
 pub fn get_policy_set_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
     return Router::new()
-        .route("/", post(insert_policy_set))
+        .route("/", post(insert_policy_set).get(get_all_policy_sets))
         .route("/:id", delete(delete_policy_set).get(get_policy_set))
         .route("/:id/policy", post(add_policy_to_policy_set))
         .route(
@@ -28,6 +29,17 @@ pub fn get_policy_set_routes(server_token: Arc<ServerToken>) -> Router<AppState>
             delete(delete_policy_from_policy_set),
         )
         .layer(from_fn_with_state(server_token, extract_role_middleware));
+}
+
+async fn get_all_policy_sets(
+    Extension(role): Extension<Role>,
+    Extension(db): Extension<DatabaseConnection>,
+) -> Result<Json<Vec<MatchingPolicySetRow>>, AppError> {
+    let policy_sets = policy_store::get_own_policy_sets_with_policies(&role.get_company_id(), &db)
+        .await
+        .context("Error getting policy sets")?;
+
+    Ok(Json(policy_sets))
 }
 
 async fn delete_policy_from_policy_set(

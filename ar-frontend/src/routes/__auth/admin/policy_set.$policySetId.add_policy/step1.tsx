@@ -12,7 +12,7 @@ function Component() {
   const params = Route.useParams();
   function onSubmit() {
     navigate({
-      to: "/policy_set/$policySetId/add_policy/step2",
+      to: "/admin/policy_set/$policySetId/add_policy/step2",
       params,
     });
   }

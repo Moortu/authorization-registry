@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AddPolicySetStepper } from "../../../components/add-policy-set-stepper";
+import { AddPolicySetStepper } from "@/components/add-policy-set-stepper";
 import { Typography, Button, Stack, Box, Divider, Card } from "@mui/joy";
 import { useCreatePolicySetContext } from "../new_policy_set";
-import { PolicyCard } from "../../../components/policy-card";
+import { PolicyCard } from "@/components/policy-card";
 
 export const Route = createFileRoute("/__auth/admin/new_policy_set/step2")({
   component: Component,
@@ -45,7 +45,9 @@ function Component() {
 
       <Box>
         <Button
-          onClick={() => navigate({ to: "/new_policy_set/add_policy/step1" })}
+          onClick={() =>
+            navigate({ to: "/admin/new_policy_set/add_policy/step1" })
+          }
           variant="outlined"
         >
           Add policy
@@ -56,11 +58,11 @@ function Component() {
       <Stack direction="row" spacing={1}>
         <Button
           variant="outlined"
-          onClick={() => navigate({ to: "/new_policy_set/step1" })}
+          onClick={() => navigate({ to: "/admin/new_policy_set/step1" })}
         >
           Back
         </Button>
-        <Button onClick={() => navigate({ to: "/new_policy_set/step3" })}>
+        <Button onClick={() => navigate({ to: "/admin/new_policy_set/step3" })}>
           Next
         </Button>
       </Stack>

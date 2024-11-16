@@ -12,13 +12,13 @@ function Component() {
 
   function onBack() {
     navigate({
-      to: "/new_policy_set/add_policy/step1",
+      to: "/admin/new_policy_set/add_policy/step1",
     });
   }
 
   function onNext() {
     navigate({
-      to: "/new_policy_set/add_policy/step3",
+      to: "/admin/new_policy_set/add_policy/step3",
     });
   }
   return (

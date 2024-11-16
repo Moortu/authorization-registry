@@ -3,7 +3,7 @@ import { initLogout } from "@/network/idp";
 import { Box, Button } from "@mui/joy";
 import { Logo } from "@/components/logo";
 
-export const Route = createFileRoute("/__auth/admin")({
+export const Route = createFileRoute("/__auth/member")({
   component: Component,
 });
 
@@ -18,11 +18,11 @@ function Component() {
         justifyContent="space-between"
         paddingY={2}
       >
-        <Logo admin />
+        <Logo admin={false} />
         <Button
           variant="plain"
           color="neutral"
-          onClick={() => navigate({ to: "/admin" })}
+          onClick={() => navigate({ to: "/member" })}
         >
           Policy sets
         </Button>

@@ -23,7 +23,7 @@ function Component() {
       changeValue((oldValue) => ({ ...oldValue, ...value }));
 
       // have to validate here
-      navigate({ to: "/new_policy_set/step2" });
+      navigate({ to: "/admin/new_policy_set/step2" });
     },
   });
 

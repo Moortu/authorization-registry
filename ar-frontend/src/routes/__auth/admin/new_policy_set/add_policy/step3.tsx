@@ -20,13 +20,13 @@ function Component() {
     }));
 
     navigate({
-      to: "/new_policy_set/step2",
+      to: "/admin/new_policy_set/step2",
     });
   }
 
   function onBack() {
     navigate({
-      to: "/new_policy_set/add_policy/step2",
+      to: "/admin/new_policy_set/add_policy/step2",
     });
   }
 

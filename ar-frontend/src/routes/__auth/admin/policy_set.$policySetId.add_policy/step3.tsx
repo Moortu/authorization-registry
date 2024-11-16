@@ -1,8 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import {
-  Policy,
-  useAddAdminPolicyToPolicySet,
-} from "../../../network/policy-set";
+import { Policy, useAddAdminPolicyToPolicySet } from "@/network/policy-set";
 import { Step3 } from "@/components/add-edit-policy";
 
 export const Route = createFileRoute(
@@ -15,7 +12,11 @@ function Component() {
   const navigate = useNavigate();
   const params = Route.useParams();
 
-  const { mutateAsync: addPolicy, isPending } = useAddAdminPolicyToPolicySet({
+  const {
+    mutateAsync: addPolicy,
+    isPending,
+    error,
+  } = useAddAdminPolicyToPolicySet({
     policySetId: params.policySetId,
   });
 
@@ -23,16 +24,23 @@ function Component() {
     addPolicy({
       policy,
     }).then(() => {
-      navigate({ to: "/policy_set/$policySetId", params });
+      navigate({ to: "/admin/policy_set/$policySetId", params });
     });
   }
 
   function onBack() {
     navigate({
-      to: "/policy_set/$policySetId/add_policy/step2",
+      to: "/admin/policy_set/$policySetId/add_policy/step2",
       params,
     });
   }
 
-  return <Step3 onSubmit={onSubmit} onBack={onBack} isSubmitting={isPending} />;
+  return (
+    <Step3
+      onSubmit={onSubmit}
+      onBack={onBack}
+      isSubmitting={isPending}
+      error={error}
+    />
+  );
 }

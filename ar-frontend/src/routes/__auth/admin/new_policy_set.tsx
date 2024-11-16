@@ -6,18 +6,12 @@ import {
   useContext,
   useState,
 } from "react";
-import { Policy } from "@/network/policy-set";
 import { Typography } from "@mui/joy";
+import { type CreatePolicySet } from "@/network/policy-set";
 
 export const Route = createFileRoute("/__auth/admin/new_policy_set")({
   component: Component,
 });
-
-export type CreatePolicySet = {
-  access_subject: string;
-  policy_issuer: string;
-  policies: Omit<Policy, "id">[];
-};
 
 const defaultValue: CreatePolicySet = {
   access_subject: "",

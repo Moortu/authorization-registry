@@ -1,7 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { baseAPIUrl, ErrorResponse, useAuthenticatedFetch } from "./fetch";
 import { z } from "zod";
-import { CreatePolicySet } from "@/routes/__auth/new_policy_set";
+
+export type CreatePolicySet = {
+  access_subject: string;
+  policy_issuer: string;
+  policies: Omit<Policy, "id">[];
+};
 
 const policySchema = z.object({
   id: z.string(),
@@ -85,6 +90,28 @@ export function useAdminPolicySets({
     queryFn: async function () {
       const response = await authenticatedFetch(
         `${baseAPIUrl}/admin/policy-set?${search}`,
+      );
+      const json = await response.json();
+
+      try {
+        return z.array(policySetWithPoliciesSchema).parse(json);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+  });
+}
+
+
+export function usePolicySets() {
+  const authenticatedFetch = useAuthenticatedFetch();
+
+  return useQuery({
+    throwOnError: true,
+    queryKey: ["member", "policy-sets"],
+    queryFn: async function () {
+      const response = await authenticatedFetch(
+        `${baseAPIUrl}/policy-set`,
       );
       const json = await response.json();
 
@@ -192,6 +219,59 @@ export function useReplaceAdminPolicyToPolicySet({
     },
   });
 }
+
+export function useReplacePolicyToPolicySet({
+  policySetId,
+  policyId,
+}: {
+  policySetId: string;
+  policyId: string;
+}) {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ErrorResponse, { policy: Omit<Policy, "id"> }>({
+    mutationFn: async ({ policy }: { policy: Omit<Policy, "id"> }) => {
+      await authenticatedFetch(
+        `${baseAPIUrl}/policy-set/${policySetId}/policy/${policyId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            target: {
+              actions: policy.actions,
+              environment: {
+                serviceProviders: policy.service_providers,
+              },
+              resource: {
+                type: policy.resource_type,
+                identifiers: policy.identifiers,
+                attributes: policy.attributes,
+              },
+            },
+            rules: policy.rules,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets", policySetId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-set", policySetId, "policy", policyId],
+      });
+    },
+  });
+}
+
+
 
 export function useDeleteAdminPolicyFromPolicySet({
   policySetId,
