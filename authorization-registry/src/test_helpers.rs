@@ -12,7 +12,7 @@ pub mod helpers {
 
     use crate::error::AppError;
     use crate::get_app;
-    use crate::services::ishare_provider::SatelliteProvider;
+    use crate::services::ishare_provider::{Capabilities, SatelliteProvider};
     use crate::services::server_token::{server_token_test_helper, UserOption};
     use crate::AppState;
     use crate::TimeProvider;
@@ -62,6 +62,7 @@ pub mod helpers {
             de_expiry_seconds: 3600,
             config: Arc::new(crate::AppConfig {
                 deploy_route: "".to_owned(),
+                client_eori: "".to_owned(),
             }),
         };
         let app = get_app(db, app_state);
@@ -84,6 +85,10 @@ pub mod helpers {
             _de_container: &DelegationEvidenceContainer,
         ) -> anyhow::Result<String> {
             Ok("delegation token".to_owned())
+        }
+
+        fn create_capabilities_token(&self, _cap: &Capabilities) -> anyhow::Result<String> {
+            Ok("capabilities token".to_owned())
         }
 
         async fn validate_party(&self, eori: &str) -> Result<PartyInfo, ValidatePartyError> {
