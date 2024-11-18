@@ -81,8 +81,6 @@ async fn get_capabilities(
         }
     };
 
-    println!("{}", show_private);
-
     let scheme = match header_map.get("X-Forwarded-Proto") {
         None => "http://".to_string(),
         Some(s) => {
@@ -103,4 +101,41 @@ async fn get_capabilities(
     let response = CapabilitiesResponse { capabilities_token };
 
     return Ok(Json(response));
+}
+
+#[cfg(test)]
+mod test {
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+    };
+
+    use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
+    use tower::ServiceExt;
+
+    use super::super::super::test_helpers::helpers::*;
+
+    #[sqlx::test]
+    async fn test_get_public_capabilities(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        let app = get_test_app(db);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/capabilities")
+                    .header("Host", "Example.com")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        Ok(())
+    }
 }
