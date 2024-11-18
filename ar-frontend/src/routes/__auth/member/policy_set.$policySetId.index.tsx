@@ -1,15 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
-  useAdminPolicySet,
-  useDeleteAdminPolicyFromPolicySet,
-  useDeleteAdminPolicySet,
-} from "../../network/policy-set";
-import { PageLoadingFallback } from "../../components/page-loading-fallback";
-import { CatchBoundary } from "../../components/catch-boundary";
+  usePolicySet,
+  useDeletePolicySet,
+  useDeletePolicyFromPolicySet,
+} from "@/network/policy-set";
+import { PageLoadingFallback } from "@/components/page-loading-fallback";
+import { CatchBoundary } from "@/components/catch-boundary";
 import { Box, Typography, Stack, Button, Card } from "@mui/joy";
-import { PolicyCard } from "../../components/policy-card";
+import { PolicyCard } from "@/components/policy-card";
 import { z } from "zod";
-import { ConfirmDialog } from "../../components/confirm-dialog";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 function DeletePolicyModal({ deletePolicyId }: { deletePolicyId: string }) {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ function DeletePolicyModal({ deletePolicyId }: { deletePolicyId: string }) {
     mutateAsync: deletePolicy,
     isPending: isDeletePending,
     error: deleteError,
-  } = useDeleteAdminPolicyFromPolicySet({
+  } = useDeletePolicyFromPolicySet({
     policySetId: params.policySetId,
   });
 
@@ -28,7 +28,7 @@ function DeletePolicyModal({ deletePolicyId }: { deletePolicyId: string }) {
     deletePolicy({ policyId: deletePolicyId }).then(() => {
       navigate({
         replace: true,
-        to: "/policy_set/$policySetId",
+        to: "/member/policy_set/$policySetId",
         params,
         search: { ...search, delete_policy: undefined },
       });
@@ -38,7 +38,7 @@ function DeletePolicyModal({ deletePolicyId }: { deletePolicyId: string }) {
   function onClose() {
     navigate({
       replace: true,
-      to: "/policy_set/$policySetId",
+      to: "/member/policy_set/$policySetId",
       params,
       search: { ...search, delete_policy: undefined },
     });
@@ -69,7 +69,7 @@ function DeletePolicySetModal() {
     mutateAsync: deletePolicySet,
     isPending: isDeletePending,
     error: deleteError,
-  } = useDeleteAdminPolicySet({
+  } = useDeletePolicySet({
     policySetId: params.policySetId,
   });
 
@@ -77,7 +77,7 @@ function DeletePolicySetModal() {
     deletePolicySet().then(() => {
       navigate({
         replace: true,
-        to: "/",
+        to: "/member",
       });
     });
   }
@@ -85,7 +85,7 @@ function DeletePolicySetModal() {
   function onClose() {
     navigate({
       replace: true,
-      to: "/policy_set/$policySetId",
+      to: "/member/policy_set/$policySetId",
       params,
       search: { ...search, delete_policy_set: undefined },
     });
@@ -113,11 +113,13 @@ const searchSchema = z.object({
   delete_policy_set: z.boolean().optional(),
 });
 
-export const Route = createFileRoute("/__auth/policy_set/$policySetId/")({
-  component: Component,
-  errorComponent: CatchBoundary,
-  validateSearch: searchSchema,
-});
+export const Route = createFileRoute("/__auth/member/policy_set/$policySetId/")(
+  {
+    component: Component,
+    errorComponent: CatchBoundary,
+    validateSearch: searchSchema,
+  },
+);
 
 function Component() {
   const navigate = useNavigate();
@@ -125,7 +127,7 @@ function Component() {
   const search = Route.useSearch();
   const { policySetId } = Route.useParams();
 
-  const { data: policySet, isLoading } = useAdminPolicySet({
+  const { data: policySet, isLoading } = usePolicySet({
     policySetId,
   });
 
@@ -142,15 +144,17 @@ function Component() {
           <DeletePolicySetModal />
 
           <Stack spacing={3}>
+            <Typography level="h2">Policy set</Typography>
+
             <Card>
               <Stack direction="row" spacing={2}>
                 <Box>
-                  <Typography level="title-md">Access subject</Typography>
-                  <Typography>{policySet.access_subject}</Typography>
-                </Box>
-                <Box>
                   <Typography level="title-md">Policy issuer</Typography>
                   <Typography>{policySet.policy_issuer}</Typography>
+                </Box>
+                <Box>
+                  <Typography level="title-md">Access subject</Typography>
+                  <Typography>{policySet.access_subject}</Typography>
                 </Box>
               </Stack>
             </Card>
@@ -164,11 +168,11 @@ function Component() {
                       policy={p}
                       key={p.id}
                       actions={
-                        <Stack spacing={1} direction="row">
+                        <Stack padding={0} spacing={1} direction="row">
                           <Button
                             onClick={() =>
                               navigate({
-                                to: "/policy_set/$policySetId",
+                                to: "/member/policy_set/$policySetId",
                                 params,
                                 search: { ...search, delete_policy: p.id },
                               })
@@ -178,32 +182,47 @@ function Component() {
                           >
                             Delete
                           </Button>
-                          <Button variant="outlined">Edit</Button>
+                          <Button
+                            onClick={() => {
+                              navigate({
+                                to: "/member/policy_set/$policySetId/edit_policy/$policyId/step1",
+                                params: {
+                                  policyId: p.id,
+                                  policySetId: params.policySetId,
+                                },
+                              });
+                            }}
+                            variant="outlined"
+                          >
+                            Edit
+                          </Button>
                         </Stack>
                       }
                     />
                   ))}
                 </Stack>
+                <Box>
+                  <Button
+                    variant="soft"
+                    onClick={() =>
+                      navigate({
+                        to: "/member/policy_set/$policySetId/add_policy/step1",
+                        params: { policySetId },
+                      })
+                    }
+                  >
+                    Add policy
+                  </Button>
+                </Box>
               </Card>
 
-              <Stack padding={2} direction="row" spacing={1}>
-                <Button
-                  size="lg"
-                  onClick={() =>
-                    navigate({
-                      to: "/policy_set/$policySetId/add_policy/step1",
-                      params: { policySetId },
-                    })
-                  }
-                >
-                  Add policy
-                </Button>
+              <Stack paddingY={2} direction="row" spacing={1}>
                 <Button
                   size="lg"
                   color="danger"
                   onClick={() =>
                     navigate({
-                      to: "/policy_set/$policySetId",
+                      to: "/member/policy_set/$policySetId",
                       params,
                       search: { ...search, delete_policy_set: true },
                     })

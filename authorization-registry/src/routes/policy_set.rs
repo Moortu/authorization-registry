@@ -1,3 +1,4 @@
+use anyhow::Context;
 use ar_entity::delegation_evidence::Policy;
 use axum::extract::Path;
 use axum::routing::delete;
@@ -20,14 +21,25 @@ use crate::{middleware::extract_role_middleware, services::server_token::ServerT
 
 pub fn get_policy_set_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
     return Router::new()
-        .route("/", post(insert_policy_set))
+        .route("/", post(insert_policy_set).get(get_all_policy_sets))
         .route("/:id", delete(delete_policy_set).get(get_policy_set))
         .route("/:id/policy", post(add_policy_to_policy_set))
         .route(
             "/:id/policy/:policy_id",
-            delete(delete_policy_from_policy_set),
+            delete(delete_policy_from_policy_set).put(replace_policy_in_policy_set),
         )
         .layer(from_fn_with_state(server_token, extract_role_middleware));
+}
+
+async fn get_all_policy_sets(
+    Extension(role): Extension<Role>,
+    Extension(db): Extension<DatabaseConnection>,
+) -> Result<Json<Vec<MatchingPolicySetRow>>, AppError> {
+    let policy_sets = policy_store::get_own_policy_sets_with_policies(&role.get_company_id(), &db)
+        .await
+        .context("Error getting policy sets")?;
+
+    Ok(Json(policy_sets))
 }
 
 async fn delete_policy_from_policy_set(
@@ -74,6 +86,28 @@ async fn get_policy_set(
 }
 
 #[axum_macros::debug_handler]
+async fn replace_policy_in_policy_set(
+    Extension(db): Extension<DatabaseConnection>,
+    Extension(role): Extension<Role>,
+    WithRejection(Path((policy_set_id, policy_id)), _): WithRejection<Path<(Uuid, Uuid)>, AppError>,
+    State(app_state): State<AppState>,
+    Json(body): Json<Policy>,
+) -> Result<Json<ar_entity::policy::Model>, AppError> {
+    let policy = policy_service::replace_policy_in_policy_set(
+        &role.get_company_id(),
+        policy_set_id,
+        policy_id,
+        body,
+        app_state.time_provider,
+        app_state.satellite_provider,
+        &db,
+    )
+    .await?;
+
+    Ok(Json(policy))
+}
+
+#[axum_macros::debug_handler]
 async fn add_policy_to_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     Extension(role): Extension<Role>,
@@ -86,6 +120,7 @@ async fn add_policy_to_policy_set(
         &id,
         body,
         app_state.time_provider,
+        app_state.satellite_provider,
         &db,
     )
     .await?;

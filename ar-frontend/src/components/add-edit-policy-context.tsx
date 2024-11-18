@@ -1,19 +1,12 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
 import {
   createContext,
   Dispatch,
+  ReactNode,
   SetStateAction,
   useContext,
   useState,
 } from "react";
-import { Policy } from "../../network/policy-set";
-import { Typography } from "@mui/joy";
-
-export const Route = createFileRoute(
-  "/__auth/policy_set/$policySetId/add_policy",
-)({
-  component: Component,
-});
+import { Policy } from "../network/policy-set";
 
 const defaultValue: Omit<Policy, "id"> = {
   actions: [],
@@ -38,8 +31,14 @@ export function useAddPolicyContext() {
   return useContext(policyContext);
 }
 
-function Component() {
-  const [value, setValue] = useState(defaultValue);
+export function AddEditPolicyContext({
+  children,
+  initialValue,
+}: {
+  children: ReactNode;
+  initialValue?: Omit<Policy, "id">;
+}) {
+  const [value, setValue] = useState(initialValue || defaultValue);
 
   return (
     <policyContext.Provider
@@ -48,10 +47,7 @@ function Component() {
         changeValue: setValue,
       }}
     >
-      <Typography level="h3" paddingY={2}>
-        Add policy
-      </Typography>
-      <Outlet />
+      {children}
     </policyContext.Provider>
   );
 }

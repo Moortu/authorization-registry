@@ -1,22 +1,12 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
 import {
   createContext,
   Dispatch,
+  ReactNode,
   SetStateAction,
   useContext,
   useState,
 } from "react";
-import { Policy } from "../../network/policy-set";
-
-export const Route = createFileRoute("/__auth/new_policy_set")({
-  component: Component,
-});
-
-type CreatePolicySet = {
-  access_subject: string;
-  policy_issuer: string;
-  policies: Omit<Policy, "id">[];
-};
+import { type CreatePolicySet } from "@/network/policy-set";
 
 const defaultValue: CreatePolicySet = {
   access_subject: "",
@@ -38,7 +28,7 @@ export function useCreatePolicySetContext() {
   return useContext(newPolicySetContext);
 }
 
-function Component() {
+export function CreatePolicySetContext({ children }: { children: ReactNode }) {
   const [value, setValue] = useState(defaultValue);
 
   return (
@@ -48,7 +38,7 @@ function Component() {
         changeValue: setValue,
       }}
     >
-      <Outlet />
+      {children}
     </newPolicySetContext.Provider>
   );
 }

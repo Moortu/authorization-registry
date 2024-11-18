@@ -1,6 +1,10 @@
 import { Stepper, Step, StepIndicator, Typography } from "@mui/joy";
 
-export function AddPolicyStepper({ activeStep }: { activeStep: 1 | 2 | 3 }) {
+export function AddEditPolicyStepper({
+  activeStep,
+}: {
+  activeStep: 1 | 2 | 3;
+}) {
   return (
     <Stepper sx={{ width: "100%" }}>
       <Step

@@ -1,7 +1,7 @@
 import { Typography, Box } from "@mui/joy";
 import { LogoZwart } from "./logo-zwart";
 
-export function Logo() {
+export function Logo({ admin }: { admin: boolean }) {
   return (
     <Box>
       <LogoZwart />
@@ -12,7 +12,7 @@ export function Logo() {
         fontWeight={600}
         letterSpacing="-0.5px"
       >
-        Authorization registry
+        Authorization registry {admin ? " (admin)" : ""}
       </Typography>
     </Box>
   );

@@ -2,6 +2,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { baseAPIUrl, ErrorResponse, useAuthenticatedFetch } from "./fetch";
 import { z } from "zod";
 
+export type CreatePolicySet = {
+  access_subject: string;
+  policy_issuer: string;
+  policies: Omit<Policy, "id">[];
+};
+
 const policySchema = z.object({
   id: z.string(),
   actions: z.array(z.string()),
@@ -60,6 +66,27 @@ export function useAdminPolicySet({ policySetId }: { policySetId: string }) {
   });
 }
 
+export function usePolicySet({ policySetId }: { policySetId: string }) {
+  const authenticatedFetch = useAuthenticatedFetch();
+
+  return useQuery({
+    throwOnError: true,
+    queryKey: ["member", "policy-sets", policySetId],
+    queryFn: async function () {
+      const response = await authenticatedFetch(
+        `${baseAPIUrl}/policy-set/${policySetId}`,
+      );
+      const json = await response.json();
+
+      try {
+        return policySetWithPoliciesSchema.parse(json);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+  });
+}
+
 export function useAdminPolicySets({
   accessSubject,
   policyIssuer,
@@ -96,6 +123,25 @@ export function useAdminPolicySets({
   });
 }
 
+export function usePolicySets() {
+  const authenticatedFetch = useAuthenticatedFetch();
+
+  return useQuery({
+    throwOnError: true,
+    queryKey: ["member", "policy-sets"],
+    queryFn: async function () {
+      const response = await authenticatedFetch(`${baseAPIUrl}/policy-set`);
+      const json = await response.json();
+
+      try {
+        return z.array(policySetWithPoliciesSchema).parse(json);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+  });
+}
+
 export function useAddAdminPolicyToPolicySet({
   policySetId,
 }: {
@@ -104,7 +150,7 @@ export function useAddAdminPolicyToPolicySet({
   const authenticatedFetch = useAuthenticatedFetch();
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<void, ErrorResponse, { policy: Omit<Policy, "id"> }>({
     mutationFn: async ({ policy }: { policy: Omit<Policy, "id"> }) => {
       await authenticatedFetch(
         `${baseAPIUrl}/admin/policy-set/${policySetId}/policy`,
@@ -141,6 +187,153 @@ export function useAddAdminPolicyToPolicySet({
   });
 }
 
+export function useAddPolicyToPolicySet({
+  policySetId,
+}: {
+  policySetId: string;
+}) {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ErrorResponse, { policy: Omit<Policy, "id"> }>({
+    mutationFn: async ({ policy }: { policy: Omit<Policy, "id"> }) => {
+      await authenticatedFetch(
+        `${baseAPIUrl}/policy-set/${policySetId}/policy`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            target: {
+              actions: policy.actions,
+              environment: {
+                serviceProviders: policy.service_providers,
+              },
+              resource: {
+                type: policy.resource_type,
+                identifiers: policy.identifiers,
+                attributes: policy.attributes,
+              },
+            },
+            rules: policy.rules,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets", policySetId],
+      });
+    },
+  });
+}
+
+export function useReplaceAdminPolicyToPolicySet({
+  policySetId,
+  policyId,
+}: {
+  policySetId: string;
+  policyId: string;
+}) {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ErrorResponse, { policy: Omit<Policy, "id"> }>({
+    mutationFn: async ({ policy }: { policy: Omit<Policy, "id"> }) => {
+      await authenticatedFetch(
+        `${baseAPIUrl}/admin/policy-set/${policySetId}/policy/${policyId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            target: {
+              actions: policy.actions,
+              environment: {
+                serviceProviders: policy.service_providers,
+              },
+              resource: {
+                type: policy.resource_type,
+                identifiers: policy.identifiers,
+                attributes: policy.attributes,
+              },
+            },
+            rules: policy.rules,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "policy-sets"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "policy-sets", policySetId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "policy-set", policySetId, "policy", policyId],
+      });
+    },
+  });
+}
+
+export function useReplacePolicyToPolicySet({
+  policySetId,
+  policyId,
+}: {
+  policySetId: string;
+  policyId: string;
+}) {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ErrorResponse, { policy: Omit<Policy, "id"> }>({
+    mutationFn: async ({ policy }: { policy: Omit<Policy, "id"> }) => {
+      await authenticatedFetch(
+        `${baseAPIUrl}/policy-set/${policySetId}/policy/${policyId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            target: {
+              actions: policy.actions,
+              environment: {
+                serviceProviders: policy.service_providers,
+              },
+              resource: {
+                type: policy.resource_type,
+                identifiers: policy.identifiers,
+                attributes: policy.attributes,
+              },
+            },
+            rules: policy.rules,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets", policySetId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-set", policySetId, "policy", policyId],
+      });
+    },
+  });
+}
+
 export function useDeleteAdminPolicyFromPolicySet({
   policySetId,
 }: {
@@ -169,6 +362,56 @@ export function useDeleteAdminPolicyFromPolicySet({
   });
 }
 
+export function useDeletePolicyFromPolicySet({
+  policySetId,
+}: {
+  policySetId: string;
+}) {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ErrorResponse, { policyId: string }>({
+    mutationFn: async ({ policyId }: { policyId: string }) => {
+      await authenticatedFetch(
+        `${baseAPIUrl}/policy-set/${policySetId}/policy/${policyId}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets", policySetId],
+      });
+    },
+  });
+}
+
+export function useAdminGetPolicy({
+  policyId,
+  policySetId,
+}: {
+  policyId: string;
+  policySetId: string;
+}) {
+  const authenticatedFetch = useAuthenticatedFetch();
+
+  return useQuery({
+    throwOnError: true,
+    queryKey: ["admin", "policy-set", policySetId, "policy", policyId],
+    queryFn: async () => {
+      const response = await authenticatedFetch(
+        `${baseAPIUrl}/admin/policy-set/${policySetId}/policy/${policyId}`,
+      );
+      const json = await response.json();
+      return policySchema.parse(json);
+    },
+  });
+}
+
 export function useDeleteAdminPolicySet({
   policySetId,
 }: {
@@ -192,6 +435,112 @@ export function useDeleteAdminPolicySet({
 
       queryClient.invalidateQueries({
         queryKey: ["admin", "policy-sets", policySetId],
+      });
+    },
+  });
+}
+
+export function useDeletePolicySet({ policySetId }: { policySetId: string }) {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ErrorResponse, void>({
+    mutationFn: async () => {
+      await authenticatedFetch(`${baseAPIUrl}/policy-set/${policySetId}`, {
+        method: "DELETE",
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets", policySetId],
+      });
+    },
+  });
+}
+
+export function useAdminCreatePolicySet() {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ErrorResponse, CreatePolicySet>({
+    mutationFn: async (policySet: CreatePolicySet) => {
+      await authenticatedFetch(`${baseAPIUrl}/admin/policy-set`, {
+        method: "POST",
+        body: JSON.stringify({
+          target: {
+            accessSubject: policySet.access_subject,
+          },
+          licences: ["ISHARE.0001"],
+          maxDelegationDepth: 1,
+          policies: policySet.policies.map((p) => ({
+            rules: p.rules,
+            target: {
+              actions: p.actions,
+              resource: {
+                type: p.resource_type,
+                identifiers: p.identifiers,
+                attributes: p.attributes,
+              },
+              environment: {
+                serviceProviders: p.service_providers,
+              },
+            },
+          })),
+          policyIssuer: policySet.policy_issuer,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "policy-sets"],
+      });
+    },
+  });
+}
+
+
+export function useCreatePolicySet() {
+  const authenticatedFetch = useAuthenticatedFetch();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ErrorResponse, CreatePolicySet>({
+    mutationFn: async (policySet: CreatePolicySet) => {
+      await authenticatedFetch(`${baseAPIUrl}/policy-set`, {
+        method: "POST",
+        body: JSON.stringify({
+          target: {
+            accessSubject: policySet.access_subject,
+          },
+          licences: ["ISHARE.0001"],
+          maxDelegationDepth: 1,
+          policies: policySet.policies.map((p) => ({
+            rules: p.rules,
+            target: {
+              actions: p.actions,
+              resource: {
+                type: p.resource_type,
+                identifiers: p.identifiers,
+                attributes: p.attributes,
+              },
+              environment: {
+                serviceProviders: p.service_providers,
+              },
+            },
+          })),
+          policyIssuer: policySet.policy_issuer,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["member", "policy-sets"],
       });
     },
   });

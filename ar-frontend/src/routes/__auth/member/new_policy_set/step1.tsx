@@ -1,16 +1,17 @@
-import { Button, Input, Stack, Typography } from "@mui/joy";
-import { createFileRoute } from "@tanstack/react-router";
-import { AddPolicySetStepper } from "../../../components/add-policy-set-stepper";
-import { useCreatePolicySetContext } from "../new_policy_set";
+import { Button, Input, Stack } from "@mui/joy";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { AddPolicySetStepper } from "@/components/add-policy-set-stepper";
+import { useCreatePolicySetContext } from "@/components/create-policy-set-context";
 import { useForm } from "@tanstack/react-form";
-import { FormField } from "../../../components/form-field";
-import { required } from "../../../form-field-validators";
+import { FormField } from "@/components/form-field";
+import { required } from "@/form-field-validators";
 
-export const Route = createFileRoute("/__auth/new_policy_set/step1")({
+export const Route = createFileRoute("/__auth/member/new_policy_set/step1")({
   component: Component,
 });
 
 function Component() {
+  const navigate = useNavigate();
   const { value, changeValue } = useCreatePolicySetContext();
 
   const form = useForm({
@@ -20,14 +21,14 @@ function Component() {
     },
     onSubmit: ({ value }) => {
       changeValue((oldValue) => ({ ...oldValue, ...value }));
+
+      // have to validate here
+      navigate({ to: "/member/new_policy_set/step2" });
     },
   });
 
   return (
     <div>
-      <Typography paddingY={2} level="h2">
-        New policy set
-      </Typography>
       <AddPolicySetStepper activeStep={1} />
       <form
         onSubmit={(e) => {

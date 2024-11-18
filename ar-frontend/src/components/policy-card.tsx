@@ -122,7 +122,7 @@ export function PolicyCard({
             ))}
           </Stack>
         </Box>
-        {actions && <Box padding={1}>{actions}</Box>}
+        {actions && <Box paddingY={1}>{actions}</Box>}
       </Box>
     </Card>
   );

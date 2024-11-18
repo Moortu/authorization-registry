@@ -1,4 +1,4 @@
-use anyhow::Context;
+use anyhow::{bail, Context};
 use ar_entity::delegation_evidence::{Policy, ResourceRule};
 use sea_orm::{self, ConnectionTrait, QueryFilter, TransactionTrait};
 use sea_orm::{
@@ -7,6 +7,21 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+pub async fn get_policy(
+    policy_set_id: Uuid,
+    policy_id: Uuid,
+    db: &DatabaseConnection,
+) -> anyhow::Result<Option<ar_entity::policy::Model>> {
+    let policy = ar_entity::policy::Entity::find()
+        .filter(ar_entity::policy::Column::Id.eq(policy_id))
+        .filter(ar_entity::policy::Column::PolicySet.eq(policy_set_id))
+        .one(db)
+        .await
+        .context("Error fetching policy from db")?;
+
+    Ok(policy)
+}
 
 pub async fn _get_all_policies(
     db: &DatabaseConnection,
@@ -96,6 +111,85 @@ pub async fn get_policy_sets_with_policies(
 
     let condition = if conditions.len() > 0 {
         let joined_conditions: String = conditions.join(" and ");
+        format!("where ({joined_conditions})")
+    } else {
+        "".to_owned()
+    };
+
+    let sql = format!(
+        r#"
+            select
+            ps.id as policy_set_id,
+            ps.access_subject as access_subject,
+            ps.policy_issuer as policy_issuer,
+            ps.licenses as licenses,
+            ps.max_delegation_depth as max_delegation_depth,
+            coalesce(
+                array_agg(
+                    json_build_object(
+                        'id',
+                        p.id,
+                        'identifiers',
+                        p.identifiers,
+                        'attributes',
+                        p.attributes,
+                        'actions',
+                        p.actions,
+                        'service_providers',
+                        p.service_providers,
+                        'resource_type',
+                        p.resource_type,
+                        'rules',
+                        p.rules
+                    )
+                ) filter (where p.id is not null),
+                '{{}}'
+            ) as policies
+        from
+            policy_set ps
+        left join
+            policy p
+                on p.policy_set = ps.id
+        {}
+        group by
+            ps.id
+    "#,
+        condition
+    );
+
+    let stmt = Statement::from_sql_and_values(sea_orm::DatabaseBackend::Postgres, sql, values);
+
+    let raw_result = JsonValue::find_by_statement(stmt)
+        .all(db)
+        .await
+        .context("Error fetching policy sets from database")?;
+
+    let policy_sets_parse_result: Result<Vec<MatchingPolicySetRow>, serde_json::Error> = raw_result
+        .iter()
+        .map(|r| serde_json::from_value::<MatchingPolicySetRow>(r.to_owned()))
+        .collect();
+
+    let policy_sets = policy_sets_parse_result
+        .context("Error parsing policy sets 'QueryResult' into 'MatchingPolicySetRow'")?;
+
+    Ok(policy_sets)
+}
+
+pub async fn get_own_policy_sets_with_policies(
+    eori: &str,
+    db: &DatabaseConnection,
+) -> anyhow::Result<Vec<MatchingPolicySetRow>> {
+    let mut conditions = Vec::new();
+    let mut values: Vec<Value> = Vec::new();
+
+    conditions.push(format!("access_subject like ${}", values.len() + 1));
+    values.push(format!("%{}%", &eori).into());
+
+    conditions.push(format!("policy_issuer like ${}", values.len() + 1));
+    values.push(format!("%{}%", &eori).into());
+
+    let condition = if conditions.len() > 0 {
+        let joined_conditions: String = conditions.join(" or ");
         format!("where ({joined_conditions})")
     } else {
         "".to_owned()
@@ -285,6 +379,42 @@ pub async fn insert_policy<C: ConnectionTrait>(
         .last_insert_id;
 
     Ok(policy_id)
+}
+
+pub async fn replace_policy<C: ConnectionTrait>(
+    policy_set_id: Uuid,
+    policy_id: Uuid,
+    new_policy: &ar_entity::delegation_evidence::Policy,
+    db: &C,
+) -> anyhow::Result<ar_entity::policy::Model> {
+    let policy = ar_entity::policy::Entity::find_by_id(policy_id)
+        .filter(ar_entity::policy::Column::PolicySet.eq(policy_set_id))
+        .one(db)
+        .await
+        .context("Error retrieving policy from db")?;
+
+    let mut active_policy = match policy {
+        None => bail!("policy with id '{}' not found", policy_id),
+        Some(policy) => policy.into_active_model(),
+    };
+
+    active_policy.attributes = ActiveValue::set(new_policy.target.resource.attributes.clone());
+    active_policy.identifiers = ActiveValue::set(new_policy.target.resource.identifiers.clone());
+    active_policy.service_providers =
+        ActiveValue::set(new_policy.target.environment.service_providers.clone());
+    active_policy.actions = ActiveValue::set(new_policy.target.actions.clone());
+    active_policy.resource_type =
+        ActiveValue::set(new_policy.target.resource.resource_type.clone());
+    active_policy.rules = ActiveValue::set(new_policy.rules.clone());
+
+    let active_policy = active_policy
+        .save(db)
+        .await
+        .context("Error saving update policy to db")?;
+
+    let policy = active_policy.try_into_model()?;
+
+    Ok(policy)
 }
 
 pub async fn delete_policy_set(

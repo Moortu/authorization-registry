@@ -1,10 +1,8 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { z } from "zod";
-import { isAuthenticated, useAuth } from "../auth";
+import { getTokenContent, isAuthenticated, useAuth } from "../auth";
 import { initLogin } from "../network/idp";
-import { Box } from "@mui/joy";
-import { Logo } from "../components/logo";
 
 const searchSchema = z
   .object({
@@ -23,11 +21,18 @@ function Component() {
   const { token, setToken } = useAuth();
 
   useEffect(() => {
-    if (search?.token && isAuthenticated(token)) {
+    if (search?.token && isAuthenticated(token) && token) {
+      const tokenContent = getTokenContent(token);
       navigate({
-        to: "/",
+        to: tokenContent.realm_access_roles.includes("dexspace_admin")
+          ? "/admin"
+          : "/member",
         replace: true,
-        search: {},
+        search: {
+          ...search,
+          // @ts-ignore
+          token: undefined,
+        },
       });
     }
 
@@ -42,16 +47,9 @@ function Component() {
     }
   }, [token, search?.token, search, setToken, navigate]);
 
-  if (!isAuthenticated(token)) {
+  if (!isAuthenticated(token) || !token) {
     return null;
   }
 
-  return (
-    <Box>
-      <Box paddingY={2}>
-        <Logo />
-      </Box>
-      <Outlet />
-    </Box>
-  );
+  return <Outlet />;
 }
