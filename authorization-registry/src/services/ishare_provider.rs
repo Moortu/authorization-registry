@@ -1,7 +1,7 @@
 use anyhow::Context;
 use reqwest::StatusCode;
 use sea_orm::DatabaseConnection;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use axum::async_trait;
 use ishare::{
@@ -31,6 +31,41 @@ struct IdTokenClaims {
     pub email: String,
     pub first_name: String,
     pub last_name: String,
+}
+
+#[derive(Serialize)]
+pub struct SupportedVersion {
+    pub version: String,
+    pub supported_features: Vec<SupportedFeatures>,
+}
+
+#[derive(Serialize)]
+pub struct SupportedFeature {
+    pub id: String,
+    pub feature: String,
+    pub description: String,
+    pub url: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub token_endpoint: Option<String>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SupportedFeatures {
+    Public(Vec<SupportedFeature>),
+    Private(Vec<SupportedFeature>),
+}
+
+#[derive(Serialize)]
+pub struct CapabilitiesInfo {
+    pub party_id: String,
+    pub ishare_roles: Vec<String>,
+    pub supported_versions: Vec<SupportedVersion>,
+}
+
+#[derive(Serialize)]
+pub struct Capabilities {
+    pub capabilities_info: CapabilitiesInfo,
 }
 
 #[async_trait]
@@ -65,6 +100,8 @@ pub trait SatelliteProvider: Send + Sync {
         audience: &str,
         de_container: &DelegationEvidenceContainer,
     ) -> anyhow::Result<String>;
+
+    fn create_capabilities_token(&self, capabilities: &Capabilities) -> anyhow::Result<String>;
 }
 
 #[derive(Clone)]
@@ -99,6 +136,12 @@ impl SatelliteProvider for ISHAREProvider {
     ) -> anyhow::Result<String> {
         self.ishare
             .create_client_assertion_with_extra_claims(Some(audience.to_owned()), de_container)
+            .context("Error creating delegation token")
+    }
+
+    fn create_capabilities_token(&self, capabilities: &Capabilities) -> anyhow::Result<String> {
+        self.ishare
+            .create_client_assertion_with_extra_claims(None, capabilities)
             .context("Error creating delegation token")
     }
 

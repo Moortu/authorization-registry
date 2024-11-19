@@ -24,15 +24,6 @@ pub fn get_connect_routes() -> Router<AppState> {
     return router;
 }
 
-#[derive(Serialize)]
-struct AuthClaims {
-    client_id: String,
-    scope: String,
-    redirect_uri: String,
-    response_type: String,
-    state: String,
-}
-
 fn get_server_base_url(
     headers: HeaderMap,
     host: String,

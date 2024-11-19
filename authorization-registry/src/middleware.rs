@@ -35,7 +35,7 @@ pub async fn extract_role_middleware(
     mut req: Request,
     next: Next,
 ) -> Result<impl IntoResponse, AppError> {
-    let token_string = extract_bearer_token(header)?;
+    let token_string = extract_bearer_token(&header)?;
     let token = server_token.decode_token(&token_string)?;
 
     req.extensions_mut().insert(token.claims.role.clone());

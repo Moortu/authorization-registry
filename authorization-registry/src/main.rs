@@ -9,6 +9,7 @@ use axum::{extract::FromRef, Router};
 use clap::Parser;
 use ishare::ishare::ISHARE;
 use routes::admin::get_admin_routes;
+use routes::capabilities::get_capabilities_routes;
 use routes::connect::get_connect_routes;
 use routes::delegation::get_delegation_routes;
 use routes::policy_set::get_policy_set_routes;
@@ -57,6 +58,7 @@ impl TimeProvider for RealTimeProvider {
 
 pub struct AppConfig {
     pub deploy_route: String,
+    pub client_eori: String,
 }
 
 #[derive(Clone)]
@@ -84,12 +86,14 @@ pub fn get_app(db: DatabaseConnection, app_state: AppState) -> Router {
     let admin_routes = get_admin_routes(app_state.server_token.clone());
     let delegation_routes = get_delegation_routes(app_state.server_token.clone());
     let policy_set_routes = get_policy_set_routes(app_state.server_token.clone());
+    let capabilities_routes = get_capabilities_routes();
 
     let app = Router::new()
         .nest("/connect", connect_routes)
         .nest("/admin", admin_routes)
         .nest("/delegation", delegation_routes)
         .nest("/policy-set", policy_set_routes)
+        .nest("/capabilities", capabilities_routes)
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &axum::http::Request<_>| {
                 let matched_path = request
@@ -146,7 +150,8 @@ async fn main() {
         )
         .unwrap(),
     );
-    let idp_connector = IdpConnector::new(config.idp_url, config.client_eori, config.idp_eori);
+    let idp_connector =
+        IdpConnector::new(config.idp_url, config.client_eori.clone(), config.idp_eori);
     let sat_provider = ISHAREProvider::new(ishare.clone(), &db, &idp_connector);
     let time_provider = RealTimeProvider::new();
     let app_state = AppState {
@@ -156,6 +161,7 @@ async fn main() {
         de_expiry_seconds: config.de_expiry_seconds,
         config: Arc::new(AppConfig {
             deploy_route: config.deploy_route.clone(),
+            client_eori: config.client_eori.clone(),
         }),
     };
 

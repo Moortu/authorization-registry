@@ -4,7 +4,7 @@ use reqwest::StatusCode;
 
 use crate::error::{AppError, ExpectedError};
 
-pub fn extract_bearer_token(header_map: HeaderMap) -> Result<String, AppError> {
+pub fn extract_bearer_token(header_map: &HeaderMap) -> Result<String, AppError> {
     let auth_header = match header_map.get("Authorization") {
         Some(header) => header,
         None => {
@@ -47,7 +47,7 @@ mod test {
     fn test_extract_bearer_no_authorization() {
         let header_map = HeaderMap::new();
 
-        match extract_bearer_token(header_map) {
+        match extract_bearer_token(&header_map) {
             Err(AppError::Expected(error)) => {
                 assert_eq!(format!("{}", error), "Authorization header not found");
             }
@@ -62,7 +62,7 @@ mod test {
         let mut header_map = HeaderMap::new();
         header_map.append(AUTHORIZATION, HeaderValue::from_str("asfasfgasg").unwrap());
 
-        match extract_bearer_token(header_map) {
+        match extract_bearer_token(&header_map) {
             Err(AppError::Expected(error)) => {
                 assert_eq!(
                     format!("{}", error),
@@ -83,7 +83,7 @@ mod test {
             HeaderValue::from_str("Bearer asfasfgasg").unwrap(),
         );
 
-        match extract_bearer_token(header_map) {
+        match extract_bearer_token(&header_map) {
             Err(e) => {
                 panic!("{:?}", e);
             }
