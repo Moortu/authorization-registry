@@ -91,7 +91,7 @@ async fn get_capabilities(
         }
     };
 
-    let api_url = [scheme, host].join("");
+    let api_url = [scheme, host, app_state.config.deploy_route.clone()].join("");
     let capabilities = create_capabilities(&app_state.config.client_eori, &api_url, show_private);
 
     let capabilities_token = app_state
