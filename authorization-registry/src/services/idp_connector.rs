@@ -20,7 +20,6 @@ pub struct AuthRequestClaims {
 #[derive(Deserialize)]
 pub struct TokenResponse {
     pub id_token: String,
-    pub _access_token: String,
 }
 
 impl IdpConnector {
