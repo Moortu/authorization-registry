@@ -78,29 +78,13 @@ pub fn is_permit(policy: &Policy, matching_row: &MatchingPolicySetRow) -> bool {
     return permit;
 }
 
-pub async fn create_delegation_evidence(
+pub fn get_delegation_evidence_policy_sets(
     delegation_request: &DelegationRequest,
-    time_provider: std::sync::Arc<dyn TimeProvider>,
-    de_expiry_seconds: i64,
-    db: &DatabaseConnection,
-) -> Result<DelegationEvidenceContainer, AppError> {
-    tracing::info!(
-        "Retrieving policy sets for access subject '{}' and policy issuer '{}'",
-        &delegation_request.target.access_subject,
-        &delegation_request.policy_issuer
-    );
-
-    let de_policy_sets = policy_store::get_policy_sets_with_policies(
-        Some(delegation_request.target.access_subject.to_owned()),
-        Some(delegation_request.policy_issuer.to_owned()),
-        &db,
-    )
-    .await
-    .context("Error getting policy sets")?;
-
+    matching_policy_sets: &Vec<MatchingPolicySetRow>,
+) -> Vec<ishare::delegation_evidence::PolicySet> {
     let mut policy_sets = vec![];
     for ps in delegation_request.policy_sets.iter() {
-        let matching_policy_sets = mask_matching_policy_sets(ps, &de_policy_sets);
+        let matching_policy_sets = mask_matching_policy_sets(ps, &matching_policy_sets);
 
         for matching in matching_policy_sets {
             let policies: Vec<ishare::delegation_evidence::Policy> = ps
@@ -146,6 +130,30 @@ pub async fn create_delegation_evidence(
         }
     }
 
+    return policy_sets;
+}
+
+pub async fn create_delegation_evidence(
+    delegation_request: &DelegationRequest,
+    time_provider: std::sync::Arc<dyn TimeProvider>,
+    de_expiry_seconds: i64,
+    db: &DatabaseConnection,
+) -> Result<DelegationEvidenceContainer, AppError> {
+    tracing::info!(
+        "Retrieving policy sets for access subject '{}' and policy issuer '{}'",
+        &delegation_request.target.access_subject,
+        &delegation_request.policy_issuer
+    );
+
+    let de_policy_sets = policy_store::get_policy_sets_with_policies(
+        Some(delegation_request.target.access_subject.to_owned()),
+        Some(delegation_request.policy_issuer.to_owned()),
+        &db,
+    )
+    .await
+    .context("Error getting policy sets")?;
+
+    let policy_sets = get_delegation_evidence_policy_sets(delegation_request, &de_policy_sets);
     let now = time_provider.now().timestamp();
     let de_container = DelegationEvidenceContainer {
         delegation_evidence: DelegationEvidence {
@@ -166,7 +174,7 @@ pub async fn create_delegation_evidence(
 mod tests {
     use ar_entity::delegation_evidence::{Deny, Resource, ResourceRule, Target};
     use ishare::delegation_request::{
-        Environment, Resource as DRResource, ResourceRules, ResourceTarget,
+        DelegationTarget, Environment, Resource as DRResource, ResourceRules, ResourceTarget,
     };
     use uuid::Uuid;
 
@@ -586,5 +594,143 @@ mod tests {
         );
 
         assert_eq!(is_permit, false)
+    }
+
+    #[test]
+    fn test_get_delegation_evidence_policy_sets() {
+        let matching_policy_set_rows = vec![MatchingPolicySetRow {
+            access_subject: "as".to_owned(),
+            licenses: vec!["ISHARE.001".to_owned()],
+            policy_set_id: Uuid::new_v4(),
+            policy_issuer: "issuer".to_owned(),
+            max_delegation_depth: 1,
+            policies: vec![DelegationEvidencePolicy {
+                id: Uuid::new_v4(),
+                identifiers: vec!["*".to_owned()],
+                resource_type: "nice-resource".to_owned(),
+                attributes: vec!["*".to_owned()],
+                actions: vec!["Read".to_owned()],
+                service_providers: vec!["fishery".to_owned()],
+                rules: vec![ResourceRule::Permit],
+            }],
+        }];
+
+        let policy_sets = get_delegation_evidence_policy_sets(
+            &DelegationRequest {
+                policy_issuer: "ps".to_owned(),
+                target: DelegationTarget {
+                    access_subject: "as".to_owned(),
+                },
+                policy_sets: vec![PolicySet {
+                    policies: vec![Policy {
+                        target: ResourceTarget {
+                            actions: vec!["Read".to_owned()],
+                            resource: DRResource {
+                                resource_type: "nice-resource".to_owned(),
+                                identifiers: vec!["chicken".to_owned()],
+                                attributes: vec!["chicken".to_owned()],
+                            },
+                            environment: Environment {
+                                service_providers: vec!["fishery".to_owned()],
+                            },
+                        },
+                        rules: vec![ResourceRules {
+                            effect: "Effect".to_owned(),
+                        }],
+                    }],
+                }],
+            },
+            &matching_policy_set_rows,
+        );
+
+        assert_eq!(policy_sets.len(), 1)
+    }
+
+    #[test]
+    fn test_get_delegation_evidence_policy_sets_cartesian() {
+        let matching_policy_set_rows = vec![
+            MatchingPolicySetRow {
+                access_subject: "as".to_owned(),
+                licenses: vec!["ISHARE.001".to_owned()],
+                policy_set_id: Uuid::new_v4(),
+                policy_issuer: "issuer".to_owned(),
+                max_delegation_depth: 1,
+                policies: vec![DelegationEvidencePolicy {
+                    id: Uuid::new_v4(),
+                    identifiers: vec!["*".to_owned()],
+                    resource_type: "nice-resource".to_owned(),
+                    attributes: vec!["*".to_owned()],
+                    actions: vec!["*".to_owned()],
+                    service_providers: vec!["fishery".to_owned()],
+                    rules: vec![ResourceRule::Permit],
+                }],
+            },
+            MatchingPolicySetRow {
+                access_subject: "as".to_owned(),
+                licenses: vec!["ISHARE.001".to_owned()],
+                policy_set_id: Uuid::new_v4(),
+                policy_issuer: "issuer".to_owned(),
+                max_delegation_depth: 1,
+                policies: vec![DelegationEvidencePolicy {
+                    id: Uuid::new_v4(),
+                    identifiers: vec!["*".to_owned()],
+                    resource_type: "nice-resource".to_owned(),
+                    attributes: vec!["*".to_owned()],
+                    actions: vec!["*".to_owned()],
+                    service_providers: vec!["fishery".to_owned()],
+                    rules: vec![ResourceRule::Permit],
+                }],
+            },
+        ];
+
+        let policy_sets = get_delegation_evidence_policy_sets(
+            &DelegationRequest {
+                policy_issuer: "ps".to_owned(),
+                target: DelegationTarget {
+                    access_subject: "as".to_owned(),
+                },
+                policy_sets: vec![
+                    PolicySet {
+                        policies: vec![Policy {
+                            target: ResourceTarget {
+                                actions: vec!["Read".to_owned()],
+                                resource: DRResource {
+                                    resource_type: "nice-resource".to_owned(),
+                                    identifiers: vec!["chicken".to_owned()],
+                                    attributes: vec!["chicken".to_owned()],
+                                },
+                                environment: Environment {
+                                    service_providers: vec!["fishery".to_owned()],
+                                },
+                            },
+                            rules: vec![ResourceRules {
+                                effect: "Effect".to_owned(),
+                            }],
+                        }],
+                    },
+                    PolicySet {
+                        policies: vec![Policy {
+                            target: ResourceTarget {
+                                actions: vec!["Delete".to_owned()],
+                                resource: DRResource {
+                                    resource_type: "nice-resource".to_owned(),
+                                    identifiers: vec!["chicken".to_owned()],
+                                    attributes: vec!["chicken".to_owned()],
+                                },
+                                environment: Environment {
+                                    service_providers: vec!["fishery".to_owned()],
+                                },
+                            },
+                            rules: vec![ResourceRules {
+                                effect: "Effect".to_owned(),
+                            }],
+                        }],
+                    },
+                ],
+            },
+            &matching_policy_set_rows,
+        );
+
+        assert_eq!(policy_sets.len(), 4)
     }
 }
