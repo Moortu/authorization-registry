@@ -643,7 +643,95 @@ mod tests {
             &matching_policy_set_rows,
         );
 
-        assert_eq!(policy_sets.len(), 1)
+        assert_eq!(policy_sets.len(), 1);
+        assert_eq!(
+            policy_sets
+                .get(0)
+                .unwrap()
+                .policies
+                .get(0)
+                .unwrap()
+                .rules
+                .get(0)
+                .unwrap()
+                .effect,
+            "Permit"
+        )
+    }
+
+    #[test]
+    fn test_get_delegation_evidence_policy_sets_deny() {
+        let matching_policy_set_rows = vec![MatchingPolicySetRow {
+            access_subject: "as".to_owned(),
+            licenses: vec!["ISHARE.001".to_owned()],
+            policy_set_id: Uuid::new_v4(),
+            policy_issuer: "issuer".to_owned(),
+            max_delegation_depth: 1,
+            policies: vec![DelegationEvidencePolicy {
+                id: Uuid::new_v4(),
+                identifiers: vec!["*".to_owned()],
+                resource_type: "nice-resource".to_owned(),
+                attributes: vec!["*".to_owned()],
+                actions: vec!["Read".to_owned()],
+                service_providers: vec!["fishery".to_owned()],
+                rules: vec![
+                    ResourceRule::Permit,
+                    ResourceRule::Deny(Deny {
+                        target: Target {
+                            resource: Resource {
+                                resource_type: "nice-resource".to_owned(),
+                                identifiers: vec!["chicken".to_owned()],
+                                attributes: vec!["chicken".to_owned()],
+                            },
+                            actions: vec!["Read".to_owned()],
+                        },
+                    }),
+                ],
+            }],
+        }];
+
+        let policy_sets = get_delegation_evidence_policy_sets(
+            &DelegationRequest {
+                policy_issuer: "ps".to_owned(),
+                target: DelegationTarget {
+                    access_subject: "as".to_owned(),
+                },
+                policy_sets: vec![PolicySet {
+                    policies: vec![Policy {
+                        target: ResourceTarget {
+                            actions: vec!["Read".to_owned()],
+                            resource: DRResource {
+                                resource_type: "nice-resource".to_owned(),
+                                identifiers: vec!["chicken".to_owned()],
+                                attributes: vec!["chicken".to_owned()],
+                            },
+                            environment: Environment {
+                                service_providers: vec!["fishery".to_owned()],
+                            },
+                        },
+                        rules: vec![ResourceRules {
+                            effect: "Effect".to_owned(),
+                        }],
+                    }],
+                }],
+            },
+            &matching_policy_set_rows,
+        );
+
+        assert_eq!(policy_sets.len(), 1);
+        assert_eq!(
+            policy_sets
+                .get(0)
+                .unwrap()
+                .policies
+                .get(0)
+                .unwrap()
+                .rules
+                .get(0)
+                .unwrap()
+                .effect,
+            "Deny"
+        )
     }
 
     #[test]
