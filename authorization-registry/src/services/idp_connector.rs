@@ -77,6 +77,10 @@ impl IdpConnector {
             ("client_id", &self.client_id),
             ("code", code),
             ("client_assertion", client_assertion),
+            (
+                "client_assertion_type",
+                "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            ),
         ];
 
         let response = reqwest::Client::new()
