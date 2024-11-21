@@ -52,6 +52,7 @@ async fn delete_policy_from_policy_set(
         &role.get_company_id(),
         &policy_set_id,
         &policy_id,
+        &app_state.config.client_eori,
         app_state.time_provider,
         &db,
     )
@@ -69,6 +70,7 @@ async fn get_policy_set(
     let ps = policy_service::get_policy_set_with_policies(
         &role.get_company_id(),
         &id,
+        &app_state.config.client_eori,
         app_state.time_provider,
         &db,
     )
@@ -98,6 +100,7 @@ async fn replace_policy_in_policy_set(
         policy_set_id,
         policy_id,
         body,
+        &app_state.config.client_eori,
         app_state.time_provider,
         app_state.satellite_provider,
         &db,
@@ -119,6 +122,7 @@ async fn add_policy_to_policy_set(
         &role.get_company_id(),
         &id,
         body,
+        &app_state.config.client_eori,
         app_state.time_provider,
         app_state.satellite_provider,
         &db,
@@ -134,8 +138,14 @@ async fn delete_policy_set(
     WithRejection(Path(id), _): WithRejection<Path<Uuid>, AppError>,
     State(app_state): State<AppState>,
 ) -> Result<(), AppError> {
-    policy_service::delete_policy_set(&role.get_company_id(), &id, app_state.time_provider, &db)
-        .await?;
+    policy_service::delete_policy_set(
+        &role.get_company_id(),
+        &id,
+        &app_state.config.client_eori,
+        app_state.time_provider,
+        &db,
+    )
+    .await?;
 
     Ok(())
 }
@@ -158,6 +168,7 @@ async fn insert_policy_set(
         &role.get_company_id(),
         &body,
         &db,
+        &app_state.config.client_eori,
         app_state.time_provider.clone(),
         app_state.satellite_provider.clone(),
     )

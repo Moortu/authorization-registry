@@ -70,6 +70,7 @@ pub async fn insert_policy_set_with_policies(
     requester_company_id: &str,
     args: &InsertPolicySetWithPolicies,
     db: &DatabaseConnection,
+    client_eori: &str,
     time_provider: std::sync::Arc<dyn TimeProvider>,
     ishare: std::sync::Arc<dyn SatelliteProvider>,
 ) -> Result<Uuid, AppError> {
@@ -87,6 +88,7 @@ pub async fn insert_policy_set_with_policies(
         &args.policy_issuer,
         &args.target.access_subject,
         identifiers,
+        client_eori,
         time_provider,
         &db,
     )
@@ -146,7 +148,8 @@ pub async fn verify_policy_set_access(
     action: &PolicySetAction,
     policy_issuer: &str,
     access_subject: &str,
-    identifiers: Vec<String>,
+    resource_types: Vec<String>,
+    client_eori: &str,
     time_provider: std::sync::Arc<dyn TimeProvider>,
     db: &DatabaseConnection,
 ) -> anyhow::Result<bool> {
@@ -176,12 +179,12 @@ pub async fn verify_policy_set_access(
                 target: ResourceTarget {
                     actions: vec![action.to_string()],
                     resource: ishare::delegation_request::Resource {
-                        identifiers: identifiers.clone(),
+                        identifiers: resource_types.clone(),
                         resource_type: "PDP.Policy".to_string(),
                         attributes: vec!["*".to_string()],
                     },
                     environment: ishare::delegation_request::Environment {
-                        service_providers: vec![requestor_company_id.to_string()],
+                        service_providers: vec![client_eori.to_string()],
                     },
                 },
                 rules: vec![ishare::delegation_request::ResourceRules {
@@ -192,10 +195,10 @@ pub async fn verify_policy_set_access(
     };
 
     tracing::info!(
-        "checking if delegation evidence exists that '{}' can {} policies of type '{:?}' on behalf of '{}'",
+        "checking if delegation evidence exists that '{}' can {} policies of types '{:?}' on behalf of '{}'",
         requestor_company_id,
         action.to_string(),
-        &identifiers,
+        &resource_types,
         policy_issuer
     );
 
@@ -221,6 +224,7 @@ pub async fn verify_policy_set_access(
 pub async fn delete_policy_set(
     requester_company_id: &str,
     id: &Uuid,
+    client_eori: &str,
     time_provider: std::sync::Arc<dyn TimeProvider>,
     db: &DatabaseConnection,
 ) -> Result<(), AppError> {
@@ -254,6 +258,7 @@ pub async fn delete_policy_set(
         &policy_set.policy_issuer,
         &policy_set.access_subject,
         identifiers,
+        client_eori,
         time_provider,
         &db,
     )
@@ -280,6 +285,7 @@ pub async fn add_policy_to_policy_set(
     requester_company_id: &str,
     policy_set_id: &Uuid,
     policy: ar_entity::delegation_evidence::Policy,
+    client_eori: &str,
     time_provider: std::sync::Arc<dyn TimeProvider>,
     satellite_provider: std::sync::Arc<dyn SatelliteProvider>,
     db: &DatabaseConnection,
@@ -340,6 +346,7 @@ pub async fn add_policy_to_policy_set(
         &policy_set.policy_issuer,
         &policy_set.access_subject,
         identifiers,
+        client_eori,
         time_provider,
         &db,
     )
@@ -367,6 +374,7 @@ pub async fn replace_policy_in_policy_set(
     policy_set_id: Uuid,
     policy_id: Uuid,
     policy: ar_entity::delegation_evidence::Policy,
+    client_eori: &str,
     time_provider: std::sync::Arc<dyn TimeProvider>,
     satellite_provider: std::sync::Arc<dyn SatelliteProvider>,
     db: &DatabaseConnection,
@@ -427,6 +435,7 @@ pub async fn replace_policy_in_policy_set(
         &policy_set.policy_issuer,
         &policy_set.access_subject,
         identifiers,
+        client_eori,
         time_provider,
         &db,
     )
@@ -452,6 +461,7 @@ pub async fn replace_policy_in_policy_set(
 pub async fn get_policy_set_with_policies(
     requester_company_id: &str,
     policy_set_id: &Uuid,
+    client_eori: &str,
     time_provider: std::sync::Arc<dyn TimeProvider>,
     db: &DatabaseConnection,
 ) -> Result<Option<MatchingPolicySetRow>, AppError> {
@@ -485,6 +495,7 @@ pub async fn get_policy_set_with_policies(
         &policy_set.policy_issuer,
         &policy_set.access_subject,
         identifiers,
+        client_eori,
         time_provider,
         &db,
     )
@@ -509,6 +520,7 @@ pub async fn remove_policy_from_policy_set(
     requester_company_id: &str,
     policy_set_id: &Uuid,
     policy_id: &Uuid,
+    client_eori: &str,
     time_provider: std::sync::Arc<dyn TimeProvider>,
     db: &DatabaseConnection,
 ) -> Result<(), AppError> {
@@ -554,6 +566,7 @@ pub async fn remove_policy_from_policy_set(
         &policy_set.policy_issuer,
         &policy_set.access_subject,
         identifiers,
+        client_eori,
         time_provider,
         &db,
     )
@@ -574,4 +587,175 @@ pub async fn remove_policy_from_policy_set(
         .context("Error deleting policy")?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::test_helpers::*;
+    use helpers::{init_test_db, FakeTimeProvider};
+    use serde_json::json;
+    use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
+
+    #[sqlx::test]
+    fn test_verify_policy_set_access_pi_match(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        let time_provider = std::sync::Arc::new(FakeTimeProvider::new());
+
+        let access = verify_policy_set_access(
+            "company",
+            &PolicySetAction::Delete,
+            "company",
+            "as",
+            vec!["*".to_owned()],
+            "antother-company",
+            time_provider,
+            &db,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(access, true);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    fn test_verify_policy_set_access_no_pi_match(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        let time_provider = std::sync::Arc::new(FakeTimeProvider::new());
+
+        let access = verify_policy_set_access(
+            "company",
+            &PolicySetAction::Delete,
+            "company-2",
+            "as",
+            vec!["*".to_owned()],
+            "another-company",
+            time_provider,
+            &db,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(access, false);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    fn test_verify_policy_set_access_as_read(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        let time_provider = std::sync::Arc::new(FakeTimeProvider::new());
+
+        let access = verify_policy_set_access(
+            "as-company",
+            &PolicySetAction::Read,
+            "company",
+            "as-company",
+            vec!["*".to_owned()],
+            "antother-company",
+            time_provider,
+            &db,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(access, true);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    fn test_verify_policy_set_access_as_delete(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        let time_provider = std::sync::Arc::new(FakeTimeProvider::new());
+
+        let access = verify_policy_set_access(
+            "as-company",
+            &PolicySetAction::Delete,
+            "company",
+            "as-company",
+            vec!["*".to_owned()],
+            "antother-company",
+            time_provider,
+            &db,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(access, false);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    fn test_verify_policy_set_access_via_de(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        let time_provider = std::sync::Arc::new(FakeTimeProvider::new());
+        let policy_set: InsertPolicySetWithPolicies = serde_json::from_value(json!({
+            "target": {
+                "accessSubject": "NL.24244",
+            },
+            "policyIssuer": "NL.44444",
+            "licences": ["ISHARE.0001"],
+            "maxDelegationDepth": 2,
+            "policies": [
+                {
+                    "target": {
+                        "resource": {
+                            "type": "PDP.Policy",
+                            "identifiers": ["LovelyResource"],
+                            "attributes": ["*"],
+                        },
+                        "actions": ["Delete"],
+                        "environment": {
+                            "serviceProviders": ["NL.CONSUME_TOO_MUCH"],
+                        },
+                    },
+                    "rules": [
+                        {
+                            "effect": "Permit"
+                        }
+                    ]
+                }
+            ]
+        }))
+        .unwrap();
+        policy_store::insert_policy_set_with_policies(&policy_set, &db)
+            .await
+            .unwrap();
+
+        let access = verify_policy_set_access(
+            "NL.24244",
+            &PolicySetAction::Delete,
+            "NL.44444",
+            "as",
+            vec!["LovelyResource".to_string()],
+            "NL.CONSUME_TOO_MUCH",
+            time_provider,
+            &db,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(access, true);
+
+        Ok(())
+    }
 }

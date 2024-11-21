@@ -17,10 +17,10 @@ pub mod helpers {
     use crate::AppState;
     use crate::TimeProvider;
 
-    struct FakeTimeProvider;
+    pub struct FakeTimeProvider;
 
     impl FakeTimeProvider {
-        fn new() -> Self {
+        pub fn new() -> Self {
             Self {}
         }
     }
@@ -62,7 +62,7 @@ pub mod helpers {
             de_expiry_seconds: 3600,
             config: Arc::new(crate::AppConfig {
                 deploy_route: "".to_owned(),
-                client_eori: "".to_owned(),
+                client_eori: "NL.CONSUME_TOO_MUCH".to_owned(),
             }),
         };
         let app = get_app(db, app_state);
