@@ -1,0 +1,19 @@
+name: frontend-lint-check
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check formatting
+      working-directory: "./ar-frontend"
+      run: npx prettier@latest --check src
+  
