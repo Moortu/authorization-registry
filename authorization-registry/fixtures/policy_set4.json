@@ -14,7 +14,7 @@
       "identifiers": ["TestResource"],
       "attributes": ["*"],
       "actions": ["Read", "Create", "Delete", "Edit"],
-      "service_providers": [ "NL.44444"],
+      "service_providers": ["NL.CONSUME_TOO_MUCH"],
       "rules": [
         {
           "effect": "Permit"
