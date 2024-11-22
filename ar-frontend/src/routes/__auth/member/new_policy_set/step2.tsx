@@ -62,7 +62,9 @@ function Component() {
         >
           Back
         </Button>
-        <Button onClick={() => navigate({ to: "/member/new_policy_set/step3" })}>
+        <Button
+          onClick={() => navigate({ to: "/member/new_policy_set/step3" })}
+        >
           Next
         </Button>
       </Stack>
