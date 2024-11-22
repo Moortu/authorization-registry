@@ -1,0 +1,21 @@
+name: frontend-build-check
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install
+      working-directory: "./ar-frontend"
+      run: npm install
+    - name: Build
+      working-directory: "./ar-frontend"
+      run: npm run build
