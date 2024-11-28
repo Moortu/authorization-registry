@@ -40,7 +40,11 @@ impl Modify for SecurityAddon {
         components.add_security_scheme(
             "bearer",
             SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("Bearer Token for Authorize Header"))),
-        )
+        );
+        components.add_security_scheme(
+            "h2m_bearer_admin",
+            SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("Bearer Token for Authorize Header"))),
+        );
     }
 }
 
@@ -59,7 +63,15 @@ impl Modify for SecurityAddon {
         routes::policy_set::delete_policy_set,
         routes::policy_set::add_policy_to_policy_set,
         routes::policy_set::delete_policy_from_policy_set,
-        routes::policy_set::replace_policy_in_policy_set
+        routes::policy_set::replace_policy_in_policy_set,
+        routes::admin::get_policy,
+        routes::admin::add_policy_to_policy_set,
+        routes::admin::replace_policy_in_policy_set,
+        routes::admin::delete_policy_set,
+        routes::admin::delete_policy_from_policy_set,
+        routes::admin::get_policy_set,
+        routes::admin::insert_policy_set,
+        routes::admin::get_all_policy_sets
     )
 )]
 struct ApiDoc;
