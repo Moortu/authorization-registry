@@ -1,17 +1,187 @@
-GPL v3 license
+# iSHARE Authorization Registry
 
-## Applying database migration
-Make sure that a postgres database exists with the name 'authorization_registry' and the `database_url` in `.config.json` is set to the address of that database.
-- `cd authorization-registry/migration`
-- To apply migrations makes sure that the environment variable `DATABASE_URL` is set
-- To do a migration from scratch (deleting all current data): `cargo run -- fresh`
-- To apply all pending migration: `cargo run -- up`
-- To roll-back the last migration: `cargo run -- down`
-- To see more example: [authorization-registry/migration/README.md](./authorization-registry/migration/README.md)
+An open source implementation of an iSHARE-compliant Authorization Registry. 
 
-## To run frontend
-- Edit `./ar-frontend/.env` and set `VITE_IDP_URL` to the location of the idp
-When running in dev mode
-- Edit `./ar-frontend/.env` and set `VITE_BASE_API_URL` to the clearing backend (usually `http://localhost:4000`)
-When running in production
-- `npm run build`
+## Overview
+
+The iSHARE Authorization Registry provides a complete solution for managing delegation and authorization information within the iSHARE framework. It features a RESTful backend API and a web-based management interface. The system currently handles user management through an iSHARE-enabled Identity Provider (IDP), such as our recommended implementation at https://github.com/LIFE-Electronic/keycloak-ishare.
+## Key Features
+
+The Authorization Registry supports core iSHARE functionality including:
+
+- Storage and management of access policies
+- Fully-featured REST API
+- Management UI (optional)
+- Verification of machine-to-machine (M2M) authorization requests
+- Delegation evidence issuance and validation
+- Compliance with iSHARE's trust framework
+
+## Roadmap
+
+- Fully pass iSHARE conformance tests (Early 2025)
+- Dockerfiles for easier deployment (Early 2025)
+- IDP independence to support more IDP providers than LIFE's Keycloak fork (sponsors needed)
+
+
+## System requirements
+
+- Rust (latest stable version)
+- Node.js (LTS version)
+- PostgreSQL (versions 12.20 or 14.15 verified)
+
+### Additional requirements
+
+- Valid iSHARE certificates for testing/deployment (obtainable from: https://ca7.isharetest.net:8442/ejbca/ra/index.xhtml)
+- Registered, active participant in iSHARE network
+- iSHARE Certificate chain (available at https://ca7.isharetest.net:8442/ejbca/retrieve/ca_crls.jsp. Select "TEST iSHARE EU Issuing Certification Authority G5" in PEM format)
+- iSHARE-compatible Keycloak implementation as IDP (such as: https://github.com/LIFE-Electronic/keycloak-ishare)
+- Administrator account in the iSHARE-enabled realm with `dexspace_admin` privileges
+
+## Installation Guide
+
+### Backend Setup
+
+This section explains how to setup the AR in development mode. 
+
+To make use of all features that the AR provides, you need to build and run the backend as well as the frontend. 
+
+1. Clone repository
+
+```bash
+git clone https://github.com/LIFE-electronic/authorization-registry
+cd authorization-registry
+```
+
+2. Build the backend
+
+```bash
+cd authorization-registry
+cargo build
+```
+
+3. Configure PostgreSQL
+
+```sql
+postgres=# create database ar;
+postgres=# create role ar with login;
+postgres=# \password ar
+postgres=# grant all privileges on database ar to ar;
+```
+4. Initialize the database
+
+```bash
+cargo install sea-orm-cli
+export PASSWORD=
+export DATABASE_URL="postgres://ar:$PASSWORD@localhost:5432/ar"
+sea-orm-cli migrate up
+```
+
+5. Create `.config.json`
+
+```
+{
+  "database_url": "$DATABASE_URL",
+  "client_eori": "$CLIENT_EORI",
+  "client_cert_path": "$CLIENT_CERT",
+  "client_cert_pass": "$CLIENT_PASS",
+  "jwt_secret": "$JWT_SECRET",
+  "satellite_url": "$SATELLITE_URL",
+  "satellite_eori": "$SATELLITE_EORI",
+  "ishare_ca_path": "$ISHARE_CERTIFICATE_CHAIN",
+  "idp_url": "$IDP_URL",
+  "idp_eori": "$IDP_EORI",
+  "deploy_route": ""
+}
+```
+
+Here's a comprehensive table outlining each variable, its description, and an example value:
+
+| Variable Name | Description | Example |
+|--------------|-------------|----------|
+| $DATABASE_URL | The connection string for the database | `postgresql://ar:password@localhost:5432/ar` |
+| $CLIENT_EORI | EORI number of the Authorization Registry | `EU.EORI.NL000000002` |
+| $CLIENT_CERT | File path to the client's iSHARE certificate in p12 format | `/etc/ishare/certs/client.p12` |
+| $CLIENT_PASS | Password for the client certificate | `certpass123` |
+| $JWT_SECRET | Secret key for JWT token generation and validation | `your-secure-secret-key-here` |
+| $SATELLITE_URL | URL of the iSHARE Satellite middleware service | `https://satellite-mw.isharetest.net` |
+| $SATELLITE_EORI | EORI number of the iSHARE Satellite | `EU.EORI.NL000000001` |
+| $ISHARE_CERTIFICATE_CHAIN | File path to the iSHARE certificate chain in pem format | `/etc/ishare/certs/chain.pem` |
+| $IDP_URL | URL of the Identity Provider service | `https://idp.isharetest.net` |
+| $IDP_EORI | EORI number of the Identity Provider | `EU.EORI.NL000000003` |
+
+Note: When you run the ar with `cargo run`, put this directory into the `authorization-registry` directory (same where you run cargo build).
+
+Note: The certificate chain file for the iSHARE test network can be downloaded here: https://ca7.isharetest.net:8442/ejbca/retrieve/ca_crls.jsp . Use the CA "TEST iSHARE EU Issuing Certification Authority G5" and pem format.
+
+6. Optional: Run tests (requires superuser database privileges):
+
+```sql
+postgres=# alter user ar with superuser;
+```
+
+```bash
+cargo test
+```
+
+7. Launch the backend
+
+```
+export RUST_LOG=tower_http=debug,authorization_registry=debug
+cargo run
+```
+
+## Frontend Setup
+
+1. Install dependencies
+
+```
+cd ar-frontend
+npm install
+```
+
+2. Configure the environment: Create .env in the ar-frontend directory:
+
+```
+VITE_BASE_API_URL=http://localhost:4000
+VITE_IDP_URL=$IDP_URL
+```
+
+Here's a comprehensive table outlining each variable, its description, and an example value:
+
+| Variable Name | Description | Example |
+|--------------|-------------|----------|
+| $VITE_BASE_API_URL | The URL of the AR backend | `http://localhost:4000/api` |
+| $VITE_IDP_URL | URL of the IDP | `https://idp.isharetest.net/realms/ishare_realm/` |
+
+Note: The $VITE_IDP_URL must have a trailing slash.
+
+3. Launch the frontend
+
+```
+npm start
+```
+
+## Documentation
+
+For detailed information about the implementation and API endpoints, please refer to the documentation in the `/docs` directory.
+
+The implementation follows the official iSHARE specifications available at [dev.ishare.eu](https://dev.ishare.eu).
+
+## Contributing
+
+We welcome contributions to this project. Please read our contributing guidelines before submitting pull requests.
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE.md](LICENSE) file for details.
+
+## Support
+
+For questions and support:
+- Open an issue in the GitHub repository
+- Consult the documentation
+- Contact the maintainers
+
+## Security
+
+Please report security vulnerabilities responsibly by contacting the maintainers directly. Do not create public issues for security concerns.
