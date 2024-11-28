@@ -49,6 +49,17 @@ impl Modify for SecurityAddon {
     modifiers(&SecurityAddon),
     paths(
         routes::delegation::post_delegation,
+        routes::capabilities::get_capabilities,
+        routes::connect::get_machine_token,
+        routes::connect::get_auth,
+        routes::connect::get_auth_callback,
+        routes::policy_set::get_all_policy_sets,
+        routes::policy_set::get_policy_set,
+        routes::policy_set::insert_policy_set,
+        routes::policy_set::delete_policy_set,
+        routes::policy_set::add_policy_to_policy_set,
+        routes::policy_set::delete_policy_from_policy_set,
+        routes::policy_set::replace_policy_in_policy_set
     )
 )]
 struct ApiDoc;

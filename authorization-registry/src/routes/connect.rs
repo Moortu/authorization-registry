@@ -1,4 +1,4 @@
-use crate::error::AppError;
+use crate::error::{AppError, ErrorResponse};
 use crate::{services::server_token::ServerToken, AppState};
 use anyhow::Context;
 use axum::extract::Query;
@@ -14,6 +14,7 @@ use axum::{
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use utoipa::ToSchema;
 
 pub fn get_connect_routes() -> Router<AppState> {
     let router = Router::new()
@@ -49,6 +50,31 @@ struct AuthQuery {
     state: Option<String>,
 }
 
+/// Initiate iSHARE H2M flow by redirecting to the iSHARE identity provider
+#[utoipa::path(
+    get,
+    path = "/auth",
+    tag = "Authentication",
+    params(
+        ("redirect_uri" = String, Query, description = "URL to redirect back to after authentication"),
+        ("state" = Option<String>, Query, description = "Optional state parameter that will be returned in the callback")
+    ),
+    responses(
+        (
+            status = 302,
+            description = "Redirects to iSHARE identity provider for authentication",
+            headers(
+                ("Location" = String, description = "iSHARE identity provider URL")
+            )
+        ),
+        (
+            status = 400,
+            description = "Invalid request parameters",
+            content_type = "application/json",
+            body = ErrorResponse
+        )
+    )
+ )]
 async fn get_auth(
     State(app_state): State<AppState>,
     Host(host): Host,
@@ -77,6 +103,37 @@ struct AuthCallbackQuery {
     state: String,
 }
 
+/// OAuth2 callback endpoint to exchange auth code for token.
+#[utoipa::path(
+    get, 
+    path = "/auth/callback",
+    tag = "Authentication",
+    params(
+        ("code" = String, Query, description = "Authorization code from iSHARE identity provider"),
+        ("state" = String, Query, description = "State parameter from initial auth request")
+    ),
+    responses(
+        (
+            status = 302,
+            description = "Redirects back to original redirect_uri with access token",
+            headers(
+                ("Location" = String, description = "Original redirect_uri with token appended")
+            )
+        ),
+        (
+            status = 400,
+            description = "Invalid callback parameters",
+            content_type = "application/json",
+            body = ErrorResponse
+        ),
+        (
+            status = 401,
+            description = "Authorization code validation failed",
+            content_type = "application/json",
+            body = ErrorResponse
+        )
+    )
+ )]
 async fn get_auth_callback(
     State(state): State<AppState>,
     State(server_token): State<Arc<ServerToken>>,
@@ -126,14 +183,14 @@ async fn get_auth_callback(
     return Ok(Redirect::to(redirect_url.as_str()));
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, ToSchema)]
 struct TokenResponse {
     access_token: String,
     token_type: String,
     expires_in: u64,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, ToSchema)]
 struct TokenRequest {
     grant_type: String,
     client_assertion_type: String,
@@ -142,6 +199,37 @@ struct TokenRequest {
     scope: String,
 }
 
+/// M2M authentication endpoint to obtain access token
+#[utoipa::path(
+    post,
+    path = "/connect/machine/token",
+    tag = "Authentication",
+    request_body(
+        content_type = "application/x-www-form-urlencoded",
+        content = TokenRequest,
+        description = "OAuth2 client credentials request with iSHARE assertions"
+    ),
+    responses(
+        (
+            status = 200,
+            description = "Successfully authenticated, returns JWT access token",
+            content_type = "application/json",
+            body = TokenResponse
+        ),
+        (
+            status = 400, 
+            description = "Invalid request parameters",
+            content_type = "application/json",
+            body = ErrorResponse
+        ),
+        (
+            status = 401,
+            description = "Authentication failed - invalid client credentials",
+            content_type = "application/json", 
+            body = ErrorResponse
+        )
+    )
+ )]
 async fn get_machine_token(
     State(server_token): State<Arc<ServerToken>>,
     State(state): State<AppState>,

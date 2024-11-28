@@ -7,6 +7,7 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use utoipa::ToSchema;
 
 pub async fn get_policy(
     policy_set_id: Uuid,
@@ -70,7 +71,7 @@ pub async fn get_policies_by_policy_set(
     Ok(policies)
 }
 
-#[derive(FromJsonQueryResult, Serialize, Deserialize, Debug)]
+#[derive(FromJsonQueryResult, Serialize, Deserialize, Debug, ToSchema)]
 pub struct DelegationEvidencePolicy {
     pub id: Uuid,
     pub identifiers: Vec<String>,
@@ -81,7 +82,7 @@ pub struct DelegationEvidencePolicy {
     pub rules: Vec<ResourceRule>,
 }
 
-#[derive(Deserialize, Serialize, Debug, FromQueryResult)]
+#[derive(Deserialize, Serialize, Debug, FromQueryResult, ToSchema)]
 pub struct MatchingPolicySetRow {
     pub policy_set_id: Uuid,
     pub access_subject: String,
@@ -320,7 +321,7 @@ pub async fn get_policy_set_with_policies(
     Ok(policy_set_option)
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AccessSubjectTarget {
     pub access_subject: String,
@@ -483,7 +484,7 @@ pub async fn add_policy_to_policy_set(
     Ok(result)
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct InsertPolicySetWithPolicies {
     pub target: AccessSubjectTarget,

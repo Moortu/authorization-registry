@@ -15,6 +15,7 @@ use crate::{
     utils::extract_bearer_token,
     AppState,
 };
+use utoipa::ToSchema;
 
 pub fn get_capabilities_routes() -> Router<AppState> {
     return Router::new().route("/", get(get_capabilities));
@@ -61,11 +62,25 @@ pub fn create_capabilities(party_id: &str, api_url: &str, show_private: bool) ->
     };
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 struct CapabilitiesResponse {
     capabilities_token: String,
 }
 
+/// Retrieve iSHARE capabilities
+#[utoipa::path(
+    get,
+    path = "/capabilities",
+    tag = "Capabilities",
+    responses(
+        (
+            status = 200,
+            description = "Authorization Registry capabilities",
+            content_type = "application/json",
+            body = CapabilitiesResponse
+        ),
+    )
+ )]
 #[axum_macros::debug_handler]
 async fn get_capabilities(
     header_map: HeaderMap,

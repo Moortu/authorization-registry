@@ -30,6 +30,7 @@ struct DelegationResponse {
 #[utoipa::path(
     post,
     path = "/delegation",
+    tag = "Delegation",
     request_body(
         description="Delegation Request",
         content((DelegationRequestContainer))
@@ -54,7 +55,7 @@ struct DelegationResponse {
             status = 401,
             description = "Unauthorized", 
             content_type = "application/json",
-            body = ErrorResponse,
+            example = json!(ErrorResponse::new("Unauthorized")),
         ),
     )
 )]

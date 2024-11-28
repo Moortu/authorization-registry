@@ -9,11 +9,12 @@ use axum_extra::extract::WithRejection;
 use reqwest::StatusCode;
 use sea_orm::DatabaseConnection;
 use serde::Serialize;
+use utoipa::ToSchema;
 use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::db::policy::MatchingPolicySetRow;
-use crate::error::ExpectedError;
+use crate::error::{ExpectedError, ErrorResponse};
 use crate::services::policy::{self as policy_service};
 use crate::{db::policy as policy_store, services::server_token::Role};
 use crate::{error::AppError, AppState};
@@ -31,6 +32,29 @@ pub fn get_policy_set_routes(server_token: Arc<ServerToken>) -> Router<AppState>
         .layer(from_fn_with_state(server_token, extract_role_middleware));
 }
 
+/// Retrieve all policy sets belonging to the authenticated company
+#[utoipa::path(
+    get,
+    path = "/policy-sets",
+    tag = "Policy Management",
+    security(
+        ("bearer" = [])
+    ),
+    responses(
+        (
+            status = 200,
+            description = "List of all policy sets and their associated policies",
+            content_type = "application/json",
+            body = Vec<MatchingPolicySetRow>
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json", 
+            example = json!(ErrorResponse::new("Unauthorized")),
+        )
+    )
+ )]
 async fn get_all_policy_sets(
     Extension(role): Extension<Role>,
     Extension(db): Extension<DatabaseConnection>,
@@ -42,6 +66,43 @@ async fn get_all_policy_sets(
     Ok(Json(policy_sets))
 }
 
+/// Remove a policy from a policy set
+#[utoipa::path(
+    delete,
+    path = "/policy-sets/{policy_set_id}/policy/{policy_id}",
+    tag = "Policy Management",
+    params(
+        ("policy_set_id" = Uuid, Path, description = "Identifier of the policy set"),
+        ("policy_id" = Uuid, Path, description = "Identifier of the policy to remove")
+    ),
+    security(
+        ("bearer" = [])
+    ),
+    responses(
+        (
+            status = 204,
+            description = "Policy successfully removed from policy set"
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        ),
+        (
+            status = 403,
+            description = "Forbidden",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("not allowed to delete policy"))
+        ),
+        (
+            status = 404,
+            description = "Policy set or policy not found",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Can't find policy within policy set"))
+        )
+    )
+ )]
 async fn delete_policy_from_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     Extension(role): Extension<Role>,
@@ -61,6 +122,44 @@ async fn delete_policy_from_policy_set(
     Ok(())
 }
 
+/// Retrieve a specific policy set by its ID
+#[utoipa::path(
+    get,
+    path = "/policy-sets/{id}",
+    tag = "Policy Management",
+    params(
+        ("id" = Uuid, Path, description = "Unique identifier of the policy set to retrieve")
+    ),
+    security(
+        ("bearer" = [])
+    ),
+    responses(
+        (
+            status = 200,
+            description = "Policy set successfully retrieved",
+            content_type = "application/json",
+            body = MatchingPolicySetRow
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        ),
+        (
+            status = 403,
+            description = "Forbidden - insufficient permissions",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Not allowed to read policy set"))
+        ),
+        (
+            status = 404,
+            description = "Policy set not found",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Can't find policy set"))
+        )
+    )
+)]
 async fn get_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     WithRejection(Path(id), _): WithRejection<Path<Uuid>, AppError>,
@@ -87,6 +186,56 @@ async fn get_policy_set(
     }
 }
 
+/// Replace an existing policy within a policy set
+#[utoipa::path(
+    put,
+    path = "/policy-sets/{policy_set_id}/policy/{policy_id}",
+    tag = "Policy Management",
+    params(
+        ("policy_set_id" = Uuid, Path, description = "Identifier of the policy set"),
+        ("policy_id" = Uuid, Path, description = "Identifier of the policy to replace")
+    ),
+    request_body(
+        content = Policy,
+        description = "New policy definition to replace the existing one",
+        content_type = "application/json"
+    ),
+    security(
+        ("bearer" = [])
+    ),
+    responses(
+        (
+            status = 200,
+            description = "Policy successfully replaced",
+            content_type = "application/json",
+            body = ar_entity::policy::Model
+        ),
+        (
+            status = 400,
+            description = "Invalid policy definition",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Invalid policy format"))
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        ),
+        (
+            status = 403,
+            description = "Forbidden - insufficient permissions",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Not allowed to modify policy set"))
+        ),
+        (
+            status = 404,
+            description = "Policy set or policy not found",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Policy set or policy not found"))
+        )
+    )
+)]
 #[axum_macros::debug_handler]
 async fn replace_policy_in_policy_set(
     Extension(db): Extension<DatabaseConnection>,
@@ -110,6 +259,55 @@ async fn replace_policy_in_policy_set(
     Ok(Json(policy))
 }
 
+/// Add a new policy to an existing policy set
+#[utoipa::path(
+    post,
+    path = "/policy-sets/{id}/policy",
+    tag = "Policy Management",
+    params(
+        ("id" = Uuid, Path, description = "Identifier of the policy set")
+    ),
+    request_body(
+        content = Policy,
+        description = "New policy definition to add to the policy set",
+        content_type = "application/json"
+    ),
+    security(
+        ("bearer" = [])
+    ),
+    responses(
+        (
+            status = 200,
+            description = "Policy successfully added to policy set",
+            content_type = "application/json",
+            body = ar_entity::policy::Model
+        ),
+        (
+            status = 400,
+            description = "Invalid policy definition",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Invalid policy format"))
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        ),
+        (
+            status = 403,
+            description = "Forbidden - insufficient permissions",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Not allowed to modify policy set"))
+        ),
+        (
+            status = 404,
+            description = "Policy set not found",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Policy set not found"))
+        )
+    )
+ )]
 #[axum_macros::debug_handler]
 async fn add_policy_to_policy_set(
     Extension(db): Extension<DatabaseConnection>,
@@ -132,6 +330,42 @@ async fn add_policy_to_policy_set(
     Ok(Json(policy))
 }
 
+/// Delete a policy set and all its associated policies
+#[utoipa::path(
+    delete,
+    path = "/policy-sets/{id}",
+    tag = "Policy Management",
+    params(
+        ("id" = Uuid, Path, description = "Identifier of the policy set to delete")
+    ),
+    security(
+        ("bearer" = [])
+    ),
+    responses(
+        (
+            status = 204,
+            description = "Policy set successfully deleted"
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        ),
+        (
+            status = 403,
+            description = "Forbidden - insufficient permissions", 
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Not allowed to delete policy set"))
+        ),
+        (
+            status = 404,
+            description = "Policy set not found",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Policy set not found"))
+        )
+    )
+ )]
 async fn delete_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     Extension(role): Extension<Role>,
@@ -150,11 +384,51 @@ async fn delete_policy_set(
     Ok(())
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 struct InsertPolicySetResponse {
     uuid: Uuid,
 }
 
+/// Create a new policy set with associated policies
+#[utoipa::path(
+    post,
+    path = "/policy-sets",
+    tag = "Policy Management",
+    request_body(
+        content = policy_store::InsertPolicySetWithPolicies,
+        description = "Policy set details and its initial policies",
+        content_type = "application/json"
+    ),
+    security(
+        ("bearer" = [])
+    ),
+    responses(
+        (
+            status = 201,
+            description = "Policy set successfully created",
+            content_type = "application/json",
+            body = InsertPolicySetResponse
+        ),
+        (
+            status = 400,
+            description = "Invalid policy set or policy definitions",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Invalid policy set format"))
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        ),
+        (
+            status = 403,
+            description = "Forbidden - insufficient permissions",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Not allowed to create policy sets"))
+        )
+    )
+ )]
 async fn insert_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     Extension(role): Extension<Role>,
