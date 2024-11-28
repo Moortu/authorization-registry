@@ -130,6 +130,12 @@ export RUST_LOG=tower_http=debug,authorization_registry=debug
 cargo run
 ```
 
+The backend will run on `http://localhost:4000`.
+
+The REST API is documented at `http://localhost:4000/swagger-ui`.
+
+The iSHARE capabilities are located at `http://localhost:4000/capabilities`.
+
 ## Frontend Setup
 
 1. Install dependencies
@@ -163,7 +169,7 @@ npm start
 
 ## Documentation
 
-For detailed information about the implementation and API endpoints, please refer to the documentation in the `/docs` directory.
+For detailed information about the rest UI. Visit the route `swagger-ui` from the backend.
 
 The implementation follows the official iSHARE specifications available at [dev.ishare.eu](https://dev.ishare.eu).
 

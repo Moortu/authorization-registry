@@ -18,6 +18,8 @@ use sea_orm::DatabaseConnection;
 use std::sync::Arc;
 use tower_http::cors::{AllowHeaders, AllowMethods, CorsLayer};
 use tower_http::trace::TraceLayer;
+use utoipa_swagger_ui::SwaggerUi;
+use utoipa::{OpenApi, Modify, openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},};
 
 mod config;
 mod db;
@@ -29,6 +31,27 @@ mod services;
 mod test_helpers;
 mod token_cache;
 mod utils;
+
+struct SecurityAddon;
+
+impl Modify for SecurityAddon {
+    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+        let components = openapi.components.as_mut().unwrap();
+        components.add_security_scheme(
+            "bearer",
+            SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("Bearer Token for Authorize Header"))),
+        )
+    }
+}
+
+#[derive(OpenApi)]
+#[openapi(
+    modifiers(&SecurityAddon),
+    paths(
+        routes::delegation::post_delegation,
+    )
+)]
+struct ApiDoc;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -94,6 +117,7 @@ pub fn get_app(db: DatabaseConnection, app_state: AppState) -> Router {
         .nest("/delegation", delegation_routes)
         .nest("/policy-set", policy_set_routes)
         .nest("/capabilities", capabilities_routes)
+        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &axum::http::Request<_>| {
                 let matched_path = request
@@ -133,6 +157,8 @@ async fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
         .init();
+
+    tracing::info!("Deploy route: {}", config.deploy_route);
 
     let db = Database::connect(config.database_url.clone())
         .await

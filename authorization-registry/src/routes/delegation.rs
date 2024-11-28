@@ -8,7 +8,7 @@ use reqwest::header::ACCEPT;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 
-use crate::error::AppError;
+use crate::error::{AppError, ErrorResponse};
 use crate::middleware::extract_role_middleware;
 use crate::services::delegation as delegation_service;
 use crate::services::server_token::{Role, ServerToken};
@@ -21,11 +21,43 @@ pub fn get_delegation_routes(server_token: std::sync::Arc<ServerToken>) -> Route
         .layer(from_fn_with_state(server_token, extract_role_middleware))
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, utoipa::ToSchema)]
 struct DelegationResponse {
     delegation_token: String,
 }
 
+/// Obtain Delegation Evidence
+#[utoipa::path(
+    post,
+    path = "/delegation",
+    request_body(
+        description="Delegation Request",
+        content((DelegationRequestContainer))
+    ),
+    security(
+        ("bearer" = [])
+    ),
+    responses(
+        (
+            status = 200,
+            description = "OK. JSON with delegation evidence", 
+            content_type = "application/json",
+            body = DelegationResponse,
+        ),
+        (
+            status = 400,
+            description = "Malformed request", 
+            content_type = "application/text/plain; charset=utf-8",
+            body = String,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized", 
+            content_type = "application/json",
+            body = ErrorResponse,
+        ),
+    )
+)]
 #[axum_macros::debug_handler]
 async fn post_delegation(
     headers: HeaderMap,
