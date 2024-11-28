@@ -18,8 +18,11 @@ use sea_orm::DatabaseConnection;
 use std::sync::Arc;
 use tower_http::cors::{AllowHeaders, AllowMethods, CorsLayer};
 use tower_http::trace::TraceLayer;
+use utoipa::{
+    openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
+    Modify, OpenApi,
+};
 use utoipa_swagger_ui::SwaggerUi;
-use utoipa::{OpenApi, Modify, openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},};
 
 mod config;
 mod db;
@@ -39,17 +42,34 @@ impl Modify for SecurityAddon {
         let components = openapi.components.as_mut().unwrap();
         components.add_security_scheme(
             "bearer",
-            SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("Bearer Token for Authorize Header"))),
+            SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new(
+                "Bearer Token for Authorize Header",
+            ))),
         );
         components.add_security_scheme(
             "h2m_bearer_admin",
-            SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("Bearer Token for Authorize Header"))),
+            SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new(
+                "Bearer Token for Authorize Header",
+            ))),
         );
     }
 }
 
 #[derive(OpenApi)]
 #[openapi(
+    info(
+        title = "Authorization Registry",
+        description = "Authorization Registry API that conforms to the iSHARE framework to manage policy storage and authorization delegation.
+
+Authentication is required for most endpoints. Non-admin routes can be accessed with either a Machine-to-Machine (M2M) token or a Human-to-Machine (H2M) token, obtainable via the authentication endpoints (/connect/machine/token for M2M, /connect/human/auth for H2M). Admin routes require an H2M token with the dexspace_admin role.
+
+Policy management endpoints allow participants to create and manage authorization policy sets that define what rights are delegated to which service consumers. Policies follow the iSHARE Delegation Evidence format to ensure interoperability across the iSHARE network.
+
+Admin routes provide additional capabilities for managing policies across all participants, while regular routes are scoped to the authenticated party's own policies.",
+        version = "1.0",
+        contact(name="WolperTec B.V."),
+        license(name="License: GPL v3")
+    ),
     modifiers(&SecurityAddon),
     paths(
         routes::delegation::post_delegation,

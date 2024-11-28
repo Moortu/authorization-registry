@@ -53,7 +53,7 @@ struct AuthQuery {
 /// Initiate iSHARE H2M flow by redirecting to the iSHARE identity provider
 #[utoipa::path(
     get,
-    path = "/auth",
+    path = "/connect/human/auth",
     tag = "Authentication",
     params(
         ("redirect_uri" = String, Query, description = "URL to redirect back to after authentication"),
@@ -105,8 +105,8 @@ struct AuthCallbackQuery {
 
 /// OAuth2 callback endpoint to exchange auth code for token.
 #[utoipa::path(
-    get, 
-    path = "/auth/callback",
+    get,
+    path = "/connect/human/auth/code",
     tag = "Authentication",
     params(
         ("code" = String, Query, description = "Authorization code from iSHARE identity provider"),
@@ -217,7 +217,7 @@ struct TokenRequest {
             body = TokenResponse
         ),
         (
-            status = 400, 
+            status = 400,
             description = "Invalid request parameters",
             content_type = "application/json",
             body = ErrorResponse

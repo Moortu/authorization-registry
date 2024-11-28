@@ -9,12 +9,12 @@ use axum_extra::extract::WithRejection;
 use reqwest::StatusCode;
 use sea_orm::DatabaseConnection;
 use serde::Serialize;
-use utoipa::ToSchema;
 use std::sync::Arc;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::db::policy::MatchingPolicySetRow;
-use crate::error::{ExpectedError, ErrorResponse};
+use crate::error::{ErrorResponse, ExpectedError};
 use crate::services::policy::{self as policy_service};
 use crate::{db::policy as policy_store, services::server_token::Role};
 use crate::{error::AppError, AppState};

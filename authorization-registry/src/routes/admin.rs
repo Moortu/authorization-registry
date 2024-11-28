@@ -11,15 +11,15 @@ use reqwest::StatusCode;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use uuid::Uuid;
 use utoipa::ToSchema;
+use uuid::Uuid;
 
 use crate::services::policy as policy_service;
 use crate::{
     db::policy::{self as policy_store, MatchingPolicySetRow},
     error::ExpectedError,
 };
-use crate::{error::AppError, AppState, error::ErrorResponse};
+use crate::{error::AppError, error::ErrorResponse, AppState};
 use crate::{
     middleware::{auth_role_middleware, extract_human_middleware, extract_role_middleware},
     services::server_token::ServerToken,
