@@ -11,6 +11,7 @@ use reqwest::StatusCode;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::services::policy as policy_service;
@@ -18,7 +19,7 @@ use crate::{
     db::policy::{self as policy_store, MatchingPolicySetRow},
     error::ExpectedError,
 };
-use crate::{error::AppError, AppState};
+use crate::{error::AppError, error::ErrorResponse, AppState};
 use crate::{
     middleware::{auth_role_middleware, extract_human_middleware, extract_role_middleware},
     services::server_token::ServerToken,
@@ -49,6 +50,39 @@ pub fn get_admin_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
         .layer(from_fn_with_state(server_token, extract_role_middleware));
 }
 
+/// Retrieve a specific policy within a policy set
+#[utoipa::path(
+    get,
+    path = "/admin/policy-set/{policy_set_id}/policy/{policy_id}",
+    tag = "Policy Management (Admin)",
+    params(
+        ("policy_set_id" = Uuid, Path, description = "Identifier of the policy set"),
+        ("policy_id" = Uuid, Path, description = "Identifier of the policy to retrieve")
+    ),
+    security(
+        ("h2m_bearer_admin" = [])
+    ),
+    responses(
+        (
+            status = 200,
+            description = "Policy successfully retrieved",
+            content_type = "application/json",
+            body = ar_entity::policy::Model
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        ),
+        (
+            status = 404,
+            description = "Policy or policy set not found",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Can't find policy"))
+        )
+    )
+ )]
 #[axum_macros::debug_handler]
 async fn get_policy(
     Extension(db): Extension<DatabaseConnection>,
@@ -70,6 +104,49 @@ async fn get_policy(
     }
 }
 
+/// Add a new policy to an existing policy set (admin access)
+#[utoipa::path(
+    post,
+    path = "/admin/policy-set/{id}/policy",
+    tag = "Policy Management - Admin",
+    params(
+        ("id" = Uuid, Path, description = "Identifier of the policy set")
+    ),
+    request_body(
+        content = Policy,
+        description = "New policy definition to add",
+        content_type = "application/json"
+    ),
+    security(
+        ("h2m_bearer_admin" = [])
+    ),
+    responses(
+        (
+            status = 200,
+            description = "Policy successfully added",
+            content_type = "application/json",
+            body = ar_entity::policy::Model
+        ),
+        (
+            status = 400,
+            description = "Invalid policy or service provider validation failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unable to verify service provider as valid iSHARE party"))
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        ),
+        (
+            status = 404,
+            description = "Policy set not found",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Policy set not found"))
+        )
+    )
+ )]
 #[axum_macros::debug_handler]
 async fn add_policy_to_policy_set(
     Extension(db): Extension<DatabaseConnection>,
@@ -100,6 +177,50 @@ async fn add_policy_to_policy_set(
     Ok(Json(policy))
 }
 
+/// Replace a policy in a policy set (admin access)
+#[utoipa::path(
+    put,
+    path = "/admin/policy-set/{policy_set_id}/policy/{policy_id}",
+    tag = "Policy Management - Admin",
+    params(
+        ("policy_set_id" = Uuid, Path, description = "Identifier of the policy set"),
+        ("policy_id" = Uuid, Path, description = "Identifier of the policy to replace")
+    ),
+    request_body(
+        content = Policy,
+        description = "New policy definition",
+        content_type = "application/json"
+    ),
+    security(
+        ("h2m_bearer_admin" = [])
+    ),
+    responses(
+        (
+            status = 200,
+            description = "Policy successfully replaced",
+            content_type = "application/json",
+            body = ar_entity::policy::Model
+        ),
+        (
+            status = 400,
+            description = "Invalid policy or service provider validation failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unable to verify service provider as valid iSHARE party"))
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        ),
+        (
+            status = 404,
+            description = "Policy set or policy not found",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Policy set or policy not found"))
+        )
+    )
+ )]
 #[axum_macros::debug_handler]
 async fn replace_policy_in_policy_set(
     Extension(db): Extension<DatabaseConnection>,
@@ -130,6 +251,36 @@ async fn replace_policy_in_policy_set(
     Ok(Json(policy))
 }
 
+/// Delete a policy set (admin access)
+#[utoipa::path(
+    delete,
+    path = "/admin/policy-set/{id}",
+    tag = "Policy Management - Admin",
+    params(
+        ("id" = Uuid, Path, description = "Identifier of the policy set to delete")
+    ),
+    security(
+        ("h2m_bearer_admin" = [])
+    ),
+    responses(
+        (
+            status = 204,
+            description = "Policy set successfully deleted"
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        ),
+        (
+            status = 404,
+            description = "Policy set not found",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Policy set not found"))
+        )
+    )
+ )]
 async fn delete_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     WithRejection(Path(id), _): WithRejection<Path<Uuid>, AppError>,
@@ -139,6 +290,37 @@ async fn delete_policy_set(
     Ok(())
 }
 
+/// Delete a policy from a policy set (admin access)
+#[utoipa::path(
+    delete,
+    path = "/admin/policy-set/{policy_set_id}/policy/{policy_id}",
+    tag = "Policy Management - Admin",
+    params(
+        ("policy_set_id" = Uuid, Path, description = "Identifier of the policy set"),
+        ("policy_id" = Uuid, Path, description = "Identifier of the policy to delete")
+    ),
+    security(
+        ("h2m_bearer_admin" = [])
+    ),
+    responses(
+        (
+            status = 204,
+            description = "Policy successfully deleted"
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        ),
+        (
+            status = 404,
+            description = "Policy or policy set not found",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Policy not found"))
+        )
+    )
+ )]
 async fn delete_policy_from_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     WithRejection(Path((_policy_set_id, policy_id)), _): WithRejection<
@@ -151,6 +333,38 @@ async fn delete_policy_from_policy_set(
     Ok(())
 }
 
+/// Get a policy set by ID (admin access)
+#[utoipa::path(
+    get,
+    path = "/admin/policy-set/{id}",
+    tag = "Policy Management - Admin",
+    params(
+        ("id" = Uuid, Path, description = "Identifier of the policy set to retrieve")
+    ),
+    security(
+        ("h2m_bearer_admin" = [])
+    ),
+    responses(
+        (
+            status = 200,
+            description = "Policy set successfully retrieved",
+            content_type = "application/json",
+            body = MatchingPolicySetRow
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        ),
+        (
+            status = 404,
+            description = "Policy set not found",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Can't find policy set"))
+        )
+    )
+ )]
 async fn get_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     WithRejection(Path(id), _): WithRejection<Path<Uuid>, AppError>,
@@ -168,11 +382,45 @@ async fn get_policy_set(
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 struct InsertPolicySetResponse {
     uuid: Uuid,
 }
 
+/// Create a new policy set (admin access)
+#[utoipa::path(
+    post,
+    path = "/admin/policy-set",
+    tag = "Policy Management - Admin",
+    request_body(
+        content = policy_store::InsertPolicySetWithPolicies,
+        description = "Policy set details and its initial policies",
+        content_type = "application/json"
+    ),
+    security(
+        ("h2m_bearer_admin" = [])
+    ),
+    responses(
+        (
+            status = 201,
+            description = "Policy set successfully created",
+            content_type = "application/json",
+            body = InsertPolicySetResponse
+        ),
+        (
+            status = 400,
+            description = "Invalid policy set definition",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Invalid policy set format"))
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        )
+    )
+ )]
 async fn insert_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     State(app_state): State<AppState>,
@@ -201,6 +449,33 @@ struct GetPolicySetsQuery {
     policy_issuer: Option<String>,
 }
 
+/// List all policy sets with optional filtering (admin access)
+#[utoipa::path(
+    get,
+    path = "/admin/policy-set",
+    tag = "Policy Management - Admin",
+    params(
+        ("access_subject" = Option<String>, Query, description = "Filter by access subject"),
+        ("policy_issuer" = Option<String>, Query, description = "Filter by policy issuer")
+    ),
+    security(
+        ("h2m_bearer_admin" = [])
+    ),
+    responses(
+        (
+            status = 200,
+            description = "List of policy sets matching the filter criteria",
+            content_type = "application/json",
+            body = Vec<MatchingPolicySetRow>
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        )
+    )
+ )]
 async fn get_all_policy_sets(
     Query(query): Query<GetPolicySetsQuery>,
     Extension(db): Extension<DatabaseConnection>,

@@ -2,8 +2,9 @@ use sea_orm;
 use sea_orm::FromJsonQueryResult;
 use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DelegationEvidence {
     not_before: i64,
@@ -13,13 +14,13 @@ pub struct DelegationEvidence {
     pub policy_sets: Vec<PolicySet>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DelegationTarget {
     access_subject: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, FromQueryResult)]
+#[derive(Serialize, Deserialize, Debug, FromQueryResult, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PolicySet {
     pub max_delegation_depth: i32,
@@ -29,19 +30,19 @@ pub struct PolicySet {
     pub policies: Vec<Policy>,
 }
 
-#[derive(Serialize, Deserialize, Debug, FromJsonQueryResult)]
+#[derive(Serialize, Deserialize, Debug, FromJsonQueryResult, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PolicySetTarget {
     pub environment: PolicySetTargetEnvironment,
 }
 
-#[derive(Serialize, Deserialize, Debug, FromJsonQueryResult)]
+#[derive(Serialize, Deserialize, Debug, FromJsonQueryResult, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PolicySetTargetEnvironment {
     pub licenses: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize, Clone, FromJsonQueryResult, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, FromJsonQueryResult, Debug, PartialEq, Eq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Policy {
     pub target: ResourceTarget,
@@ -49,7 +50,7 @@ pub struct Policy {
 }
 
 #[derive(
-    Serialize, Deserialize, Clone, FromJsonQueryResult, Debug, PartialEq, Eq, FromQueryResult,
+    Serialize, Deserialize, Clone, FromJsonQueryResult, Debug, PartialEq, Eq, FromQueryResult, ToSchema
 )]
 #[serde(rename_all = "camelCase")]
 pub struct ResourceTarget {
@@ -58,7 +59,7 @@ pub struct ResourceTarget {
     pub environment: Environment,
 }
 
-#[derive(Deserialize, Serialize, Eq, PartialEq, Clone, Debug, FromJsonQueryResult)]
+#[derive(Deserialize, Serialize, Eq, PartialEq, Clone, Debug, FromJsonQueryResult, ToSchema)]
 pub struct Resource {
     #[serde(rename = "type")]
     pub resource_type: String,
@@ -66,25 +67,25 @@ pub struct Resource {
     pub attributes: Vec<String>,
 }
 
-#[derive(Deserialize, Serialize, Eq, PartialEq, Clone, Debug, FromJsonQueryResult)]
+#[derive(Deserialize, Serialize, Eq, PartialEq, Clone, Debug, FromJsonQueryResult, ToSchema)]
 pub struct Target {
     pub resource: Resource,
     pub actions: Vec<String>,
 }
 
-#[derive(Deserialize, Serialize, Eq, PartialEq, Clone, Debug, FromJsonQueryResult)]
+#[derive(Deserialize, Serialize, Eq, PartialEq, Clone, Debug, FromJsonQueryResult, ToSchema)]
 pub struct Deny {
     pub target: Target,
 }
 
-#[derive(Deserialize, Serialize, Eq, PartialEq, Clone, Debug, FromJsonQueryResult)]
+#[derive(Deserialize, Serialize, Eq, PartialEq, Clone, Debug, FromJsonQueryResult, ToSchema)]
 #[serde(tag = "effect")]
 pub enum ResourceRule {
     Permit,
     Deny(Deny),
 }
 
-#[derive(Serialize, Deserialize, Clone, FromJsonQueryResult, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, FromJsonQueryResult, Debug, PartialEq, Eq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Environment {
     pub service_providers: Vec<String>,

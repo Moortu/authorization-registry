@@ -18,6 +18,11 @@ use sea_orm::DatabaseConnection;
 use std::sync::Arc;
 use tower_http::cors::{AllowHeaders, AllowMethods, CorsLayer};
 use tower_http::trace::TraceLayer;
+use utoipa::{
+    openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
+    Modify, OpenApi,
+};
+use utoipa_swagger_ui::SwaggerUi;
 
 mod config;
 mod db;
@@ -29,6 +34,67 @@ mod services;
 mod test_helpers;
 mod token_cache;
 mod utils;
+
+struct SecurityAddon;
+
+impl Modify for SecurityAddon {
+    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+        let components = openapi.components.as_mut().unwrap();
+        components.add_security_scheme(
+            "bearer",
+            SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new(
+                "Bearer Token for Authorize Header",
+            ))),
+        );
+        components.add_security_scheme(
+            "h2m_bearer_admin",
+            SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new(
+                "Bearer Token for Authorize Header",
+            ))),
+        );
+    }
+}
+
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Authorization Registry",
+        description = "Authorization Registry API that conforms to the iSHARE framework to manage policy storage and authorization delegation.
+
+Authentication is required for most endpoints. Non-admin routes can be accessed with either a Machine-to-Machine (M2M) token or a Human-to-Machine (H2M) token, obtainable via the authentication endpoints (/connect/machine/token for M2M, /connect/human/auth for H2M). Admin routes require an H2M token with the dexspace_admin role.
+
+Policy management endpoints allow participants to create and manage authorization policy sets that define what rights are delegated to which service consumers. Policies follow the iSHARE Delegation Evidence format to ensure interoperability across the iSHARE network.
+
+Admin routes provide additional capabilities for managing policies across all participants, while regular routes are scoped to the authenticated party's own policies.",
+        version = "1.0",
+        contact(name="WolperTec B.V."),
+        license(name="License: GPL v3")
+    ),
+    modifiers(&SecurityAddon),
+    paths(
+        routes::delegation::post_delegation,
+        routes::capabilities::get_capabilities,
+        routes::connect::get_machine_token,
+        routes::connect::get_auth,
+        routes::connect::get_auth_callback,
+        routes::policy_set::get_all_policy_sets,
+        routes::policy_set::get_policy_set,
+        routes::policy_set::insert_policy_set,
+        routes::policy_set::delete_policy_set,
+        routes::policy_set::add_policy_to_policy_set,
+        routes::policy_set::delete_policy_from_policy_set,
+        routes::policy_set::replace_policy_in_policy_set,
+        routes::admin::get_policy,
+        routes::admin::add_policy_to_policy_set,
+        routes::admin::replace_policy_in_policy_set,
+        routes::admin::delete_policy_set,
+        routes::admin::delete_policy_from_policy_set,
+        routes::admin::get_policy_set,
+        routes::admin::insert_policy_set,
+        routes::admin::get_all_policy_sets
+    )
+)]
+struct ApiDoc;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -94,6 +160,7 @@ pub fn get_app(db: DatabaseConnection, app_state: AppState) -> Router {
         .nest("/delegation", delegation_routes)
         .nest("/policy-set", policy_set_routes)
         .nest("/capabilities", capabilities_routes)
+        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &axum::http::Request<_>| {
                 let matched_path = request
@@ -133,6 +200,8 @@ async fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
         .init();
+
+    tracing::info!("Deploy route: {}", config.deploy_route);
 
     let db = Database::connect(config.database_url.clone())
         .await

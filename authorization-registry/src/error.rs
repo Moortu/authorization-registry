@@ -85,9 +85,18 @@ impl IntoResponse for AppError {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, utoipa::ToSchema)]
 pub struct ErrorResponse {
     error: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     metadata: Option<serde_json::Value>,
+}
+
+impl ErrorResponse {
+    pub fn new(error: &str) -> Self {
+        ErrorResponse {
+            error: error.to_owned(),
+            metadata: None,
+        }
+    }
 }

@@ -42,5 +42,6 @@ pub fn read_config(path: String) -> Config {
     let file_content =
         std::fs::read(&path).expect(&format!("Failed to read config file: '{}'", &path));
     let config = serde_json::from_slice(&file_content).expect("unable to parse config");
+
     return config;
 }
