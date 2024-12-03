@@ -162,7 +162,10 @@ impl SatelliteProvider for ISHAREProvider {
                 .await
                 .context("Error retrieving satelite access token")?;
 
-            write_lock.update(token_response.access_token.clone(), token_response.expires_in + now);
+            write_lock.update(
+                token_response.access_token.clone(),
+                token_response.expires_in + now,
+            );
 
             Ok(token_response.access_token)
         } else {
