@@ -151,7 +151,7 @@ impl SatelliteProvider for ISHAREProvider {
         let mut write_lock = self.satellite_token_cache.write().await;
 
         if write_lock.is_invalid(now) {
-            tracing::debug!("satellite access token has expired. fetching new one");
+            tracing::info!("satellite access token has expired. fetching new one");
 
             let client_assertion = self
                 .ishare
@@ -166,7 +166,7 @@ impl SatelliteProvider for ISHAREProvider {
 
             Ok(token_response.access_token)
         } else {
-            tracing::debug!("retrieving satellite access token from cache");
+            tracing::info!("retrieving satellite access token from cache");
             Ok(write_lock.access_token.clone())
         }
     }
