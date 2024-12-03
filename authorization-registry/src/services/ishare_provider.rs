@@ -8,7 +8,8 @@ use ishare::{
     delegation_evidence::DelegationEvidenceContainer,
     ishare::{PartyInfo, ValidatePartyError, ISHARE},
 };
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 use crate::{
     db::{company as company_store, user::insert_if_not_exists},
@@ -147,13 +148,11 @@ impl SatelliteProvider for ISHAREProvider {
 
     async fn get_satellite_token(&self) -> anyhow::Result<String> {
         let now = chrono::Utc::now().timestamp();
-        let is_expired = self
-            .satellite_token_cache
-            .read()
-            .map_or(true, |tc| tc.is_invalid(now));
+        let mut write_lock = self.satellite_token_cache.write().await;
 
-        let token = if is_expired {
-            tracing::debug!("satellite access token has expired. fetching new one");
+        if write_lock.is_invalid(now) {
+            tracing::info!("satellite access token has expired. fetching new one");
+
             let client_assertion = self
                 .ishare
                 .create_client_assertion(Some(self.ishare.sattelite_eori.clone()))?;
@@ -163,22 +162,16 @@ impl SatelliteProvider for ISHAREProvider {
                 .await
                 .context("Error retrieving satelite access token")?;
 
-            let now = chrono::Utc::now().timestamp();
-            let mut mutable_cache = self.satellite_token_cache.write().unwrap();
+            write_lock.update(
+                token_response.access_token.clone(),
+                token_response.expires_in + now,
+            );
 
-            mutable_cache.update(token_response.access_token, token_response.expires_in + now);
-
-            mutable_cache.access_token.clone()
+            Ok(token_response.access_token)
         } else {
-            tracing::debug!("retrieving satellite access token from cache");
-            self.satellite_token_cache
-                .read()
-                .unwrap()
-                .access_token
-                .clone()
-        };
-
-        Ok(token)
+            tracing::info!("retrieving satellite access token from cache");
+            Ok(write_lock.access_token.clone())
+        }
     }
 
     async fn validate_party(&self, eori: &str) -> Result<PartyInfo, ValidatePartyError> {
