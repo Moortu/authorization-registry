@@ -36,6 +36,7 @@ pub struct Config {
     pub de_expiry_seconds: i64,
     #[serde(default = "default_deploy_route")]
     pub deploy_route: String,
+    pub seed_folder: Option<String>,
 }
 
 pub fn read_config(path: String) -> Config {

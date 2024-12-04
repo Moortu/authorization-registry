@@ -1,6 +1,7 @@
 use crate::services::idp_connector::IdpConnector;
 use crate::services::ishare_provider::{ISHAREProvider, SatelliteProvider};
 use crate::services::server_token::ServerToken;
+use ar_migration::{Migrator, MigratorTrait};
 
 use axum::async_trait;
 use axum::http::HeaderValue;
@@ -15,6 +16,7 @@ use routes::delegation::get_delegation_routes;
 use routes::policy_set::get_policy_set_routes;
 use sea_orm::Database;
 use sea_orm::DatabaseConnection;
+use seed::apply_seeds;
 use std::sync::Arc;
 use tower_http::cors::{AllowHeaders, AllowMethods, CorsLayer};
 use tower_http::trace::TraceLayer;
@@ -30,6 +32,7 @@ mod error;
 mod fixtures;
 mod middleware;
 mod routes;
+mod seed;
 mod services;
 mod test_helpers;
 mod token_cache;
@@ -206,6 +209,9 @@ async fn main() {
     let db = Database::connect(config.database_url.clone())
         .await
         .unwrap();
+
+    Migrator::up(&db, None).await.unwrap();
+    apply_seeds(&db, &config).await;
 
     let server_token = ServerToken::new(config.jwt_secret, config.jwt_expiry_seconds);
     let ishare = Arc::new(
