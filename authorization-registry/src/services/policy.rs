@@ -195,11 +195,12 @@ pub async fn verify_policy_set_access(
     };
 
     tracing::info!(
-        "checking if delegation evidence exists that '{}' can {} policies of types '{:?}' on behalf of '{}'",
+        "checking if delegation evidence exists that '{}' can {} policies of types '{:?}' on behalf of '{}'. Service provider: '{}'",
         requestor_company_id,
         action.to_string(),
         &resource_types,
-        policy_issuer
+        policy_issuer,
+        &client_eori,
     );
 
     let delegation_evidence_container =
