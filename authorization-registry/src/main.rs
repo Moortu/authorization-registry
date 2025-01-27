@@ -14,6 +14,7 @@ use routes::capabilities::get_capabilities_routes;
 use routes::connect::get_connect_routes;
 use routes::delegation::get_delegation_routes;
 use routes::policy_set::get_policy_set_routes;
+use routes::policy_set_template::get_policy_set_template_routes;
 use sea_orm::Database;
 use sea_orm::DatabaseConnection;
 use seed::apply_seeds;
@@ -156,6 +157,7 @@ pub fn get_app(db: DatabaseConnection, app_state: AppState) -> Router {
     let delegation_routes = get_delegation_routes(app_state.server_token.clone());
     let policy_set_routes = get_policy_set_routes(app_state.server_token.clone());
     let capabilities_routes = get_capabilities_routes();
+    let policy_set_template_routes = get_policy_set_template_routes(app_state.server_token.clone());
 
     let app = Router::new()
         .nest("/connect", connect_routes)
@@ -163,6 +165,7 @@ pub fn get_app(db: DatabaseConnection, app_state: AppState) -> Router {
         .nest("/delegation", delegation_routes)
         .nest("/policy-set", policy_set_routes)
         .nest("/capabilities", capabilities_routes)
+        .nest("/policy-set-templates", policy_set_template_routes)
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &axum::http::Request<_>| {

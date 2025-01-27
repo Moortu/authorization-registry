@@ -7,3 +7,4 @@ pub mod delegation_evidence;
 pub mod ishare_user;
 pub mod policy;
 pub mod policy_set;
+pub mod policy_set_template;
