@@ -5,15 +5,14 @@ import { useCreatePolicySetContext } from "@/components/create-policy-set-contex
 import { useForm } from "@tanstack/react-form";
 import { FormField } from "@/components/form-field";
 import { required } from "@/form-field-validators";
-import { policySetTemplates } from "@/policy-set-templates";
+import { CatchBoundary } from "@/components/catch-boundary";
 
 export const Route = createFileRoute(
   "/__auth/admin/new_policy_set/define_policy_set",
 )({
   component: Component,
+  errorComponent: CatchBoundary,
 });
-
-console.log({ policySetTemplates });
 
 function Component() {
   const navigate = useNavigate();
@@ -71,7 +70,7 @@ function Component() {
             )}
           />
           <Stack direction="row" spacing={1}>
-            {policySetTemplates.length > 0 && (
+            {(
               <Button
                 onClick={() =>
                   navigate({ to: "/admin/new_policy_set/prefill_template" })

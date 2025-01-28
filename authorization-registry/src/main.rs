@@ -95,7 +95,9 @@ Admin routes provide additional capabilities for managing policies across all pa
         routes::admin::delete_policy_from_policy_set,
         routes::admin::get_policy_set,
         routes::admin::insert_policy_set,
-        routes::admin::get_all_policy_sets
+        routes::admin::get_all_policy_sets,
+        routes::admin::insert_policy_set_template,
+        routes::policy_set_template::get_policy_set_templates,
     )
 )]
 struct ApiDoc;
@@ -165,7 +167,7 @@ pub fn get_app(db: DatabaseConnection, app_state: AppState) -> Router {
         .nest("/delegation", delegation_routes)
         .nest("/policy-set", policy_set_routes)
         .nest("/capabilities", capabilities_routes)
-        .nest("/policy-set-templates", policy_set_template_routes)
+        .nest("/policy-set-template", policy_set_template_routes)
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &axum::http::Request<_>| {

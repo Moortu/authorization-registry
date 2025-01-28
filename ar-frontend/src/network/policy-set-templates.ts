@@ -15,10 +15,10 @@ export function usePolicySetTemplates() {
 
   return useQuery({
     throwOnError: true,
-    queryKey: ["policy-set-templates"],
+    queryKey: ["policy-set-template"],
     queryFn: async function () {
       const response = await authenticatedFetch(
-        `${baseAPIUrl}/policy-set-templates`,
+        `${baseAPIUrl}/policy-set-template`,
       );
       const json = await response.json();
 

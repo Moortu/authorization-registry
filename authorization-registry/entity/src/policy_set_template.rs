@@ -2,9 +2,10 @@
 
 use sea_orm::{entity::prelude::*, FromJsonQueryResult};
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use crate::delegation_evidence::ResourceRule;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize, ToSchema)]
 #[sea_orm(table_name = "policy_set_template")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
@@ -19,7 +20,7 @@ pub struct Model {
     pub policies: Vec<Policy>,
 }
 
-#[derive(Deserialize, Clone, Debug, Serialize, FromJsonQueryResult, Eq, PartialEq)]
+#[derive(Deserialize, Clone, Debug, Serialize, FromJsonQueryResult, Eq, PartialEq, ToSchema)]
 pub struct Policy {
     pub identifiers: Vec<String>,
     pub resource_type: String,

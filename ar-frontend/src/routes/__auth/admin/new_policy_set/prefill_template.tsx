@@ -2,20 +2,14 @@ import { AddPolicySetStepper } from "@/components/add-policy-set-stepper";
 import { useCreatePolicySetContext } from "@/components/create-policy-set-context";
 import { PageLoadingFallback } from "@/components/page-loading-fallback";
 import { usePolicySetTemplates } from "@/network/policy-set-templates";
-import { policySetTemplates } from "@/policy-set-templates";
 import { Button, Stack, Box, Select, Option, FormLabel } from "@mui/joy";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 export const Route = createFileRoute(
   "/__auth/admin/new_policy_set/prefill_template",
 )({
   component: Component,
-  loader: () => {
-    if (policySetTemplates.length === 0) {
-      throw redirect({ to: "/admin/new_policy_set/define_policy_set" });
-    }
-  },
 });
 
 function Component() {

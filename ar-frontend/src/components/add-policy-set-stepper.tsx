@@ -1,5 +1,4 @@
 import { Stepper, Step, StepIndicator, Typography } from "@mui/joy";
-import { policySetTemplates } from "@/policy-set-templates";
 
 const steps = [
   "Prefill from template",
@@ -16,9 +15,6 @@ export function AddPolicySetStepper({
   return (
     <Stepper sx={{ width: "100%" }}>
       {steps
-        .filter(
-          (s) => policySetTemplates.length > 0 || s !== "Prefill from template",
-        )
         .map((s, idx) => (
           <Step
             key={idx}

@@ -14,11 +14,11 @@ use std::sync::Arc;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use crate::services::policy as policy_service;
 use crate::{
     db::policy::{self as policy_store, MatchingPolicySetRow},
     error::ExpectedError,
 };
+use crate::{db::policy_set_template::InsertPolicySetTemplate, services::policy as policy_service};
 use crate::{error::AppError, error::ErrorResponse, AppState};
 use crate::{
     middleware::{auth_role_middleware, extract_human_middleware, extract_role_middleware},
@@ -27,6 +27,7 @@ use crate::{
 
 pub fn get_admin_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
     return Router::new()
+        .route("/policy-set-template", post(insert_policy_set_template))
         .route(
             "/policy-set",
             post(insert_policy_set).get(get_all_policy_sets),
@@ -48,6 +49,54 @@ pub fn get_admin_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
         ))
         .layer(from_fn(extract_human_middleware))
         .layer(from_fn_with_state(server_token, extract_role_middleware));
+}
+
+#[derive(Serialize, ToSchema)]
+struct InsertPolicySetTemplateResponse {
+    uuid: Uuid,
+}
+
+#[utoipa::path(
+    post,
+    path = "/admin/policy-set-template",
+    tag = "Policy Set Template - Admin",
+    request_body(
+        content = InsertPolicySetTemplate,
+        description = "Insert new policy set template. Policy set templates can be used during the creation of new policy sets.",
+        content_type = "application/json"
+    ),
+    security(
+        ("h2m_bearer_admin" = [])
+    ),
+    responses(
+        (
+            status = 201,
+            description = "Policy set template successfully created",
+            content_type = "application/json",
+            body = InsertPolicySetTemplateResponse
+        ),
+        (
+            status = 400,
+            description = "Invalid policy set template definition",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Invalid policy set template format"))
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        )
+    )
+ )]
+async fn insert_policy_set_template(
+    Extension(db): Extension<DatabaseConnection>,
+    WithRejection(Json(body), _): WithRejection<Json<InsertPolicySetTemplate>, AppError>,
+) -> Result<Json<InsertPolicySetTemplateResponse>, AppError> {
+    let inserted_id = crate::db::policy_set_template::insert_policy_set_template(body, &db).await?;
+    let response = InsertPolicySetTemplateResponse { uuid: inserted_id };
+
+    Ok(Json(response))
 }
 
 /// Retrieve a specific policy within a policy set
@@ -505,6 +554,52 @@ mod test {
     use tower::ServiceExt;
 
     use super::super::super::test_helpers::helpers::*;
+
+    #[sqlx::test]
+    async fn test_insert_policy_set_template(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        let app = get_test_app(db);
+
+        let request_body = create_request_body(&json!({
+            "name": "Usual dexspace data consumer stuff",
+            "access_subject": "hello",
+            "policy_issuer": "hello again",
+            "policies": [
+              {
+                "resource_type": "Fishes",
+                "identifiers": ["*"],
+                "attributes": ["*"],
+                "actions": ["Read", "Delete", "Create", "Edit"],
+                "service_providers": ["NL.EORI.LIFEELEC4DMI"],
+                "rules": [
+                  {
+                    "effect": "Permit"
+                  }
+                ]
+              }
+            ]
+        }));
+
+        app.oneshot(
+            Request::builder()
+                .uri("/admin/policy-set-template")
+                .method("POST")
+                .header(
+                    AUTHORIZATION,
+                    server_token::server_token_test_helper::get_human_token_header(None, None),
+                )
+                .header("Content-Type", "application/json")
+                .body(Body::new(request_body))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+        Ok(())
+    }
 
     #[sqlx::test]
     async fn test_get_policy_sets(
