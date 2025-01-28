@@ -14,26 +14,25 @@ export function AddPolicySetStepper({
 }) {
   return (
     <Stepper sx={{ width: "100%" }}>
-      {steps
-        .map((s, idx) => (
-          <Step
-            key={idx}
-            indicator={
-              <StepIndicator
-                variant={activeStep === s ? "solid" : "outlined"}
-                color="neutral"
-              >
-                {idx + 1}
-              </StepIndicator>
-            }
-          >
-            <Typography
-              textColor={activeStep === s ? "neutral.700" : "neutral.500"}
+      {steps.map((s, idx) => (
+        <Step
+          key={idx}
+          indicator={
+            <StepIndicator
+              variant={activeStep === s ? "solid" : "outlined"}
+              color="neutral"
             >
-              {s}
-            </Typography>
-          </Step>
-        ))}
+              {idx + 1}
+            </StepIndicator>
+          }
+        >
+          <Typography
+            textColor={activeStep === s ? "neutral.700" : "neutral.500"}
+          >
+            {s}
+          </Typography>
+        </Step>
+      ))}
     </Stepper>
   );
 }

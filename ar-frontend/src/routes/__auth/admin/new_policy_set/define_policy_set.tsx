@@ -70,7 +70,7 @@ function Component() {
             )}
           />
           <Stack direction="row" spacing={1}>
-            {(
+            {
               <Button
                 onClick={() =>
                   navigate({ to: "/admin/new_policy_set/prefill_template" })
@@ -80,7 +80,7 @@ function Component() {
               >
                 Back
               </Button>
-            )}
+            }
             <Button type="submit">Next step</Button>
           </Stack>
         </Stack>
