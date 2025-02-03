@@ -27,6 +27,10 @@ use crate::{
 
 pub fn get_admin_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
     return Router::new()
+        .route(
+            "/policy-set-template/:id",
+            delete(delete_policy_set_template),
+        )
         .route("/policy-set-template", post(insert_policy_set_template))
         .route(
             "/policy-set",
@@ -51,7 +55,39 @@ pub fn get_admin_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
         .layer(from_fn_with_state(server_token, extract_role_middleware));
 }
 
-#[derive(Serialize, ToSchema)]
+#[utoipa::path(
+    delete,
+    path = "/admin/policy-set-template/{policy_set_template_id}",
+    tag = "Policy Set Template - Admin",
+    params(
+        ("id" = Uuid, Path, description = "Identifier of the policy set template")
+    ),
+    security(
+        ("h2m_bearer_admin" = [])
+    ),
+    responses(
+        (
+            status = 200,
+            description = "Policy set template successfully deleted",
+        ),
+        (
+            status = 401,
+            description = "Authentication failed",
+            content_type = "application/json",
+            example = json!(ErrorResponse::new("Unauthorized"))
+        )
+    )
+ )]
+async fn delete_policy_set_template(
+    WithRejection(Path(id), _): WithRejection<Path<Uuid>, AppError>,
+    Extension(db): Extension<DatabaseConnection>,
+) -> Result<(), AppError> {
+    crate::db::policy_set_template::delete_policy_template(id, &db).await?;
+
+    Ok(())
+}
+
+#[derive(Deserialize, Serialize, ToSchema)]
 struct InsertPolicySetTemplateResponse {
     uuid: Uuid,
 }
@@ -91,8 +127,29 @@ struct InsertPolicySetTemplateResponse {
  )]
 async fn insert_policy_set_template(
     Extension(db): Extension<DatabaseConnection>,
+    State(app_state): State<AppState>,
     WithRejection(Json(body), _): WithRejection<Json<InsertPolicySetTemplate>, AppError>,
 ) -> Result<Json<InsertPolicySetTemplateResponse>, AppError> {
+    for p in body.policies.iter() {
+        for sp in p.service_providers.iter() {
+            app_state
+                .satellite_provider
+                .validate_party(sp)
+                .await
+                .map_err(|e| {
+                    AppError::Expected(ExpectedError {
+                        status_code: StatusCode::BAD_REQUEST,
+                        message: format!(
+                            "Unable to verify service provider '{}' as valid iSHARE party",
+                            &sp
+                        ),
+                        reason: format!("{:?}", e),
+                        metadata: None,
+                    })
+                })?;
+        }
+    }
+
     let inserted_id = crate::db::policy_set_template::insert_policy_set_template(body, &db).await?;
     let response = InsertPolicySetTemplateResponse { uuid: inserted_id };
 
@@ -541,7 +598,7 @@ async fn get_all_policy_sets(
 mod test {
     use crate::{
         db::policy::MatchingPolicySetRow, fixtures::fixtures::insert_policy_set_fixture,
-        services::server_token,
+        routes::admin::InsertPolicySetTemplateResponse, services::server_token,
     };
     use axum::{
         body::Body,
@@ -583,20 +640,93 @@ mod test {
             ]
         }));
 
-        app.oneshot(
-            Request::builder()
-                .uri("/admin/policy-set-template")
-                .method("POST")
-                .header(
-                    AUTHORIZATION,
-                    server_token::server_token_test_helper::get_human_token_header(None, None),
-                )
-                .header("Content-Type", "application/json")
-                .body(Body::new(request_body))
-                .unwrap(),
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set-template")
+                    .method("POST")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::new(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_insert_delete_policy_set_template(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        let app = get_test_app(db.clone());
+
+        let request_body = create_request_body(&json!({
+            "name": "Usual dexspace data consumer stuff",
+            "access_subject": "hello",
+            "policy_issuer": "hello again",
+            "policies": [
+              {
+                "resource_type": "Fishes",
+                "identifiers": ["*"],
+                "attributes": ["*"],
+                "actions": ["Read", "Delete", "Create", "Edit"],
+                "service_providers": ["NL.EORI.LIFEELEC4DMI"],
+                "rules": [
+                  {
+                    "effect": "Permit"
+                  }
+                ]
+              }
+            ]
+        }));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set-template")
+                    .method("POST")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::new(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        let body: InsertPolicySetTemplateResponse = serde_json::from_str(
+            std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
         )
-        .await
         .unwrap();
+
+        let app = get_test_app(db);
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri(format!("/admin/policy-set-template/{}", body.uuid))
+                    .method("DELETE")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                    )
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
 
         Ok(())
     }

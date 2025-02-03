@@ -1,6 +1,6 @@
 import { Button, Input, Stack } from "@mui/joy";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AddPolicySetStepper } from "@/components/add-policy-set-stepper";
+import { AddPolicySetStepper } from "@/components/wizzard-stepper";
 import { useCreatePolicySetContext } from "@/components/create-policy-set-context";
 import { useForm } from "@tanstack/react-form";
 import { FormField } from "@/components/form-field";

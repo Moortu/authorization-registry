@@ -1,4 +1,4 @@
-import { AddPolicySetStepper } from "@/components/add-policy-set-stepper";
+import { AddPolicySetStepper } from "@/components/wizzard-stepper";
 import { useCreatePolicySetContext } from "@/components/create-policy-set-context";
 import { PageLoadingFallback } from "@/components/page-loading-fallback";
 import { usePolicySetTemplates } from "@/network/policy-set-templates";

@@ -97,6 +97,8 @@ Admin routes provide additional capabilities for managing policies across all pa
         routes::admin::insert_policy_set,
         routes::admin::get_all_policy_sets,
         routes::admin::insert_policy_set_template,
+        routes::admin::delete_policy_set_template,
+        routes::policy_set_template::get_policy_set_template,
         routes::policy_set_template::get_policy_set_templates,
     )
 )]

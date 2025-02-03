@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AddPolicySetStepper } from "@/components/wizzard-stepper";
+import { AddPolicySetTemplateStepper } from "@/components/wizzard-stepper";
 import { Typography, Button, Stack, Box, Divider, Card } from "@mui/joy";
-import { useCreatePolicySetContext } from "@/components/create-policy-set-context";
+import { useCreatePolicySetTemplateContext } from "../new_policy_set_template";
 import { PolicyCard } from "@/components/policy-card";
 
 export const Route = createFileRoute(
-  "/__auth/member/new_policy_set/add_policies",
+  "/__auth/admin/new_policy_set_template/add_policies",
 )({
   component: Component,
 });
@@ -13,11 +13,11 @@ export const Route = createFileRoute(
 function Component() {
   const navigate = useNavigate();
 
-  const { value, changeValue } = useCreatePolicySetContext();
+  const { value, changeValue } = useCreatePolicySetTemplateContext();
 
   return (
     <Stack spacing={3}>
-      <AddPolicySetStepper activeStep="Add policies" />
+      <AddPolicySetTemplateStepper activeStep="Add policies" />
 
       <Divider />
 
@@ -48,7 +48,7 @@ function Component() {
       <Box>
         <Button
           onClick={() =>
-            navigate({ to: "/member/new_policy_set/add_policy/step1" })
+            navigate({ to: "/admin/new_policy_set_template/add_policy/step1" })
           }
           variant="outlined"
         >
@@ -61,14 +61,16 @@ function Component() {
         <Button
           variant="outlined"
           onClick={() =>
-            navigate({ to: "/member/new_policy_set/define_policy_set" })
+            navigate({
+              to: "/admin/new_policy_set_template/define_policy_set_template",
+            })
           }
         >
           Back
         </Button>
         <Button
           onClick={() =>
-            navigate({ to: "/member/new_policy_set/review_and_submit" })
+            navigate({ to: "/admin/new_policy_set_template/review_and_submit" })
           }
         >
           Next

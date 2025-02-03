@@ -1,12 +1,12 @@
 import { Stack, Typography, Box, Button, Divider, Alert } from "@mui/joy";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCreatePolicySetContext } from "@/components/create-policy-set-context";
+import { useCreatePolicySetTemplateContext } from "../new_policy_set_template";
 import { PolicyCard } from "@/components/policy-card";
-import { useAdminCreatePolicySet } from "@/network/policy-set";
-import { AddPolicySetStepper } from "@/components/wizzard-stepper";
+import { AddPolicySetTemplateStepper } from "@/components/wizzard-stepper";
+import { useAdminCreatePolicySetTemplate } from "@/network/policy-set-templates";
 
 export const Route = createFileRoute(
-  "/__auth/admin/new_policy_set/review_and_submit",
+  "/__auth/admin/new_policy_set_template/review_and_submit",
 )({
   component: Component,
 });
@@ -17,18 +17,18 @@ function Component() {
     mutateAsync: createPolicySet,
     isPending,
     error: submitError,
-  } = useAdminCreatePolicySet();
-  const { value } = useCreatePolicySetContext();
+  } = useAdminCreatePolicySetTemplate();
+  const { value } = useCreatePolicySetTemplateContext();
 
   function onBack() {
     navigate({
-      to: "/admin/new_policy_set/add_policies",
+      to: "/admin/new_policy_set_template/add_policies",
     });
   }
 
   return (
     <Stack spacing={3}>
-      <AddPolicySetStepper activeStep="Review and submit" />
+      <AddPolicySetTemplateStepper activeStep="Review and submit" />
 
       {submitError && (
         <Box paddingTop={4}>
@@ -37,6 +37,11 @@ function Component() {
           </Alert>
         </Box>
       )}
+
+      <Box>
+        <Typography level="title-lg">Name</Typography>
+        <Typography>{value.name}</Typography>
+      </Box>
 
       <Box>
         <Typography level="title-lg">Policy issuer</Typography>

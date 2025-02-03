@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCreatePolicySetContext } from "@/components/create-policy-set-context";
 import { PolicyCard } from "@/components/policy-card";
 import { useCreatePolicySet } from "@/network/policy-set";
-import { AddPolicySetStepper } from "@/components/add-policy-set-stepper";
+import { AddPolicySetStepper } from "@/components/wizzard-stepper";
 
 export const Route = createFileRoute(
   "/__auth/member/new_policy_set/review_and_submit",

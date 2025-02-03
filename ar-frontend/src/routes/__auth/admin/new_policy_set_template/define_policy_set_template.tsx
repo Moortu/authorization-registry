@@ -1,25 +1,24 @@
-import { Button, Input, Stack } from "@mui/joy";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AddPolicySetStepper } from "@/components/wizzard-stepper";
-import { useCreatePolicySetContext } from "@/components/create-policy-set-context";
-import { useForm } from "@tanstack/react-form";
+import { AddPolicySetTemplateStepper } from "@/components/wizzard-stepper";
+import { useCreatePolicySetTemplateContext } from "../new_policy_set_template";
 import { FormField } from "@/components/form-field";
+import { Box, Button, FormHelperText, Input, Stack } from "@mui/joy";
+import { useForm } from "@tanstack/react-form";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { required } from "@/form-field-validators";
-import { CatchBoundary } from "@/components/catch-boundary";
 
 export const Route = createFileRoute(
-  "/__auth/admin/new_policy_set/define_policy_set",
+  "/__auth/admin/new_policy_set_template/define_policy_set_template",
 )({
   component: Component,
-  errorComponent: CatchBoundary,
 });
 
 function Component() {
   const navigate = useNavigate();
-  const { value, changeValue } = useCreatePolicySetContext();
+  const { value, changeValue } = useCreatePolicySetTemplateContext();
 
   const form = useForm({
     defaultValues: {
+      name: value.name,
       access_subject: value.access_subject,
       policy_issuer: value.policy_issuer,
     },
@@ -27,13 +26,14 @@ function Component() {
       changeValue((oldValue) => ({ ...oldValue, ...value }));
 
       // have to validate here
-      navigate({ to: "/admin/new_policy_set/add_policies" });
+      console.log({ value });
+      navigate({ to: "/admin/new_policy_set_template/add_policies" });
     },
   });
 
   return (
-    <div>
-      <AddPolicySetStepper activeStep="Define policy set" />
+    <Box paddingTop={2}>
+      <AddPolicySetTemplateStepper activeStep="Define policy set template" />
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -43,11 +43,11 @@ function Component() {
       >
         <Stack paddingTop={2} spacing={1}>
           <form.Field
-            name="access_subject"
+            name="name"
             validators={required}
             children={(field) => (
               <FormField
-                label="Access subject"
+                label="Policy template name"
                 errors={field.state.meta.errors}
               >
                 <Input
@@ -58,33 +58,43 @@ function Component() {
             )}
           />
           <form.Field
+            name="access_subject"
+            children={(field) => (
+              <FormField
+                label="Access subject"
+                errors={field.state.meta.errors}
+              >
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+                <FormHelperText>
+                  Leave this value empty if you don't want to prefill the access
+                  subject
+                </FormHelperText>
+              </FormField>
+            )}
+          />
+          <form.Field
             name="policy_issuer"
-            validators={required}
             children={(field) => (
               <FormField label="Policy issuer" errors={field.state.meta.errors}>
                 <Input
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                 />
+                <FormHelperText>
+                  Leave this value empty if you don't want to prefill the policy
+                  issuer
+                </FormHelperText>
               </FormField>
             )}
           />
           <Stack direction="row" spacing={1}>
-            {
-              <Button
-                onClick={() =>
-                  navigate({ to: "/admin/new_policy_set/prefill_template" })
-                }
-                variant="outlined"
-                type="submit"
-              >
-                Back
-              </Button>
-            }
             <Button type="submit">Next step</Button>
           </Stack>
         </Stack>
       </form>
-    </div>
+    </Box>
   );
 }

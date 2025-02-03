@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AddPolicySetStepper } from "@/components/add-policy-set-stepper";
+import { AddPolicySetStepper } from "@/components/wizzard-stepper";
 import { Typography, Button, Stack, Box, Divider, Card } from "@mui/joy";
 import { useCreatePolicySetContext } from "@/components/create-policy-set-context";
 import { PolicyCard } from "@/components/policy-card";

@@ -28,7 +28,7 @@ pub async fn get_policy_set_template_by_id(
 
 #[derive(Deserialize, ToSchema)]
 pub struct InsertPolicySetTemplate {
-    policies: Vec<ar_entity::policy_set_template::Policy>,
+    pub policies: Vec<ar_entity::policy_set_template::Policy>,
     access_subject: Option<String>,
     policy_issuer: Option<String>,
     name: String,
@@ -53,4 +53,13 @@ pub async fn insert_policy_set_template(
         .last_insert_id;
 
     Ok(inserted_id)
+}
+
+pub async fn delete_policy_template(id: Uuid, db: &DatabaseConnection) -> anyhow::Result<()> {
+    tracing::info!("Deleting policy set template with id: {}", &id);
+    ar_entity::policy_set_template::Entity::delete_by_id(id)
+        .exec(db)
+        .await?;
+
+    Ok(())
 }

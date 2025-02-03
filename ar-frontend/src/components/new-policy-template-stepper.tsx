@@ -1,7 +1,6 @@
 import { Stepper, Step, StepIndicator, Typography } from "@mui/joy";
 
 const steps = [
-  "Prefill from template",
   "Define policy set",
   "Add policies",
   "Review and submit",

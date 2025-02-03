@@ -18,12 +18,19 @@ import { Route as authAdminImport } from './routes/__auth/admin'
 import { Route as authMemberIndexImport } from './routes/__auth/member/index'
 import { Route as authAdminIndexImport } from './routes/__auth/admin/index'
 import { Route as authMemberNewpolicysetImport } from './routes/__auth/member/new_policy_set'
+import { Route as authAdminNewpolicysettemplateImport } from './routes/__auth/admin/new_policy_set_template'
 import { Route as authAdminNewpolicysetImport } from './routes/__auth/admin/new_policy_set'
+import { Route as authAdminPolicysettemplatesIndexImport } from './routes/__auth/admin/policy_set_templates.index'
 import { Route as authMemberNewpolicysetReviewandsubmitImport } from './routes/__auth/member/new_policy_set/review_and_submit'
 import { Route as authMemberNewpolicysetPrefilltemplateImport } from './routes/__auth/member/new_policy_set/prefill_template'
 import { Route as authMemberNewpolicysetDefinepolicysetImport } from './routes/__auth/member/new_policy_set/define_policy_set'
 import { Route as authMemberNewpolicysetAddpolicyImport } from './routes/__auth/member/new_policy_set/add_policy'
 import { Route as authMemberNewpolicysetAddpoliciesImport } from './routes/__auth/member/new_policy_set/add_policies'
+import { Route as authAdminPolicysettemplatesPolicySetTemplateIdImport } from './routes/__auth/admin/policy_set_templates.$policySetTemplateId'
+import { Route as authAdminNewpolicysettemplateReviewandsubmitImport } from './routes/__auth/admin/new_policy_set_template/review_and_submit'
+import { Route as authAdminNewpolicysettemplateDefinepolicysettemplateImport } from './routes/__auth/admin/new_policy_set_template/define_policy_set_template'
+import { Route as authAdminNewpolicysettemplateAddpolicyImport } from './routes/__auth/admin/new_policy_set_template/add_policy'
+import { Route as authAdminNewpolicysettemplateAddpoliciesImport } from './routes/__auth/admin/new_policy_set_template/add_policies'
 import { Route as authAdminNewpolicysetReviewandsubmitImport } from './routes/__auth/admin/new_policy_set/review_and_submit'
 import { Route as authAdminNewpolicysetPrefilltemplateImport } from './routes/__auth/admin/new_policy_set/prefill_template'
 import { Route as authAdminNewpolicysetDefinepolicysetImport } from './routes/__auth/admin/new_policy_set/define_policy_set'
@@ -36,6 +43,9 @@ import { Route as authMemberNewpolicysetAddpolicyStep3Import } from './routes/__
 import { Route as authMemberNewpolicysetAddpolicyStep2Import } from './routes/__auth/member/new_policy_set/add_policy/step2'
 import { Route as authMemberNewpolicysetAddpolicyStep1Import } from './routes/__auth/member/new_policy_set/add_policy/step1'
 import { Route as authAdminPolicysetPolicySetIdAddpolicyImport } from './routes/__auth/admin/policy_set.$policySetId.add_policy'
+import { Route as authAdminNewpolicysettemplateAddpolicyStep3Import } from './routes/__auth/admin/new_policy_set_template/add_policy/step3'
+import { Route as authAdminNewpolicysettemplateAddpolicyStep2Import } from './routes/__auth/admin/new_policy_set_template/add_policy/step2'
+import { Route as authAdminNewpolicysettemplateAddpolicyStep1Import } from './routes/__auth/admin/new_policy_set_template/add_policy/step1'
 import { Route as authAdminNewpolicysetAddpolicyStep3Import } from './routes/__auth/admin/new_policy_set/add_policy/step3'
 import { Route as authAdminNewpolicysetAddpolicyStep2Import } from './routes/__auth/admin/new_policy_set/add_policy/step2'
 import { Route as authAdminNewpolicysetAddpolicyStep1Import } from './routes/__auth/admin/new_policy_set/add_policy/step1'
@@ -91,10 +101,22 @@ const authMemberNewpolicysetRoute = authMemberNewpolicysetImport.update({
   getParentRoute: () => authMemberRoute,
 } as any)
 
+const authAdminNewpolicysettemplateRoute =
+  authAdminNewpolicysettemplateImport.update({
+    path: '/new_policy_set_template',
+    getParentRoute: () => authAdminRoute,
+  } as any)
+
 const authAdminNewpolicysetRoute = authAdminNewpolicysetImport.update({
   path: '/new_policy_set',
   getParentRoute: () => authAdminRoute,
 } as any)
+
+const authAdminPolicysettemplatesIndexRoute =
+  authAdminPolicysettemplatesIndexImport.update({
+    path: '/policy_set_templates/',
+    getParentRoute: () => authAdminRoute,
+  } as any)
 
 const authMemberNewpolicysetReviewandsubmitRoute =
   authMemberNewpolicysetReviewandsubmitImport.update({
@@ -124,6 +146,36 @@ const authMemberNewpolicysetAddpoliciesRoute =
   authMemberNewpolicysetAddpoliciesImport.update({
     path: '/add_policies',
     getParentRoute: () => authMemberNewpolicysetRoute,
+  } as any)
+
+const authAdminPolicysettemplatesPolicySetTemplateIdRoute =
+  authAdminPolicysettemplatesPolicySetTemplateIdImport.update({
+    path: '/policy_set_templates/$policySetTemplateId',
+    getParentRoute: () => authAdminRoute,
+  } as any)
+
+const authAdminNewpolicysettemplateReviewandsubmitRoute =
+  authAdminNewpolicysettemplateReviewandsubmitImport.update({
+    path: '/review_and_submit',
+    getParentRoute: () => authAdminNewpolicysettemplateRoute,
+  } as any)
+
+const authAdminNewpolicysettemplateDefinepolicysettemplateRoute =
+  authAdminNewpolicysettemplateDefinepolicysettemplateImport.update({
+    path: '/define_policy_set_template',
+    getParentRoute: () => authAdminNewpolicysettemplateRoute,
+  } as any)
+
+const authAdminNewpolicysettemplateAddpolicyRoute =
+  authAdminNewpolicysettemplateAddpolicyImport.update({
+    path: '/add_policy',
+    getParentRoute: () => authAdminNewpolicysettemplateRoute,
+  } as any)
+
+const authAdminNewpolicysettemplateAddpoliciesRoute =
+  authAdminNewpolicysettemplateAddpoliciesImport.update({
+    path: '/add_policies',
+    getParentRoute: () => authAdminNewpolicysettemplateRoute,
   } as any)
 
 const authAdminNewpolicysetReviewandsubmitRoute =
@@ -196,6 +248,24 @@ const authAdminPolicysetPolicySetIdAddpolicyRoute =
   authAdminPolicysetPolicySetIdAddpolicyImport.update({
     path: '/policy_set/$policySetId/add_policy',
     getParentRoute: () => authAdminRoute,
+  } as any)
+
+const authAdminNewpolicysettemplateAddpolicyStep3Route =
+  authAdminNewpolicysettemplateAddpolicyStep3Import.update({
+    path: '/step3',
+    getParentRoute: () => authAdminNewpolicysettemplateAddpolicyRoute,
+  } as any)
+
+const authAdminNewpolicysettemplateAddpolicyStep2Route =
+  authAdminNewpolicysettemplateAddpolicyStep2Import.update({
+    path: '/step2',
+    getParentRoute: () => authAdminNewpolicysettemplateAddpolicyRoute,
+  } as any)
+
+const authAdminNewpolicysettemplateAddpolicyStep1Route =
+  authAdminNewpolicysettemplateAddpolicyStep1Import.update({
+    path: '/step1',
+    getParentRoute: () => authAdminNewpolicysettemplateAddpolicyRoute,
   } as any)
 
 const authAdminNewpolicysetAddpolicyStep3Route =
@@ -339,6 +409,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authAdminNewpolicysetImport
       parentRoute: typeof authAdminImport
     }
+    '/__auth/admin/new_policy_set_template': {
+      id: '/__auth/admin/new_policy_set_template'
+      path: '/new_policy_set_template'
+      fullPath: '/admin/new_policy_set_template'
+      preLoaderRoute: typeof authAdminNewpolicysettemplateImport
+      parentRoute: typeof authAdminImport
+    }
     '/__auth/member/new_policy_set': {
       id: '/__auth/member/new_policy_set'
       path: '/new_policy_set'
@@ -395,6 +472,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authAdminNewpolicysetReviewandsubmitImport
       parentRoute: typeof authAdminNewpolicysetImport
     }
+    '/__auth/admin/new_policy_set_template/add_policies': {
+      id: '/__auth/admin/new_policy_set_template/add_policies'
+      path: '/add_policies'
+      fullPath: '/admin/new_policy_set_template/add_policies'
+      preLoaderRoute: typeof authAdminNewpolicysettemplateAddpoliciesImport
+      parentRoute: typeof authAdminNewpolicysettemplateImport
+    }
+    '/__auth/admin/new_policy_set_template/add_policy': {
+      id: '/__auth/admin/new_policy_set_template/add_policy'
+      path: '/add_policy'
+      fullPath: '/admin/new_policy_set_template/add_policy'
+      preLoaderRoute: typeof authAdminNewpolicysettemplateAddpolicyImport
+      parentRoute: typeof authAdminNewpolicysettemplateImport
+    }
+    '/__auth/admin/new_policy_set_template/define_policy_set_template': {
+      id: '/__auth/admin/new_policy_set_template/define_policy_set_template'
+      path: '/define_policy_set_template'
+      fullPath: '/admin/new_policy_set_template/define_policy_set_template'
+      preLoaderRoute: typeof authAdminNewpolicysettemplateDefinepolicysettemplateImport
+      parentRoute: typeof authAdminNewpolicysettemplateImport
+    }
+    '/__auth/admin/new_policy_set_template/review_and_submit': {
+      id: '/__auth/admin/new_policy_set_template/review_and_submit'
+      path: '/review_and_submit'
+      fullPath: '/admin/new_policy_set_template/review_and_submit'
+      preLoaderRoute: typeof authAdminNewpolicysettemplateReviewandsubmitImport
+      parentRoute: typeof authAdminNewpolicysettemplateImport
+    }
+    '/__auth/admin/policy_set_templates/$policySetTemplateId': {
+      id: '/__auth/admin/policy_set_templates/$policySetTemplateId'
+      path: '/policy_set_templates/$policySetTemplateId'
+      fullPath: '/admin/policy_set_templates/$policySetTemplateId'
+      preLoaderRoute: typeof authAdminPolicysettemplatesPolicySetTemplateIdImport
+      parentRoute: typeof authAdminImport
+    }
     '/__auth/member/new_policy_set/add_policies': {
       id: '/__auth/member/new_policy_set/add_policies'
       path: '/add_policies'
@@ -430,6 +542,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authMemberNewpolicysetReviewandsubmitImport
       parentRoute: typeof authMemberNewpolicysetImport
     }
+    '/__auth/admin/policy_set_templates/': {
+      id: '/__auth/admin/policy_set_templates/'
+      path: '/policy_set_templates'
+      fullPath: '/admin/policy_set_templates'
+      preLoaderRoute: typeof authAdminPolicysettemplatesIndexImport
+      parentRoute: typeof authAdminImport
+    }
     '/__auth/admin/new_policy_set/add_policy/step1': {
       id: '/__auth/admin/new_policy_set/add_policy/step1'
       path: '/step1'
@@ -450,6 +569,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/new_policy_set/add_policy/step3'
       preLoaderRoute: typeof authAdminNewpolicysetAddpolicyStep3Import
       parentRoute: typeof authAdminNewpolicysetAddpolicyImport
+    }
+    '/__auth/admin/new_policy_set_template/add_policy/step1': {
+      id: '/__auth/admin/new_policy_set_template/add_policy/step1'
+      path: '/step1'
+      fullPath: '/admin/new_policy_set_template/add_policy/step1'
+      preLoaderRoute: typeof authAdminNewpolicysettemplateAddpolicyStep1Import
+      parentRoute: typeof authAdminNewpolicysettemplateAddpolicyImport
+    }
+    '/__auth/admin/new_policy_set_template/add_policy/step2': {
+      id: '/__auth/admin/new_policy_set_template/add_policy/step2'
+      path: '/step2'
+      fullPath: '/admin/new_policy_set_template/add_policy/step2'
+      preLoaderRoute: typeof authAdminNewpolicysettemplateAddpolicyStep2Import
+      parentRoute: typeof authAdminNewpolicysettemplateAddpolicyImport
+    }
+    '/__auth/admin/new_policy_set_template/add_policy/step3': {
+      id: '/__auth/admin/new_policy_set_template/add_policy/step3'
+      path: '/step3'
+      fullPath: '/admin/new_policy_set_template/add_policy/step3'
+      preLoaderRoute: typeof authAdminNewpolicysettemplateAddpolicyStep3Import
+      parentRoute: typeof authAdminNewpolicysettemplateAddpolicyImport
     }
     '/__auth/admin/policy_set/$policySetId/add_policy': {
       id: '/__auth/admin/policy_set/$policySetId/add_policy'
@@ -649,6 +789,51 @@ const authAdminNewpolicysetRouteWithChildren =
     authAdminNewpolicysetRouteChildren,
   )
 
+interface authAdminNewpolicysettemplateAddpolicyRouteChildren {
+  authAdminNewpolicysettemplateAddpolicyStep1Route: typeof authAdminNewpolicysettemplateAddpolicyStep1Route
+  authAdminNewpolicysettemplateAddpolicyStep2Route: typeof authAdminNewpolicysettemplateAddpolicyStep2Route
+  authAdminNewpolicysettemplateAddpolicyStep3Route: typeof authAdminNewpolicysettemplateAddpolicyStep3Route
+}
+
+const authAdminNewpolicysettemplateAddpolicyRouteChildren: authAdminNewpolicysettemplateAddpolicyRouteChildren =
+  {
+    authAdminNewpolicysettemplateAddpolicyStep1Route:
+      authAdminNewpolicysettemplateAddpolicyStep1Route,
+    authAdminNewpolicysettemplateAddpolicyStep2Route:
+      authAdminNewpolicysettemplateAddpolicyStep2Route,
+    authAdminNewpolicysettemplateAddpolicyStep3Route:
+      authAdminNewpolicysettemplateAddpolicyStep3Route,
+  }
+
+const authAdminNewpolicysettemplateAddpolicyRouteWithChildren =
+  authAdminNewpolicysettemplateAddpolicyRoute._addFileChildren(
+    authAdminNewpolicysettemplateAddpolicyRouteChildren,
+  )
+
+interface authAdminNewpolicysettemplateRouteChildren {
+  authAdminNewpolicysettemplateAddpoliciesRoute: typeof authAdminNewpolicysettemplateAddpoliciesRoute
+  authAdminNewpolicysettemplateAddpolicyRoute: typeof authAdminNewpolicysettemplateAddpolicyRouteWithChildren
+  authAdminNewpolicysettemplateDefinepolicysettemplateRoute: typeof authAdminNewpolicysettemplateDefinepolicysettemplateRoute
+  authAdminNewpolicysettemplateReviewandsubmitRoute: typeof authAdminNewpolicysettemplateReviewandsubmitRoute
+}
+
+const authAdminNewpolicysettemplateRouteChildren: authAdminNewpolicysettemplateRouteChildren =
+  {
+    authAdminNewpolicysettemplateAddpoliciesRoute:
+      authAdminNewpolicysettemplateAddpoliciesRoute,
+    authAdminNewpolicysettemplateAddpolicyRoute:
+      authAdminNewpolicysettemplateAddpolicyRouteWithChildren,
+    authAdminNewpolicysettemplateDefinepolicysettemplateRoute:
+      authAdminNewpolicysettemplateDefinepolicysettemplateRoute,
+    authAdminNewpolicysettemplateReviewandsubmitRoute:
+      authAdminNewpolicysettemplateReviewandsubmitRoute,
+  }
+
+const authAdminNewpolicysettemplateRouteWithChildren =
+  authAdminNewpolicysettemplateRoute._addFileChildren(
+    authAdminNewpolicysettemplateRouteChildren,
+  )
+
 interface authAdminPolicysetPolicySetIdAddpolicyRouteChildren {
   authAdminPolicysetPolicySetIdAddpolicyStep1Route: typeof authAdminPolicysetPolicySetIdAddpolicyStep1Route
   authAdminPolicysetPolicySetIdAddpolicyStep2Route: typeof authAdminPolicysetPolicySetIdAddpolicyStep2Route
@@ -693,7 +878,10 @@ const authAdminPolicysetPolicySetIdEditpolicyPolicyIdRouteWithChildren =
 
 interface authAdminRouteChildren {
   authAdminNewpolicysetRoute: typeof authAdminNewpolicysetRouteWithChildren
+  authAdminNewpolicysettemplateRoute: typeof authAdminNewpolicysettemplateRouteWithChildren
   authAdminIndexRoute: typeof authAdminIndexRoute
+  authAdminPolicysettemplatesPolicySetTemplateIdRoute: typeof authAdminPolicysettemplatesPolicySetTemplateIdRoute
+  authAdminPolicysettemplatesIndexRoute: typeof authAdminPolicysettemplatesIndexRoute
   authAdminPolicysetPolicySetIdAddpolicyRoute: typeof authAdminPolicysetPolicySetIdAddpolicyRouteWithChildren
   authAdminPolicysetPolicySetIdIndexRoute: typeof authAdminPolicysetPolicySetIdIndexRoute
   authAdminPolicysetPolicySetIdEditpolicyPolicyIdRoute: typeof authAdminPolicysetPolicySetIdEditpolicyPolicyIdRouteWithChildren
@@ -701,7 +889,12 @@ interface authAdminRouteChildren {
 
 const authAdminRouteChildren: authAdminRouteChildren = {
   authAdminNewpolicysetRoute: authAdminNewpolicysetRouteWithChildren,
+  authAdminNewpolicysettemplateRoute:
+    authAdminNewpolicysettemplateRouteWithChildren,
   authAdminIndexRoute: authAdminIndexRoute,
+  authAdminPolicysettemplatesPolicySetTemplateIdRoute:
+    authAdminPolicysettemplatesPolicySetTemplateIdRoute,
+  authAdminPolicysettemplatesIndexRoute: authAdminPolicysettemplatesIndexRoute,
   authAdminPolicysetPolicySetIdAddpolicyRoute:
     authAdminPolicysetPolicySetIdAddpolicyRouteWithChildren,
   authAdminPolicysetPolicySetIdIndexRoute:
@@ -847,6 +1040,7 @@ export interface FileRoutesByFullPath {
   '/member': typeof authMemberRouteWithChildren
   '/': typeof authIndexRoute
   '/admin/new_policy_set': typeof authAdminNewpolicysetRouteWithChildren
+  '/admin/new_policy_set_template': typeof authAdminNewpolicysettemplateRouteWithChildren
   '/member/new_policy_set': typeof authMemberNewpolicysetRouteWithChildren
   '/admin/': typeof authAdminIndexRoute
   '/member/': typeof authMemberIndexRoute
@@ -855,14 +1049,23 @@ export interface FileRoutesByFullPath {
   '/admin/new_policy_set/define_policy_set': typeof authAdminNewpolicysetDefinepolicysetRoute
   '/admin/new_policy_set/prefill_template': typeof authAdminNewpolicysetPrefilltemplateRoute
   '/admin/new_policy_set/review_and_submit': typeof authAdminNewpolicysetReviewandsubmitRoute
+  '/admin/new_policy_set_template/add_policies': typeof authAdminNewpolicysettemplateAddpoliciesRoute
+  '/admin/new_policy_set_template/add_policy': typeof authAdminNewpolicysettemplateAddpolicyRouteWithChildren
+  '/admin/new_policy_set_template/define_policy_set_template': typeof authAdminNewpolicysettemplateDefinepolicysettemplateRoute
+  '/admin/new_policy_set_template/review_and_submit': typeof authAdminNewpolicysettemplateReviewandsubmitRoute
+  '/admin/policy_set_templates/$policySetTemplateId': typeof authAdminPolicysettemplatesPolicySetTemplateIdRoute
   '/member/new_policy_set/add_policies': typeof authMemberNewpolicysetAddpoliciesRoute
   '/member/new_policy_set/add_policy': typeof authMemberNewpolicysetAddpolicyRouteWithChildren
   '/member/new_policy_set/define_policy_set': typeof authMemberNewpolicysetDefinepolicysetRoute
   '/member/new_policy_set/prefill_template': typeof authMemberNewpolicysetPrefilltemplateRoute
   '/member/new_policy_set/review_and_submit': typeof authMemberNewpolicysetReviewandsubmitRoute
+  '/admin/policy_set_templates': typeof authAdminPolicysettemplatesIndexRoute
   '/admin/new_policy_set/add_policy/step1': typeof authAdminNewpolicysetAddpolicyStep1Route
   '/admin/new_policy_set/add_policy/step2': typeof authAdminNewpolicysetAddpolicyStep2Route
   '/admin/new_policy_set/add_policy/step3': typeof authAdminNewpolicysetAddpolicyStep3Route
+  '/admin/new_policy_set_template/add_policy/step1': typeof authAdminNewpolicysettemplateAddpolicyStep1Route
+  '/admin/new_policy_set_template/add_policy/step2': typeof authAdminNewpolicysettemplateAddpolicyStep2Route
+  '/admin/new_policy_set_template/add_policy/step3': typeof authAdminNewpolicysettemplateAddpolicyStep3Route
   '/admin/policy_set/$policySetId/add_policy': typeof authAdminPolicysetPolicySetIdAddpolicyRouteWithChildren
   '/member/new_policy_set/add_policy/step1': typeof authMemberNewpolicysetAddpolicyStep1Route
   '/member/new_policy_set/add_policy/step2': typeof authMemberNewpolicysetAddpolicyStep2Route
@@ -889,6 +1092,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof authIndexRoute
   '/admin/new_policy_set': typeof authAdminNewpolicysetRouteWithChildren
+  '/admin/new_policy_set_template': typeof authAdminNewpolicysettemplateRouteWithChildren
   '/member/new_policy_set': typeof authMemberNewpolicysetRouteWithChildren
   '/admin': typeof authAdminIndexRoute
   '/member': typeof authMemberIndexRoute
@@ -897,14 +1101,23 @@ export interface FileRoutesByTo {
   '/admin/new_policy_set/define_policy_set': typeof authAdminNewpolicysetDefinepolicysetRoute
   '/admin/new_policy_set/prefill_template': typeof authAdminNewpolicysetPrefilltemplateRoute
   '/admin/new_policy_set/review_and_submit': typeof authAdminNewpolicysetReviewandsubmitRoute
+  '/admin/new_policy_set_template/add_policies': typeof authAdminNewpolicysettemplateAddpoliciesRoute
+  '/admin/new_policy_set_template/add_policy': typeof authAdminNewpolicysettemplateAddpolicyRouteWithChildren
+  '/admin/new_policy_set_template/define_policy_set_template': typeof authAdminNewpolicysettemplateDefinepolicysettemplateRoute
+  '/admin/new_policy_set_template/review_and_submit': typeof authAdminNewpolicysettemplateReviewandsubmitRoute
+  '/admin/policy_set_templates/$policySetTemplateId': typeof authAdminPolicysettemplatesPolicySetTemplateIdRoute
   '/member/new_policy_set/add_policies': typeof authMemberNewpolicysetAddpoliciesRoute
   '/member/new_policy_set/add_policy': typeof authMemberNewpolicysetAddpolicyRouteWithChildren
   '/member/new_policy_set/define_policy_set': typeof authMemberNewpolicysetDefinepolicysetRoute
   '/member/new_policy_set/prefill_template': typeof authMemberNewpolicysetPrefilltemplateRoute
   '/member/new_policy_set/review_and_submit': typeof authMemberNewpolicysetReviewandsubmitRoute
+  '/admin/policy_set_templates': typeof authAdminPolicysettemplatesIndexRoute
   '/admin/new_policy_set/add_policy/step1': typeof authAdminNewpolicysetAddpolicyStep1Route
   '/admin/new_policy_set/add_policy/step2': typeof authAdminNewpolicysetAddpolicyStep2Route
   '/admin/new_policy_set/add_policy/step3': typeof authAdminNewpolicysetAddpolicyStep3Route
+  '/admin/new_policy_set_template/add_policy/step1': typeof authAdminNewpolicysettemplateAddpolicyStep1Route
+  '/admin/new_policy_set_template/add_policy/step2': typeof authAdminNewpolicysettemplateAddpolicyStep2Route
+  '/admin/new_policy_set_template/add_policy/step3': typeof authAdminNewpolicysettemplateAddpolicyStep3Route
   '/admin/policy_set/$policySetId/add_policy': typeof authAdminPolicysetPolicySetIdAddpolicyRouteWithChildren
   '/member/new_policy_set/add_policy/step1': typeof authMemberNewpolicysetAddpolicyStep1Route
   '/member/new_policy_set/add_policy/step2': typeof authMemberNewpolicysetAddpolicyStep2Route
@@ -935,6 +1148,7 @@ export interface FileRoutesById {
   '/__auth/member': typeof authMemberRouteWithChildren
   '/__auth/': typeof authIndexRoute
   '/__auth/admin/new_policy_set': typeof authAdminNewpolicysetRouteWithChildren
+  '/__auth/admin/new_policy_set_template': typeof authAdminNewpolicysettemplateRouteWithChildren
   '/__auth/member/new_policy_set': typeof authMemberNewpolicysetRouteWithChildren
   '/__auth/admin/': typeof authAdminIndexRoute
   '/__auth/member/': typeof authMemberIndexRoute
@@ -943,14 +1157,23 @@ export interface FileRoutesById {
   '/__auth/admin/new_policy_set/define_policy_set': typeof authAdminNewpolicysetDefinepolicysetRoute
   '/__auth/admin/new_policy_set/prefill_template': typeof authAdminNewpolicysetPrefilltemplateRoute
   '/__auth/admin/new_policy_set/review_and_submit': typeof authAdminNewpolicysetReviewandsubmitRoute
+  '/__auth/admin/new_policy_set_template/add_policies': typeof authAdminNewpolicysettemplateAddpoliciesRoute
+  '/__auth/admin/new_policy_set_template/add_policy': typeof authAdminNewpolicysettemplateAddpolicyRouteWithChildren
+  '/__auth/admin/new_policy_set_template/define_policy_set_template': typeof authAdminNewpolicysettemplateDefinepolicysettemplateRoute
+  '/__auth/admin/new_policy_set_template/review_and_submit': typeof authAdminNewpolicysettemplateReviewandsubmitRoute
+  '/__auth/admin/policy_set_templates/$policySetTemplateId': typeof authAdminPolicysettemplatesPolicySetTemplateIdRoute
   '/__auth/member/new_policy_set/add_policies': typeof authMemberNewpolicysetAddpoliciesRoute
   '/__auth/member/new_policy_set/add_policy': typeof authMemberNewpolicysetAddpolicyRouteWithChildren
   '/__auth/member/new_policy_set/define_policy_set': typeof authMemberNewpolicysetDefinepolicysetRoute
   '/__auth/member/new_policy_set/prefill_template': typeof authMemberNewpolicysetPrefilltemplateRoute
   '/__auth/member/new_policy_set/review_and_submit': typeof authMemberNewpolicysetReviewandsubmitRoute
+  '/__auth/admin/policy_set_templates/': typeof authAdminPolicysettemplatesIndexRoute
   '/__auth/admin/new_policy_set/add_policy/step1': typeof authAdminNewpolicysetAddpolicyStep1Route
   '/__auth/admin/new_policy_set/add_policy/step2': typeof authAdminNewpolicysetAddpolicyStep2Route
   '/__auth/admin/new_policy_set/add_policy/step3': typeof authAdminNewpolicysetAddpolicyStep3Route
+  '/__auth/admin/new_policy_set_template/add_policy/step1': typeof authAdminNewpolicysettemplateAddpolicyStep1Route
+  '/__auth/admin/new_policy_set_template/add_policy/step2': typeof authAdminNewpolicysettemplateAddpolicyStep2Route
+  '/__auth/admin/new_policy_set_template/add_policy/step3': typeof authAdminNewpolicysettemplateAddpolicyStep3Route
   '/__auth/admin/policy_set/$policySetId/add_policy': typeof authAdminPolicysetPolicySetIdAddpolicyRouteWithChildren
   '/__auth/member/new_policy_set/add_policy/step1': typeof authMemberNewpolicysetAddpolicyStep1Route
   '/__auth/member/new_policy_set/add_policy/step2': typeof authMemberNewpolicysetAddpolicyStep2Route
@@ -982,6 +1205,7 @@ export interface FileRouteTypes {
     | '/member'
     | '/'
     | '/admin/new_policy_set'
+    | '/admin/new_policy_set_template'
     | '/member/new_policy_set'
     | '/admin/'
     | '/member/'
@@ -990,14 +1214,23 @@ export interface FileRouteTypes {
     | '/admin/new_policy_set/define_policy_set'
     | '/admin/new_policy_set/prefill_template'
     | '/admin/new_policy_set/review_and_submit'
+    | '/admin/new_policy_set_template/add_policies'
+    | '/admin/new_policy_set_template/add_policy'
+    | '/admin/new_policy_set_template/define_policy_set_template'
+    | '/admin/new_policy_set_template/review_and_submit'
+    | '/admin/policy_set_templates/$policySetTemplateId'
     | '/member/new_policy_set/add_policies'
     | '/member/new_policy_set/add_policy'
     | '/member/new_policy_set/define_policy_set'
     | '/member/new_policy_set/prefill_template'
     | '/member/new_policy_set/review_and_submit'
+    | '/admin/policy_set_templates'
     | '/admin/new_policy_set/add_policy/step1'
     | '/admin/new_policy_set/add_policy/step2'
     | '/admin/new_policy_set/add_policy/step3'
+    | '/admin/new_policy_set_template/add_policy/step1'
+    | '/admin/new_policy_set_template/add_policy/step2'
+    | '/admin/new_policy_set_template/add_policy/step3'
     | '/admin/policy_set/$policySetId/add_policy'
     | '/member/new_policy_set/add_policy/step1'
     | '/member/new_policy_set/add_policy/step2'
@@ -1023,6 +1256,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin/new_policy_set'
+    | '/admin/new_policy_set_template'
     | '/member/new_policy_set'
     | '/admin'
     | '/member'
@@ -1031,14 +1265,23 @@ export interface FileRouteTypes {
     | '/admin/new_policy_set/define_policy_set'
     | '/admin/new_policy_set/prefill_template'
     | '/admin/new_policy_set/review_and_submit'
+    | '/admin/new_policy_set_template/add_policies'
+    | '/admin/new_policy_set_template/add_policy'
+    | '/admin/new_policy_set_template/define_policy_set_template'
+    | '/admin/new_policy_set_template/review_and_submit'
+    | '/admin/policy_set_templates/$policySetTemplateId'
     | '/member/new_policy_set/add_policies'
     | '/member/new_policy_set/add_policy'
     | '/member/new_policy_set/define_policy_set'
     | '/member/new_policy_set/prefill_template'
     | '/member/new_policy_set/review_and_submit'
+    | '/admin/policy_set_templates'
     | '/admin/new_policy_set/add_policy/step1'
     | '/admin/new_policy_set/add_policy/step2'
     | '/admin/new_policy_set/add_policy/step3'
+    | '/admin/new_policy_set_template/add_policy/step1'
+    | '/admin/new_policy_set_template/add_policy/step2'
+    | '/admin/new_policy_set_template/add_policy/step3'
     | '/admin/policy_set/$policySetId/add_policy'
     | '/member/new_policy_set/add_policy/step1'
     | '/member/new_policy_set/add_policy/step2'
@@ -1067,6 +1310,7 @@ export interface FileRouteTypes {
     | '/__auth/member'
     | '/__auth/'
     | '/__auth/admin/new_policy_set'
+    | '/__auth/admin/new_policy_set_template'
     | '/__auth/member/new_policy_set'
     | '/__auth/admin/'
     | '/__auth/member/'
@@ -1075,14 +1319,23 @@ export interface FileRouteTypes {
     | '/__auth/admin/new_policy_set/define_policy_set'
     | '/__auth/admin/new_policy_set/prefill_template'
     | '/__auth/admin/new_policy_set/review_and_submit'
+    | '/__auth/admin/new_policy_set_template/add_policies'
+    | '/__auth/admin/new_policy_set_template/add_policy'
+    | '/__auth/admin/new_policy_set_template/define_policy_set_template'
+    | '/__auth/admin/new_policy_set_template/review_and_submit'
+    | '/__auth/admin/policy_set_templates/$policySetTemplateId'
     | '/__auth/member/new_policy_set/add_policies'
     | '/__auth/member/new_policy_set/add_policy'
     | '/__auth/member/new_policy_set/define_policy_set'
     | '/__auth/member/new_policy_set/prefill_template'
     | '/__auth/member/new_policy_set/review_and_submit'
+    | '/__auth/admin/policy_set_templates/'
     | '/__auth/admin/new_policy_set/add_policy/step1'
     | '/__auth/admin/new_policy_set/add_policy/step2'
     | '/__auth/admin/new_policy_set/add_policy/step3'
+    | '/__auth/admin/new_policy_set_template/add_policy/step1'
+    | '/__auth/admin/new_policy_set_template/add_policy/step2'
+    | '/__auth/admin/new_policy_set_template/add_policy/step3'
     | '/__auth/admin/policy_set/$policySetId/add_policy'
     | '/__auth/member/new_policy_set/add_policy/step1'
     | '/__auth/member/new_policy_set/add_policy/step2'
@@ -1143,7 +1396,10 @@ export const routeTree = rootRoute
       "parent": "/__auth",
       "children": [
         "/__auth/admin/new_policy_set",
+        "/__auth/admin/new_policy_set_template",
         "/__auth/admin/",
+        "/__auth/admin/policy_set_templates/$policySetTemplateId",
+        "/__auth/admin/policy_set_templates/",
         "/__auth/admin/policy_set/$policySetId/add_policy",
         "/__auth/admin/policy_set/$policySetId/",
         "/__auth/admin/policy_set/$policySetId/edit_policy/$policyId"
@@ -1173,6 +1429,16 @@ export const routeTree = rootRoute
         "/__auth/admin/new_policy_set/define_policy_set",
         "/__auth/admin/new_policy_set/prefill_template",
         "/__auth/admin/new_policy_set/review_and_submit"
+      ]
+    },
+    "/__auth/admin/new_policy_set_template": {
+      "filePath": "__auth/admin/new_policy_set_template.tsx",
+      "parent": "/__auth/admin",
+      "children": [
+        "/__auth/admin/new_policy_set_template/add_policies",
+        "/__auth/admin/new_policy_set_template/add_policy",
+        "/__auth/admin/new_policy_set_template/define_policy_set_template",
+        "/__auth/admin/new_policy_set_template/review_and_submit"
       ]
     },
     "/__auth/member/new_policy_set": {
@@ -1219,6 +1485,31 @@ export const routeTree = rootRoute
       "filePath": "__auth/admin/new_policy_set/review_and_submit.tsx",
       "parent": "/__auth/admin/new_policy_set"
     },
+    "/__auth/admin/new_policy_set_template/add_policies": {
+      "filePath": "__auth/admin/new_policy_set_template/add_policies.tsx",
+      "parent": "/__auth/admin/new_policy_set_template"
+    },
+    "/__auth/admin/new_policy_set_template/add_policy": {
+      "filePath": "__auth/admin/new_policy_set_template/add_policy.tsx",
+      "parent": "/__auth/admin/new_policy_set_template",
+      "children": [
+        "/__auth/admin/new_policy_set_template/add_policy/step1",
+        "/__auth/admin/new_policy_set_template/add_policy/step2",
+        "/__auth/admin/new_policy_set_template/add_policy/step3"
+      ]
+    },
+    "/__auth/admin/new_policy_set_template/define_policy_set_template": {
+      "filePath": "__auth/admin/new_policy_set_template/define_policy_set_template.tsx",
+      "parent": "/__auth/admin/new_policy_set_template"
+    },
+    "/__auth/admin/new_policy_set_template/review_and_submit": {
+      "filePath": "__auth/admin/new_policy_set_template/review_and_submit.tsx",
+      "parent": "/__auth/admin/new_policy_set_template"
+    },
+    "/__auth/admin/policy_set_templates/$policySetTemplateId": {
+      "filePath": "__auth/admin/policy_set_templates.$policySetTemplateId.tsx",
+      "parent": "/__auth/admin"
+    },
     "/__auth/member/new_policy_set/add_policies": {
       "filePath": "__auth/member/new_policy_set/add_policies.tsx",
       "parent": "/__auth/member/new_policy_set"
@@ -1244,6 +1535,10 @@ export const routeTree = rootRoute
       "filePath": "__auth/member/new_policy_set/review_and_submit.tsx",
       "parent": "/__auth/member/new_policy_set"
     },
+    "/__auth/admin/policy_set_templates/": {
+      "filePath": "__auth/admin/policy_set_templates.index.tsx",
+      "parent": "/__auth/admin"
+    },
     "/__auth/admin/new_policy_set/add_policy/step1": {
       "filePath": "__auth/admin/new_policy_set/add_policy/step1.tsx",
       "parent": "/__auth/admin/new_policy_set/add_policy"
@@ -1255,6 +1550,18 @@ export const routeTree = rootRoute
     "/__auth/admin/new_policy_set/add_policy/step3": {
       "filePath": "__auth/admin/new_policy_set/add_policy/step3.tsx",
       "parent": "/__auth/admin/new_policy_set/add_policy"
+    },
+    "/__auth/admin/new_policy_set_template/add_policy/step1": {
+      "filePath": "__auth/admin/new_policy_set_template/add_policy/step1.tsx",
+      "parent": "/__auth/admin/new_policy_set_template/add_policy"
+    },
+    "/__auth/admin/new_policy_set_template/add_policy/step2": {
+      "filePath": "__auth/admin/new_policy_set_template/add_policy/step2.tsx",
+      "parent": "/__auth/admin/new_policy_set_template/add_policy"
+    },
+    "/__auth/admin/new_policy_set_template/add_policy/step3": {
+      "filePath": "__auth/admin/new_policy_set_template/add_policy/step3.tsx",
+      "parent": "/__auth/admin/new_policy_set_template/add_policy"
     },
     "/__auth/admin/policy_set/$policySetId/add_policy": {
       "filePath": "__auth/admin/policy_set.$policySetId.add_policy.tsx",
