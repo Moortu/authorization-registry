@@ -4,7 +4,6 @@ use crate::services::server_token::ServerToken;
 use ar_migration::{Migrator, MigratorTrait};
 
 use axum::async_trait;
-use axum::http::HeaderValue;
 use axum::Extension;
 use axum::{extract::FromRef, Router};
 use clap::Parser;
@@ -19,7 +18,7 @@ use sea_orm::Database;
 use sea_orm::DatabaseConnection;
 use seed::apply_seeds;
 use std::sync::Arc;
-use tower_http::cors::{AllowHeaders, AllowMethods, CorsLayer};
+use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use utoipa::{
     openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
@@ -150,11 +149,12 @@ impl FromRef<AppState> for Arc<ServerToken> {
     }
 }
 
-pub fn get_app(db: DatabaseConnection, app_state: AppState) -> Router {
-    let cors = CorsLayer::new()
-        .allow_methods(AllowMethods::any())
-        .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
-        .allow_headers(AllowHeaders::any());
+pub fn get_app(db: DatabaseConnection, app_state: AppState, disable_cors_check: bool) -> Router {
+    let cors = if disable_cors_check {
+        CorsLayer::very_permissive()
+    } else {
+        CorsLayer::new()
+    };
 
     let connect_routes = get_connect_routes();
     let admin_routes = get_admin_routes(app_state.server_token.clone());
@@ -247,7 +247,7 @@ async fn main() {
         }),
     };
 
-    let app = get_app(db, app_state);
+    let app = get_app(db, app_state, config.disable_cors_check);
 
     let listener = tokio::net::TcpListener::bind(config.listen_address)
         .await

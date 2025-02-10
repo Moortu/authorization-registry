@@ -16,6 +16,10 @@ fn default_deploy_route() -> String {
     "/api".to_owned()
 }
 
+fn default_disable_cors_check() -> bool {
+    true
+}
+
 #[derive(Deserialize, Clone, Debug)]
 pub struct Config {
     pub client_eori: String,
@@ -37,6 +41,8 @@ pub struct Config {
     #[serde(default = "default_deploy_route")]
     pub deploy_route: String,
     pub seed_folder: Option<String>,
+    #[serde(default = "default_disable_cors_check")]
+    pub disable_cors_check: bool,
 }
 
 pub fn read_config(path: String) -> Config {
