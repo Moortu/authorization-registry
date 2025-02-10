@@ -32,7 +32,7 @@ function Component() {
         policies: policySetTemplate.policies,
       });
 
-      navigate({ to: "/admin/new_policy_set/define_policy_set" })
+      navigate({ to: "/admin/new_policy_set/define_policy_set" });
     }
   }
 
