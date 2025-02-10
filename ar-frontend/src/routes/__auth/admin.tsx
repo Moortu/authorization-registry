@@ -19,13 +19,23 @@ function Component() {
         paddingY={2}
       >
         <Logo admin />
-        <Button
-          variant="plain"
-          color="neutral"
-          onClick={() => navigate({ to: "/admin" })}
-        >
-          Policy sets
-        </Button>
+        <Box>
+          <Button
+            variant="plain"
+            color="neutral"
+            onClick={() => navigate({ to: "/admin" })}
+          >
+            Policy sets
+          </Button>
+          <Button
+            variant="plain"
+            color="neutral"
+            onClick={() => navigate({ to: "/admin/policy_set_templates" })}
+          >
+            Policy set templates
+          </Button>
+        </Box>
+
         <Button variant="soft" onClick={() => initLogout()}>
           Logout
         </Button>

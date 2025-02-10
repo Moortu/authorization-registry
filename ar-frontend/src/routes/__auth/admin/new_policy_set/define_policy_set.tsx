@@ -1,13 +1,17 @@
 import { Button, Input, Stack } from "@mui/joy";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AddPolicySetStepper } from "@/components/add-policy-set-stepper";
+import { AddPolicySetStepper } from "@/components/wizzard-stepper";
 import { useCreatePolicySetContext } from "@/components/create-policy-set-context";
 import { useForm } from "@tanstack/react-form";
 import { FormField } from "@/components/form-field";
 import { required } from "@/form-field-validators";
+import { CatchBoundary } from "@/components/catch-boundary";
 
-export const Route = createFileRoute("/__auth/member/new_policy_set/step1")({
+export const Route = createFileRoute(
+  "/__auth/admin/new_policy_set/define_policy_set",
+)({
   component: Component,
+  errorComponent: CatchBoundary,
 });
 
 function Component() {
@@ -23,13 +27,13 @@ function Component() {
       changeValue((oldValue) => ({ ...oldValue, ...value }));
 
       // have to validate here
-      navigate({ to: "/member/new_policy_set/step2" });
+      navigate({ to: "/admin/new_policy_set/add_policies" });
     },
   });
 
   return (
     <div>
-      <AddPolicySetStepper activeStep={1} />
+      <AddPolicySetStepper activeStep="Define policy set" />
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -65,7 +69,18 @@ function Component() {
               </FormField>
             )}
           />
-          <Stack direction="row">
+          <Stack direction="row" spacing={1}>
+            {
+              <Button
+                onClick={() =>
+                  navigate({ to: "/admin/new_policy_set/prefill_template" })
+                }
+                variant="outlined"
+                type="submit"
+              >
+                Back
+              </Button>
+            }
             <Button type="submit">Next step</Button>
           </Stack>
         </Stack>

@@ -1,10 +1,13 @@
 import { Stack, Typography, Box, Button, Divider, Alert } from "@mui/joy";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCreatePolicySetContext } from "@/components/create-policy-set-context";
+import { useCreatePolicySetTemplateContext } from "../new_policy_set_template";
 import { PolicyCard } from "@/components/policy-card";
-import { useCreatePolicySet } from "@/network/policy-set";
+import { AddPolicySetTemplateStepper } from "@/components/wizzard-stepper";
+import { useAdminCreatePolicySetTemplate } from "@/network/policy-set-templates";
 
-export const Route = createFileRoute("/__auth/member/new_policy_set/step3")({
+export const Route = createFileRoute(
+  "/__auth/admin/new_policy_set_template/review_and_submit",
+)({
   component: Component,
 });
 
@@ -14,18 +17,18 @@ function Component() {
     mutateAsync: createPolicySet,
     isPending,
     error: submitError,
-  } = useCreatePolicySet();
-  const { value } = useCreatePolicySetContext();
+  } = useAdminCreatePolicySetTemplate();
+  const { value } = useCreatePolicySetTemplateContext();
 
   function onBack() {
     navigate({
-      to: "/member/new_policy_set/step2",
+      to: "/admin/new_policy_set_template/add_policies",
     });
   }
 
   return (
     <Stack spacing={3}>
-      <Typography level="h3">Review policy set</Typography>
+      <AddPolicySetTemplateStepper activeStep="Review and submit" />
 
       {submitError && (
         <Box paddingTop={4}>
@@ -34,6 +37,11 @@ function Component() {
           </Alert>
         </Box>
       )}
+
+      <Box>
+        <Typography level="title-lg">Name</Typography>
+        <Typography>{value.name}</Typography>
+      </Box>
 
       <Box>
         <Typography level="title-lg">Policy issuer</Typography>
@@ -65,7 +73,7 @@ function Component() {
           onClick={() =>
             createPolicySet(value).then(() => {
               navigate({
-                to: "/member",
+                to: "/admin",
               });
             })
           }

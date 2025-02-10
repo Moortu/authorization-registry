@@ -14,6 +14,7 @@ struct Seed {
     ishare_users: Vec<ar_entity::ishare_user::Model>,
     policy_sets: Vec<ar_entity::policy_set::Model>,
     policies: Vec<ar_entity::policy::Model>,
+    policy_set_templates: Option<Vec<ar_entity::policy_set_template::Model>>,
 }
 
 pub async fn apply_seeds(db: &DatabaseConnection, config: &Config) {
@@ -41,6 +42,28 @@ pub async fn apply_seeds(db: &DatabaseConnection, config: &Config) {
 
         if entry.file_name().to_str().unwrap().contains("seed") {
             let seed: Seed = serde_json::from_slice(&fs::read(path).unwrap()).unwrap();
+
+            if let Some(pt_templates) = seed.policy_set_templates {
+                for pt_template in pt_templates.iter() {
+                    let active_template = pt_template.clone().into_active_model();
+
+                    match crate::db::policy_set_template::get_policy_set_template_by_id(
+                        &pt_template.id,
+                        db,
+                    )
+                    .await
+                    .unwrap()
+                    {
+                        Some(_) => {}
+                        None => {
+                            ar_entity::policy_set_template::Entity::insert(active_template)
+                                .exec(db)
+                                .await
+                                .unwrap();
+                        }
+                    }
+                }
+            }
 
             for company in seed.companies.iter() {
                 company_store::insert_if_not_exists(&company.id, &company.name, db)

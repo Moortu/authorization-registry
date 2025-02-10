@@ -3,8 +3,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCreatePolicySetContext } from "@/components/create-policy-set-context";
 import { PolicyCard } from "@/components/policy-card";
 import { useAdminCreatePolicySet } from "@/network/policy-set";
+import { AddPolicySetStepper } from "@/components/wizzard-stepper";
 
-export const Route = createFileRoute("/__auth/admin/new_policy_set/step3")({
+export const Route = createFileRoute(
+  "/__auth/admin/new_policy_set/review_and_submit",
+)({
   component: Component,
 });
 
@@ -19,13 +22,13 @@ function Component() {
 
   function onBack() {
     navigate({
-      to: "/admin/new_policy_set/step2",
+      to: "/admin/new_policy_set/add_policies",
     });
   }
 
   return (
     <Stack spacing={3}>
-      <Typography level="h3">Review policy set</Typography>
+      <AddPolicySetStepper activeStep="Review and submit" />
 
       {submitError && (
         <Box paddingTop={4}>

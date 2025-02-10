@@ -1,21 +1,23 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AddPolicySetStepper } from "@/components/add-policy-set-stepper";
+import { AddPolicySetTemplateStepper } from "@/components/wizzard-stepper";
 import { Typography, Button, Stack, Box, Divider, Card } from "@mui/joy";
-import { useCreatePolicySetContext } from "@/components/create-policy-set-context";
+import { useCreatePolicySetTemplateContext } from "../new_policy_set_template";
 import { PolicyCard } from "@/components/policy-card";
 
-export const Route = createFileRoute("/__auth/member/new_policy_set/step2")({
+export const Route = createFileRoute(
+  "/__auth/admin/new_policy_set_template/add_policies",
+)({
   component: Component,
 });
 
 function Component() {
   const navigate = useNavigate();
 
-  const { value, changeValue } = useCreatePolicySetContext();
+  const { value, changeValue } = useCreatePolicySetTemplateContext();
 
   return (
     <Stack spacing={3}>
-      <AddPolicySetStepper activeStep={2} />
+      <AddPolicySetTemplateStepper activeStep="Add policies" />
 
       <Divider />
 
@@ -46,7 +48,7 @@ function Component() {
       <Box>
         <Button
           onClick={() =>
-            navigate({ to: "/member/new_policy_set/add_policy/step1" })
+            navigate({ to: "/admin/new_policy_set_template/add_policy/step1" })
           }
           variant="outlined"
         >
@@ -58,12 +60,18 @@ function Component() {
       <Stack direction="row" spacing={1}>
         <Button
           variant="outlined"
-          onClick={() => navigate({ to: "/member/new_policy_set/step1" })}
+          onClick={() =>
+            navigate({
+              to: "/admin/new_policy_set_template/define_policy_set_template",
+            })
+          }
         >
           Back
         </Button>
         <Button
-          onClick={() => navigate({ to: "/member/new_policy_set/step3" })}
+          onClick={() =>
+            navigate({ to: "/admin/new_policy_set_template/review_and_submit" })
+          }
         >
           Next
         </Button>
