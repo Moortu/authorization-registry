@@ -65,7 +65,7 @@ pub mod helpers {
                 client_eori: "NL.CONSUME_TOO_MUCH".to_owned(),
             }),
         };
-        let app = get_app(db, app_state);
+        let app = get_app(db, app_state, true);
 
         return app;
     }
