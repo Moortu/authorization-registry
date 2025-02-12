@@ -31,6 +31,8 @@ function Component() {
         policy_issuer: policySetTemplate.policy_issuer || "",
         policies: policySetTemplate.policies,
       });
+
+      navigate({ to: "/member/new_policy_set/define_policy_set" });
     }
   }
 
@@ -61,7 +63,7 @@ function Component() {
               navigate({ to: "/member/new_policy_set/define_policy_set" })
             }
           >
-            Next
+            Start from scratch
           </Button>
         </Stack>
       </Stack>
