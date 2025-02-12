@@ -33,22 +33,6 @@ function Component() {
       <Typography level="h2">Policy sets</Typography>
       <Stack paddingY={2} spacing={2} direction="row" alignItems="flex-end">
         <Box sx={{ width: 180 }}>
-          <FormLabel>Access subject</FormLabel>
-          <Input
-            size="sm"
-            defaultValue={search.access_subject || ""}
-            onChange={(e) =>
-              navigate({
-                to: "/admin",
-                search: {
-                  ...search,
-                  access_subject: e.target.value,
-                },
-              })
-            }
-          />
-        </Box>
-        <Box sx={{ width: 180 }}>
           <FormLabel>Policy issuer</FormLabel>
           <Input
             size="sm"
@@ -59,6 +43,22 @@ function Component() {
                 search: {
                   ...search,
                   policy_issuer: e.target.value,
+                },
+              })
+            }
+          />
+        </Box>
+        <Box sx={{ width: 180 }}>
+          <FormLabel>Access subject</FormLabel>
+          <Input
+            size="sm"
+            defaultValue={search.access_subject || ""}
+            onChange={(e) =>
+              navigate({
+                to: "/admin",
+                search: {
+                  ...search,
+                  access_subject: e.target.value,
                 },
               })
             }
