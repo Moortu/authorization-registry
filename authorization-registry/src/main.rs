@@ -18,7 +18,7 @@ use sea_orm::Database;
 use sea_orm::DatabaseConnection;
 use seed::apply_seeds;
 use std::sync::Arc;
-use tower_http::cors::CorsLayer;
+use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, CorsLayer};
 use tower_http::trace::TraceLayer;
 use utoipa::{
     openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
@@ -151,7 +151,10 @@ impl FromRef<AppState> for Arc<ServerToken> {
 
 pub fn get_app(db: DatabaseConnection, app_state: AppState, disable_cors_check: bool) -> Router {
     let cors = if disable_cors_check {
-        CorsLayer::very_permissive()
+        CorsLayer::new()
+            .allow_methods(AllowMethods::any())
+            .allow_origin(AllowOrigin::any())
+            .allow_headers(AllowHeaders::any())
     } else {
         CorsLayer::new()
     };
