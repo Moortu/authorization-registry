@@ -73,7 +73,6 @@ function Component() {
           <Stack direction="row" spacing={1}>
             <Button
               onClick={() => {
-                console.log("fired");
                 navigate({ to: "/admin/new_policy_set/prefill_template" });
               }}
               variant="outlined"
