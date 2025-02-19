@@ -36,7 +36,6 @@ function Component() {
       <AddPolicySetStepper activeStep="Define policy set" />
       <form
         onSubmit={(e) => {
-          console.log("submitted");
           e.preventDefault();
           e.stopPropagation();
           form.handleSubmit();
