@@ -87,7 +87,6 @@ export function Step1({ onSubmit }: { onSubmit: () => void }) {
           />
           <form.Field
             name="service_providers"
-            defaultValue={[]}
             children={(field) => (
               <FormField
                 errors={field.state.meta.errors}
