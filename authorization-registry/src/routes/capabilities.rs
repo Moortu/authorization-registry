@@ -37,6 +37,13 @@ pub fn create_capabilities(party_id: &str, api_url: &str, show_private: bool) ->
             description: "retrieve human access token for H2M authentication".to_owned(),
             token_endpoint: None,
         },
+        SupportedFeature {
+            id: "d7d27d71-2755-4eea-bb97-bfa5ce8addef".to_owned(),
+            feature: "iSHARE capabilities".to_owned(),
+            url: format!("{}/capabilities", api_url),
+            description: "retrieve capabilities".to_owned(),
+            token_endpoint: Some(format!("{}/connect/machine/token", api_url)),
+        },
     ])];
 
     if show_private {
