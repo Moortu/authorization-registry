@@ -5,11 +5,10 @@ use ishare::delegation_evidence::{
     PolicySetTargetEnvironment, Resource, ResourceRules, ResourceTarget,
 };
 use ishare::delegation_request::{DelegationRequest, Policy, PolicySet};
-use reqwest::StatusCode;
 use sea_orm::DatabaseConnection;
 
 use crate::db::policy::{self as policy_store, DelegationEvidencePolicy, MatchingPolicySetRow};
-use crate::error::{AppError, ExpectedError};
+use crate::error::AppError;
 use crate::TimeProvider;
 
 pub fn is_contained_by<T: PartialEq>(vec_a: &Vec<T>, vec_b: &Vec<T>) -> bool {
@@ -145,37 +144,6 @@ pub async fn create_delegation_evidence(
         &delegation_request.target.access_subject,
         &delegation_request.policy_issuer
     );
-
-    for ps in &delegation_request.policy_sets {
-        for policy in &ps.policies {
-            if policy.target.resource.resource_type == "*" {
-                return Err(AppError::Expected(ExpectedError {
-                    status_code: StatusCode::BAD_REQUEST,
-                    message: "resource type cannot be '*'".to_owned(),
-                    reason: "'*' used as resource type in policy set".to_owned(),
-                    metadata: None,
-                }));
-            }
-
-            if policy.target.resource.identifiers.len() == 0 {
-                return Err(AppError::Expected(ExpectedError {
-                    status_code: StatusCode::BAD_REQUEST,
-                    message: "identifiers is empty'".to_owned(),
-                    reason: "identifiers in policy set cannot be an empty array".to_owned(),
-                    metadata: None,
-                }));
-            }
-
-            if policy.target.resource.attributes.len() == 0 {
-                return Err(AppError::Expected(ExpectedError {
-                    status_code: StatusCode::BAD_REQUEST,
-                    message: "attributes is empty".to_owned(),
-                    reason: "attributes in policy set cannot be an empty array".to_owned(),
-                    metadata: None,
-                }));
-            }
-        }
-    }
 
     let de_policy_sets = policy_store::get_policy_sets_with_policies(
         Some(delegation_request.target.access_subject.to_owned()),

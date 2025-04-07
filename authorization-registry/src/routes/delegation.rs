@@ -5,10 +5,11 @@ use axum::middleware::from_fn_with_state;
 use axum::response::{IntoResponse, Response};
 use axum::{extract::Extension, routing::post, Json, Router};
 use reqwest::header::ACCEPT;
+use reqwest::StatusCode;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 
-use crate::error::{AppError, ErrorResponse};
+use crate::error::{AppError, ErrorResponse, ExpectedError};
 use crate::middleware::extract_role_middleware;
 use crate::services::delegation as delegation_service;
 use crate::services::server_token::{Role, ServerToken};
@@ -67,6 +68,75 @@ async fn post_delegation(
     app_state: State<AppState>,
     body: Json<DelegationRequestContainer>,
 ) -> Result<Response, AppError> {
+    match app_state
+        .satellite_provider
+        .validate_party(&body.delegation_request.policy_issuer)
+        .await
+    {
+        Ok(_) => {}
+        Err(e) => {
+            return Err(AppError::Expected(ExpectedError {
+                status_code: StatusCode::BAD_REQUEST,
+                message: "policy issuer is not valid iSHARE party".to_owned(),
+                reason: format!(
+                    "Unable to verify policy issuer: '{} as valid iSHARE party | {}",
+                    &body.delegation_request.policy_issuer, e
+                ),
+                metadata: None,
+            }))
+        }
+    }
+
+    match app_state
+        .satellite_provider
+        .validate_party(&body.delegation_request.target.access_subject)
+        .await
+    {
+        Ok(_) => {}
+        Err(e) => {
+            return Err(AppError::Expected(ExpectedError {
+                status_code: StatusCode::BAD_REQUEST,
+                message: "access subject is not valid iSHARE party".to_owned(),
+                reason: format!(
+                    "Unable to verify access subject: '{} as valid iSHARE party | {}",
+                    &body.delegation_request.target.access_subject, e
+                ),
+                metadata: None,
+            }))
+        }
+    }
+
+    for ps in &body.delegation_request.policy_sets {
+        for policy in &ps.policies {
+            if policy.target.resource.resource_type == "*" {
+                return Err(AppError::Expected(ExpectedError {
+                    status_code: StatusCode::BAD_REQUEST,
+                    message: "resource type cannot be '*'".to_owned(),
+                    reason: "'*' used as resource type in policy set".to_owned(),
+                    metadata: None,
+                }));
+            }
+
+            if policy.target.resource.identifiers.len() == 0 {
+                return Err(AppError::Expected(ExpectedError {
+                    status_code: StatusCode::BAD_REQUEST,
+                    message: "identifiers is empty'".to_owned(),
+                    reason: "identifiers in policy set cannot be an empty array".to_owned(),
+                    metadata: None,
+                }));
+            }
+
+            if policy.target.resource.attributes.len() == 0 {
+                return Err(AppError::Expected(ExpectedError {
+                    status_code: StatusCode::BAD_REQUEST,
+                    message: "attributes is empty".to_owned(),
+                    reason: "attributes in policy set cannot be an empty array".to_owned(),
+                    metadata: None,
+                }));
+            }
+        }
+    }
+
     let delegation_evidence_container = delegation_service::create_delegation_evidence(
         &body.delegation_request,
         app_state.time_provider.clone(),
