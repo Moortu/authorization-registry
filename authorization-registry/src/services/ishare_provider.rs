@@ -279,6 +279,11 @@ impl SatelliteProvider for ISHAREProvider {
         client_assertion_type: &str,
         scope: &str,
     ) -> Result<String, AppError> {
+        tracing::info!(
+            "handeling machine 2 machine authentication for client_id: {}",
+            client_id
+        );
+
         match ishare::ishare::validate_request_arguments(grant_type, client_assertion_type, scope) {
             Err(message) => {
                 return Err(AppError::Expected(ExpectedError {
@@ -325,7 +330,10 @@ impl SatelliteProvider for ISHAREProvider {
         if !self
             .ishare
             .validate_party_certificate(&client_assertion_token, &party_token)
-            .context("Error validating party certificate")?
+            .context(format!(
+                "Error validating party certificate for ishare party: '{}'",
+                &client_id
+            ))?
         {
             return Err(AppError::Expected(ExpectedError {
                 status_code: StatusCode::UNAUTHORIZED,
