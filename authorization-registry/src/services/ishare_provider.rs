@@ -296,28 +296,41 @@ impl SatelliteProvider for ISHAREProvider {
             _ => {}
         }
 
-        if !self
+        match self
             .ishare
             .validate_token(&client_assertion.to_string())
-            .context("Error validating client assertion")?
+            .context("Error validating client assertion")
         {
-            return Err(AppError::Expected(ExpectedError {
-                status_code: StatusCode::UNAUTHORIZED,
-                message: "client assertion is invalid".to_owned(),
-                reason: "invalid client assertion".to_owned(),
-                metadata: None,
-            }));
-        };
+            Ok(true) => {}
+            Ok(false) => {
+                return Err(AppError::Expected(ExpectedError {
+                    status_code: StatusCode::BAD_REQUEST,
+                    message: "client assertion is invalid".to_owned(),
+                    reason: "invalid client assertion".to_owned(),
+                    metadata: None,
+                }));
+            }
+            Err(e) => {
+                return Err(AppError::Expected(ExpectedError {
+                    status_code: StatusCode::BAD_REQUEST,
+                    message: "client assertion is invalid".to_owned(),
+                    reason: format!("error while validating client assertion: {}", e),
+                    metadata: None,
+                }));
+            }
+        }
 
         // probably need to be more explicit here in case the token has expired etc
-        let client_assertion_token = self.ishare.decode_token(&client_assertion).map_err(|e| {
-            match e {
-                DecodeTokenError::DecodingError(e) => {
-                    match e.clone().into_kind() {
+        let client_assertion_token =
+            self.ishare
+                .decode_token(&client_assertion)
+                .map_err(|e| match e {
+                    DecodeTokenError::DecodingError(e) => match e.clone().into_kind() {
                         jsonwebtoken::errors::ErrorKind::InvalidAlgorithm => {
                             return AppError::Expected(ExpectedError {
                                 status_code: StatusCode::BAD_REQUEST,
-                                message: "client assertion is signed with incorrect algorithm.".to_owned(),
+                                message: "client assertion is signed with incorrect algorithm."
+                                    .to_owned(),
                                 reason: format!("{:?}", &e),
                                 metadata: None,
                             });
@@ -330,18 +343,16 @@ impl SatelliteProvider for ISHAREProvider {
                                 metadata: None,
                             });
                         }
+                    },
+                    _ => {
+                        return AppError::Expected(ExpectedError {
+                            status_code: StatusCode::BAD_REQUEST,
+                            message: "client assertion is invalid".to_owned(),
+                            reason: format!("{:?}", e),
+                            metadata: None,
+                        });
                     }
-                }
-                _ => {
-                    return AppError::Expected(ExpectedError {
-                        status_code: StatusCode::BAD_REQUEST,
-                        message: "client assertion is invalid".to_owned(),
-                        reason: format!("{:?}", e),
-                        metadata: None,
-                    });
-                }
-            }
-        })?;
+                })?;
 
         let token = self.get_satellite_token().await?;
 
