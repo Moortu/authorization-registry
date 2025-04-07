@@ -324,7 +324,7 @@ impl SatelliteProvider for ISHAREProvider {
                         }
                         _ => {
                             return AppError::Expected(ExpectedError {
-                                status_code: StatusCode::UNAUTHORIZED,
+                                status_code: StatusCode::BAD_REQUEST,
                                 message: "client assertion is invalid".to_owned(),
                                 reason: format!("{:?}", &e),
                                 metadata: None,
