@@ -11,6 +11,7 @@ use axum::{
     routing::{get, post},
     Form, Router,
 };
+use axum_extra::extract::WithRejection;
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -230,10 +231,10 @@ struct TokenRequest {
         )
     )
  )]
+#[axum_macros::debug_handler]
 async fn get_machine_token(
-    State(server_token): State<Arc<ServerToken>>,
     State(state): State<AppState>,
-    Form(body): Form<TokenRequest>,
+    body: WithRejection<Form<TokenRequest>, AppError>,
 ) -> Result<Json<TokenResponse>, AppError> {
     let company_id = state
         .satellite_provider
@@ -246,11 +247,11 @@ async fn get_machine_token(
         )
         .await?;
 
-    let service_access_token = server_token.create_token(company_id, None)?;
+    let service_access_token = state.server_token.create_token(company_id, None)?;
 
     Ok(Json(TokenResponse {
         access_token: service_access_token,
-        expires_in: server_token.jwt_expiry_seconds,
+        expires_in: state.server_token.jwt_expiry_seconds,
         token_type: "Bearer".to_owned(),
     }))
 }
