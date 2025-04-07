@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use axum::async_trait;
 use ishare::{
     delegation_evidence::DelegationEvidenceContainer,
-    ishare::{PartyInfo, ValidatePartyError, ISHARE},
+    ishare::{DecodeTokenError, PartyInfo, ValidatePartyError, ISHARE},
 };
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -311,12 +311,36 @@ impl SatelliteProvider for ISHAREProvider {
 
         // probably need to be more explicit here in case the token has expired etc
         let client_assertion_token = self.ishare.decode_token(&client_assertion).map_err(|e| {
-            return AppError::Expected(ExpectedError {
-                status_code: StatusCode::UNAUTHORIZED,
-                message: "client assertion is invalid".to_owned(),
-                reason: format!("{:?}", e),
-                metadata: None,
-            });
+            match e {
+                DecodeTokenError::DecodingError(e) => {
+                    match e.clone().into_kind() {
+                        jsonwebtoken::errors::ErrorKind::InvalidAlgorithm => {
+                            return AppError::Expected(ExpectedError {
+                                status_code: StatusCode::BAD_REQUEST,
+                                message: "client assertion is signed with incorrect algorithm.".to_owned(),
+                                reason: format!("{:?}", &e),
+                                metadata: None,
+                            });
+                        }
+                        _ => {
+                            return AppError::Expected(ExpectedError {
+                                status_code: StatusCode::UNAUTHORIZED,
+                                message: "client assertion is invalid".to_owned(),
+                                reason: format!("{:?}", &e),
+                                metadata: None,
+                            });
+                        }
+                    }
+                }
+                _ => {
+                    return AppError::Expected(ExpectedError {
+                        status_code: StatusCode::BAD_REQUEST,
+                        message: "client assertion is invalid".to_owned(),
+                        reason: format!("{:?}", e),
+                        metadata: None,
+                    });
+                }
+            }
         })?;
 
         let token = self.get_satellite_token().await?;
