@@ -534,6 +534,132 @@ mod test {
     }
 
     #[sqlx::test]
+    async fn test_delegation_evidence_no_identifier(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set2.json", &db).await;
+
+        let app = get_test_app(db);
+        let request_body = create_request_body(&json!({
+            "delegationRequest": {
+                "policyIssuer": "NL.24244",
+                "target": {
+                    "accessSubject": "NL.44444"
+                },
+                "policySets": [
+                    {
+                        "policies": [
+                            {
+                                "target": {
+                                    "resource": {
+                                        "type": "something",
+                                        "identifiers": [],
+                                        "attributes": ["zingers"]
+                                    },
+                                    "actions": ["Read", "Delete"],
+                                    "environment": {
+                                        "serviceProviders": ["good-company"]
+                                    }
+                                },
+                                "rules": [
+                                    {
+                                        "effect": "Permit"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        }));
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/delegation")
+                    .method("POST")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                    )
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .body(Body::new(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_delegation_evidence_no_attributes(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set2.json", &db).await;
+
+        let app = get_test_app(db);
+        let request_body = create_request_body(&json!({
+            "delegationRequest": {
+                "policyIssuer": "NL.24244",
+                "target": {
+                    "accessSubject": "NL.44444"
+                },
+                "policySets": [
+                    {
+                        "policies": [
+                            {
+                                "target": {
+                                    "resource": {
+                                        "type": "something",
+                                        "identifiers": ["zainger"],
+                                        "attributes": []
+                                    },
+                                    "actions": ["Read", "Delete"],
+                                    "environment": {
+                                        "serviceProviders": ["good-company"]
+                                    }
+                                },
+                                "rules": [
+                                    {
+                                        "effect": "Permit"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        }));
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/delegation")
+                    .method("POST")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                    )
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .body(Body::new(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
     async fn test_delegation_evidence_specfic_identifier_no_match(
         _pool_options: PgPoolOptions,
         conn_option: PgConnectOptions,

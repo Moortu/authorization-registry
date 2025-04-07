@@ -156,6 +156,24 @@ pub async fn create_delegation_evidence(
                     metadata: None,
                 }));
             }
+
+            if policy.target.resource.identifiers.len() == 0 {
+                return Err(AppError::Expected(ExpectedError {
+                    status_code: StatusCode::BAD_REQUEST,
+                    message: "identifiers is empty'".to_owned(),
+                    reason: "identifiers in policy set cannot be an empty array".to_owned(),
+                    metadata: None,
+                }));
+            }
+
+            if policy.target.resource.attributes.len() == 0 {
+                return Err(AppError::Expected(ExpectedError {
+                    status_code: StatusCode::BAD_REQUEST,
+                    message: "attributes is empty".to_owned(),
+                    reason: "attributes in policy set cannot be an empty array".to_owned(),
+                    metadata: None,
+                }));
+            }
         }
     }
 
