@@ -67,7 +67,7 @@ impl IntoResponse for AppError {
                     metadata: None,
                 };
 
-                (path_rejection.status(), Json(response)).into_response()
+                (StatusCode::BAD_REQUEST, Json(response)).into_response()
             }
             AppError::JsonExtractorRejection(json_rejection) => {
                 let message = json_rejection.body_text();
@@ -78,7 +78,7 @@ impl IntoResponse for AppError {
                     metadata: None,
                 };
 
-                (json_rejection.status(), Json(response)).into_response()
+                (StatusCode::BAD_REQUEST, Json(response)).into_response()
             }
             AppError::Expected(error) => {
                 tracing::info!("{:?}", error);
