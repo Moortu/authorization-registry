@@ -87,6 +87,7 @@ pub trait SatelliteProvider: Send + Sync {
 
     async fn handle_m2m_authentication(
         &self,
+        now: chrono::DateTime<chrono::Utc>,
         client_id: &str,
         grant_type: &str,
         client_assertion: &str,
@@ -180,7 +181,7 @@ impl SatelliteProvider for ISHAREProvider {
             .await
             .context("Error getting sattelite token")?;
 
-        let party_token = self
+        let party_info = self
             .ishare
             .validate_party(eori, &token)
             .await
@@ -189,7 +190,7 @@ impl SatelliteProvider for ISHAREProvider {
                 eori
             ))?;
 
-        return Ok(party_token.claims.party_info);
+        return Ok(party_info);
     }
 
     fn handle_h2m_redirect_url_request(
@@ -273,7 +274,7 @@ impl SatelliteProvider for ISHAREProvider {
 
     async fn handle_m2m_authentication(
         &self,
-        now: chrono::Utc,
+        now: chrono::DateTime<chrono::Utc>,
         client_id: &str,
         grant_type: &str,
         client_assertion: &str,
@@ -322,54 +323,59 @@ impl SatelliteProvider for ISHAREProvider {
         }
 
         // probably need to be more explicit here in case the token has expired etc
-        let client_assertion_token =
-            self.ishare
-                .decode_token(&client_assertion)
-                .map_err(|e| match e {
-                    DecodeTokenError::DecodingError(e) => match e.clone().into_kind() {
-                        jsonwebtoken::errors::ErrorKind::InvalidAlgorithm => {
-                            return AppError::Expected(ExpectedError {
-                                status_code: StatusCode::BAD_REQUEST,
-                                message: "client assertion is signed with incorrect algorithm."
-                                    .to_owned(),
-                                reason: format!("{:?}", &e),
-                                metadata: None,
-                            });
-                        }
-                        _ => {
-                            return AppError::Expected(ExpectedError {
-                                status_code: StatusCode::BAD_REQUEST,
-                                message: "client assertion is invalid".to_owned(),
-                                reason: format!("{:?}", &e),
-                                metadata: None,
-                            });
-                        }
-                    },
+        let client_assertion_token = self
+            .ishare
+            .decode_token(&client_assertion, client_id)
+            .map_err(|e| match e {
+                DecodeTokenError::DecodingError(e) => match e.clone().into_kind() {
+                    jsonwebtoken::errors::ErrorKind::InvalidAlgorithm => {
+                        return AppError::Expected(ExpectedError {
+                            status_code: StatusCode::BAD_REQUEST,
+                            message: "client assertion is signed with incorrect algorithm."
+                                .to_owned(),
+                            reason: format!("{:?}", &e),
+                            metadata: None,
+                        });
+                    }
                     _ => {
                         return AppError::Expected(ExpectedError {
                             status_code: StatusCode::BAD_REQUEST,
                             message: "client assertion is invalid".to_owned(),
-                            reason: format!("{:?}", e),
+                            reason: format!("{:?}", &e),
                             metadata: None,
                         });
                     }
-                })?;
+                },
+                _ => {
+                    return AppError::Expected(ExpectedError {
+                        status_code: StatusCode::BAD_REQUEST,
+                        message: "client assertion is invalid".to_owned(),
+                        reason: format!("{:?}", e),
+                        metadata: None,
+                    });
+                }
+            })?;
 
-        if client_assertion_token.header.iat > now {
-            return AppError::Expected(ExpectedError {
+        if client_assertion_token.claims.iat
+            > now
+                .timestamp()
+                .try_into()
+                .context("Error converting timestamp into i64")?
+        {
+            return Err(AppError::Expected(ExpectedError {
                 status_code: StatusCode::BAD_REQUEST,
                 message: "iat cannot be later than current time".to_owned(),
                 reason: format!(
                     "iat {} is after now {}",
-                    client_assertion_token.header.iat, now
+                    client_assertion_token.claims.iat, now
                 ),
                 metadata: None,
-            });
+            }));
         }
 
         let token = self.get_satellite_token().await?;
 
-        let party_token = self
+        let party_info = self
             .ishare
             .validate_party(&client_id.to_string(), &token)
             .await
@@ -377,7 +383,7 @@ impl SatelliteProvider for ISHAREProvider {
 
         if !self
             .ishare
-            .validate_party_certificate(&client_assertion_token, &party_token)
+            .validate_party_certificate(&client_assertion_token, &party_info)
             .context(format!(
                 "Error validating party certificate for ishare party: '{}'",
                 &client_id
@@ -391,13 +397,10 @@ impl SatelliteProvider for ISHAREProvider {
             }));
         }
 
-        let company_id = company_store::insert_if_not_exists(
-            &client_id,
-            &party_token.claims.party_info.party_name,
-            &self.db,
-        )
-        .await
-        .context("Error inserting company into db")?;
+        let company_id =
+            company_store::insert_if_not_exists(&client_id, &party_info.party_name, &self.db)
+                .await
+                .context("Error inserting company into db")?;
 
         return Ok(company_id);
     }

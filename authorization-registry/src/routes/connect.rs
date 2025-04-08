@@ -239,6 +239,7 @@ async fn get_machine_token(
     let company_id = state
         .satellite_provider
         .handle_m2m_authentication(
+            state.time_provider.now(),
             &body.client_id,
             &body.grant_type,
             &body.client_assertion,

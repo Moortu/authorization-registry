@@ -366,7 +366,7 @@ dependencies = [
  "chrono",
  "clap",
  "http-body-util",
- "ishare 0.2.5",
+ "ishare 0.5.1",
  "jsonwebtoken",
  "reqwest",
  "sea-orm",
@@ -1692,9 +1692,9 @@ dependencies = [
 
 [[package]]
 name = "ishare"
-version = "0.2.5"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48a50fb24b46b40b6e6087af46df6056ecb964618a8726ecf0f9f42a062d1c35"
+checksum = "1e215cb4dc3849a5358377f05a76b387a3a88eaae12b4623879404ae368d9562"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1713,6 +1713,7 @@ dependencies = [
  "thiserror 1.0.69",
  "tokio",
  "tracing",
+ "url",
  "utoipa",
  "uuid",
 ]
@@ -4661,16 +4662,18 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "2.6.1"
+version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1dcb24d0152526ae49b9b96c1dcf71850ca1e0b882e4e28ed898a93c41334744"
+checksum = "938cc23ac49778ac8340e366ddc422b2227ea176edb447e23fc0627608dddadd"
 dependencies = [
  "arbitrary",
  "crc32fast",
  "crossbeam-utils",
+ "displaydoc",
  "flate2",
  "indexmap",
  "memchr",
+ "thiserror 2.0.12",
  "zopfli",
 ]
 

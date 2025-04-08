@@ -93,6 +93,7 @@ pub mod helpers {
 
         async fn validate_party(&self, eori: &str) -> Result<PartyInfo, ValidatePartyError> {
             return Ok(PartyInfo {
+                capability_url: "capabilities".to_owned(),
                 adherence: Adherence {
                     status: "Active".to_string(),
                 },
@@ -131,6 +132,7 @@ pub mod helpers {
 
         async fn handle_m2m_authentication(
             &self,
+            _now: chrono::DateTime<chrono::Utc>,
             _client_id: &str,
             _grant_type: &str,
             _client_assertion: &str,
