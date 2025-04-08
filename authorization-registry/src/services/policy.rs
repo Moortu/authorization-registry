@@ -599,7 +599,7 @@ mod test {
     use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 
     #[sqlx::test]
-    fn test_verify_policy_set_access_pi_match(
+    async fn test_verify_policy_set_access_pi_match(
         _pool_options: PgPoolOptions,
         conn_option: PgConnectOptions,
     ) -> sqlx::Result<()> {
@@ -625,7 +625,7 @@ mod test {
     }
 
     #[sqlx::test]
-    fn test_verify_policy_set_access_no_pi_match(
+    async fn test_verify_policy_set_access_no_pi_match(
         _pool_options: PgPoolOptions,
         conn_option: PgConnectOptions,
     ) -> sqlx::Result<()> {
@@ -651,7 +651,7 @@ mod test {
     }
 
     #[sqlx::test]
-    fn test_verify_policy_set_access_as_read(
+    async fn test_verify_policy_set_access_as_read(
         _pool_options: PgPoolOptions,
         conn_option: PgConnectOptions,
     ) -> sqlx::Result<()> {
@@ -677,7 +677,7 @@ mod test {
     }
 
     #[sqlx::test]
-    fn test_verify_policy_set_access_as_delete(
+    async fn test_verify_policy_set_access_as_delete(
         _pool_options: PgPoolOptions,
         conn_option: PgConnectOptions,
     ) -> sqlx::Result<()> {
@@ -703,7 +703,7 @@ mod test {
     }
 
     #[sqlx::test]
-    fn test_verify_policy_set_access_via_de(
+    async fn test_verify_policy_set_access_via_de(
         _pool_options: PgPoolOptions,
         conn_option: PgConnectOptions,
     ) -> sqlx::Result<()> {

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use axum::async_trait;
 use ishare::{
     delegation_evidence::DelegationEvidenceContainer,
-    ishare::{DecodeTokenError, PartyInfo, ValidatePartyError, ISHARE},
+    ishare::{PartyInfo, ValidatePartyError, ISHARE},
 };
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -14,6 +14,7 @@ use tokio::sync::RwLock;
 use crate::{
     db::{company as company_store, user::insert_if_not_exists},
     error::{AppError, ExpectedError},
+    routes::capabilities::Capabilities,
     token_cache::TokenCache,
 };
 
@@ -55,18 +56,6 @@ pub struct SupportedFeature {
 pub enum SupportedFeatures {
     Public(Vec<SupportedFeature>),
     Private(Vec<SupportedFeature>),
-}
-
-#[derive(Serialize)]
-pub struct CapabilitiesInfo {
-    pub party_id: String,
-    pub ishare_roles: Vec<String>,
-    pub supported_versions: Vec<SupportedVersion>,
-}
-
-#[derive(Serialize)]
-pub struct Capabilities {
-    pub capabilities_info: CapabilitiesInfo,
 }
 
 #[async_trait]
@@ -334,34 +323,13 @@ impl SatelliteProvider for ISHAREProvider {
         let client_assertion_token = self
             .ishare
             .decode_token(&client_assertion, client_id)
-            .map_err(|e| match e {
-                DecodeTokenError::DecodingError(e) => match e.clone().into_kind() {
-                    jsonwebtoken::errors::ErrorKind::InvalidAlgorithm => {
-                        return AppError::Expected(ExpectedError {
-                            status_code: StatusCode::BAD_REQUEST,
-                            message: "client assertion is signed with incorrect algorithm."
-                                .to_owned(),
-                            reason: format!("{:?}", &e),
-                            metadata: None,
-                        });
-                    }
-                    _ => {
-                        return AppError::Expected(ExpectedError {
-                            status_code: StatusCode::BAD_REQUEST,
-                            message: "client assertion is invalid".to_owned(),
-                            reason: format!("{:?}", &e),
-                            metadata: None,
-                        });
-                    }
-                },
-                _ => {
-                    return AppError::Expected(ExpectedError {
-                        status_code: StatusCode::BAD_REQUEST,
-                        message: "client assertion is invalid".to_owned(),
-                        reason: format!("{:?}", e),
-                        metadata: None,
-                    });
-                }
+            .map_err(|e| {
+                return AppError::Expected(ExpectedError {
+                    status_code: StatusCode::BAD_REQUEST,
+                    message: "client assertion is invalid".to_owned(),
+                    reason: format!("{:?}", e),
+                    metadata: None,
+                });
             })?;
 
         if client_assertion_token.claims.iat
