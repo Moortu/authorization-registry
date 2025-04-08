@@ -273,6 +273,7 @@ impl SatelliteProvider for ISHAREProvider {
 
     async fn handle_m2m_authentication(
         &self,
+        now: chrono::Utc,
         client_id: &str,
         grant_type: &str,
         client_assertion: &str,
@@ -353,6 +354,18 @@ impl SatelliteProvider for ISHAREProvider {
                         });
                     }
                 })?;
+
+        if client_assertion_token.header.iat > now {
+            return AppError::Expected(ExpectedError {
+                status_code: StatusCode::BAD_REQUEST,
+                message: "iat cannot be later than current time".to_owned(),
+                reason: format!(
+                    "iat {} is after now {}",
+                    client_assertion_token.header.iat, now
+                ),
+                metadata: None,
+            });
+        }
 
         let token = self.get_satellite_token().await?;
 
