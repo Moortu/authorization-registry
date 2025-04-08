@@ -119,14 +119,14 @@ async fn get_capabilities(
     Host(host): Host,
     State(app_state): State<AppState>,
 ) -> Result<Json<CapabilitiesResponse>, AppError> {
-    let show_private = match extract_bearer_token(&header_map) {
+    let (show_private, audience) = match extract_bearer_token(&header_map) {
         Err(e) => return Err(e),
         Ok(Some(raw_token)) => {
-            let _token = app_state.server_token.decode_token(&raw_token)?;
+            let token = app_state.server_token.decode_token(&raw_token)?;
 
-            true
+            (true, token.claims.role.get_company_id())
         }
-        Ok(None) => false,
+        Ok(None) => (false, "public".to_owned()),
     };
 
     let scheme = match header_map.get("X-Forwarded-Proto") {
@@ -144,7 +144,7 @@ async fn get_capabilities(
 
     let capabilities_token = app_state
         .satellite_provider
-        .create_capabilities_token(&capabilities)?;
+        .create_capabilities_token(&audience, &capabilities)?;
 
     let response = CapabilitiesResponse { capabilities_token };
 

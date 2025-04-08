@@ -103,7 +103,11 @@ pub trait SatelliteProvider: Send + Sync {
         de_container: &DelegationEvidenceContainer,
     ) -> anyhow::Result<String>;
 
-    fn create_capabilities_token(&self, capabilities: &Capabilities) -> anyhow::Result<String>;
+    fn create_capabilities_token(
+        &self,
+        audience: &str,
+        capabilities: &Capabilities,
+    ) -> anyhow::Result<String>;
 }
 
 #[derive(Clone)]
@@ -137,13 +141,17 @@ impl SatelliteProvider for ISHAREProvider {
         de_container: &DelegationEvidenceContainer,
     ) -> anyhow::Result<String> {
         self.ishare
-            .create_client_assertion_with_extra_claims(Some(audience.to_owned()), de_container)
+            .create_client_assertion_with_extra_claims(audience.to_owned(), de_container)
             .context("Error creating delegation token")
     }
 
-    fn create_capabilities_token(&self, capabilities: &Capabilities) -> anyhow::Result<String> {
+    fn create_capabilities_token(
+        &self,
+        audience: &str,
+        capabilities: &Capabilities,
+    ) -> anyhow::Result<String> {
         self.ishare
-            .create_client_assertion_with_extra_claims(None, capabilities)
+            .create_client_assertion_with_extra_claims(audience.to_string(), capabilities)
             .context("Error creating delegation token")
     }
 
@@ -156,7 +164,7 @@ impl SatelliteProvider for ISHAREProvider {
 
             let client_assertion = self
                 .ishare
-                .create_client_assertion(Some(self.ishare.sattelite_eori.clone()))?;
+                .create_client_assertion(self.ishare.sattelite_eori.clone())?;
             let token_response = self
                 .ishare
                 .get_satelite_access_token(&client_assertion)
@@ -204,7 +212,7 @@ impl SatelliteProvider for ISHAREProvider {
         let client_assertion = self
             .ishare
             .create_client_assertion_with_extra_claims(
-                Some(self.idp_connector.idp_eori.clone()),
+                self.idp_connector.idp_eori.clone(),
                 auth_claims,
             )
             .context("Error creating client assertion")?;
@@ -223,7 +231,7 @@ impl SatelliteProvider for ISHAREProvider {
     ) -> Result<(String, UserOption), AppError> {
         let client_assertion = self
             .ishare
-            .create_client_assertion(Some(self.idp_connector.idp_eori.clone()))
+            .create_client_assertion(self.idp_connector.idp_eori.clone())
             .context("Error creating client assertion")?;
 
         let response = self

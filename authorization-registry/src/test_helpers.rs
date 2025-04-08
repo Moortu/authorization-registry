@@ -87,7 +87,11 @@ pub mod helpers {
             Ok("delegation token".to_owned())
         }
 
-        fn create_capabilities_token(&self, _cap: &Capabilities) -> anyhow::Result<String> {
+        fn create_capabilities_token(
+            &self,
+            _aud: &str,
+            _cap: &Capabilities,
+        ) -> anyhow::Result<String> {
             Ok("capabilities token".to_owned())
         }
 
