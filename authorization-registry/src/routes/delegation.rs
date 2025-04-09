@@ -112,6 +112,14 @@ async fn post_delegation(
         }
     }
 
+    if &role.get_company_id() != &body.delegation_request.policy_issuer
+        && &role.get_company_id() != &body.delegation_request.target.access_subject
+    {
+        return Err(AppError::Expected(ExpectedError { status_code: StatusCode::BAD_REQUEST,
+            message: format!("only policy issuer and access subject are permitted"),
+            reason: format!("company: {} is not policy issuer or access subject and is not permitted to perfrom delegation request", &role.get_company_id()), metadata: None }));
+    }
+
     for ps in &body.delegation_request.policy_sets {
         for policy in &ps.policies {
             if policy.target.resource.resource_type == "*" {
@@ -187,6 +195,72 @@ mod test {
     use super::super::super::test_helpers::helpers::*;
 
     #[sqlx::test]
+    async fn test_delegation_evidence_not_as_or_pi(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+
+        let app = get_test_app(db);
+        let request_body = create_request_body(&json!({
+            "delegationRequest": {
+                "policyIssuer": "NL.24244",
+                "target": {
+                    "accessSubject": "NL.44444"
+                },
+                "policySets": [
+                    {
+                        "policies": [
+                            {
+                                "target": {
+                                    "resource": {
+                                        "type": "TestResource",
+                                        "identifiers": ["test4"],
+                                        "attributes": ["zingers"]
+                                    },
+                                    "actions": ["Read", "Delete"],
+                                    "environment": {
+                                        "serviceProviders": ["good-company"]
+                                    }
+                                },
+                                "rules": [
+                                    {
+                                        "effect": "Permit"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        }));
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/delegation")
+                    .method("POST")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("OtherCompany".to_owned()),
+                            None,
+                        ),
+                    )
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .body(Body::new(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
     async fn test_delegation_evidence(
         _pool_options: PgPoolOptions,
         conn_option: PgConnectOptions,
@@ -234,7 +308,10 @@ mod test {
                     .method("POST")
                     .header(
                         AUTHORIZATION,
-                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.44444".to_owned()),
+                            None,
+                        ),
                     )
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
@@ -310,7 +387,10 @@ mod test {
                     .method("POST")
                     .header(
                         AUTHORIZATION,
-                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.44444".to_owned()),
+                            None,
+                        ),
                     )
                     .header("Content-Type", "application/json")
                     .body(Body::new(request_body))
@@ -372,7 +452,10 @@ mod test {
                     .method("POST")
                     .header(
                         AUTHORIZATION,
-                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.44444".to_owned()),
+                            None,
+                        ),
                     )
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
@@ -448,7 +531,10 @@ mod test {
                     .method("POST")
                     .header(
                         AUTHORIZATION,
-                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.44444".to_owned()),
+                            None,
+                        ),
                     )
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
@@ -518,7 +604,10 @@ mod test {
                     .method("POST")
                     .header(
                         AUTHORIZATION,
-                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.44444".to_owned()),
+                            None,
+                        ),
                     )
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
@@ -783,7 +872,10 @@ mod test {
                     .method("POST")
                     .header(
                         AUTHORIZATION,
-                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.44444".to_owned()),
+                            None,
+                        ),
                     )
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
