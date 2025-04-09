@@ -96,11 +96,16 @@ pub mod helpers {
             Ok("capabilities token".to_owned())
         }
 
-        async fn validate_party(&self, eori: &str) -> Result<PartyInfo, ValidatePartyError> {
+        async fn validate_party(
+            &self,
+            _now: chrono::DateTime<chrono::Utc>,
+            eori: &str,
+        ) -> Result<PartyInfo, ValidatePartyError> {
             return Ok(PartyInfo {
                 capability_url: "capabilities".to_owned(),
                 adherence: Adherence {
                     status: "Active".to_string(),
+                    end_date: "2026-03-25T00:00:00.000Z".to_string(),
                 },
                 party_id: eori.to_string(),
                 party_name: "cool party".to_string(),

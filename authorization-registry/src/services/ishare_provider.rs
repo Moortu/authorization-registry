@@ -84,7 +84,11 @@ pub trait SatelliteProvider: Send + Sync {
         scope: &str,
     ) -> Result<String, AppError>;
 
-    async fn validate_party(&self, eori: &str) -> Result<PartyInfo, ValidatePartyError>;
+    async fn validate_party(
+        &self,
+        now: chrono::DateTime<chrono::Utc>,
+        eori: &str,
+    ) -> Result<PartyInfo, ValidatePartyError>;
 
     fn create_delegation_token(
         &self,
@@ -172,7 +176,11 @@ impl SatelliteProvider for ISHAREProvider {
         }
     }
 
-    async fn validate_party(&self, eori: &str) -> Result<PartyInfo, ValidatePartyError> {
+    async fn validate_party(
+        &self,
+        now: chrono::DateTime<chrono::Utc>,
+        eori: &str,
+    ) -> Result<PartyInfo, ValidatePartyError> {
         let token = self
             .get_satellite_token()
             .await
@@ -180,7 +188,7 @@ impl SatelliteProvider for ISHAREProvider {
 
         let party_info = self
             .ishare
-            .validate_party(eori, &token)
+            .validate_party(now, eori, &token)
             .await
             .context(format!(
                 "error validating company '{}' is ishare party",
@@ -322,7 +330,7 @@ impl SatelliteProvider for ISHAREProvider {
         // probably need to be more explicit here in case the token has expired etc
         let client_assertion_token = self
             .ishare
-            .decode_token(&client_assertion, client_id)
+            .decode_token(now, &client_assertion, client_id)
             .map_err(|e| {
                 return AppError::Expected(ExpectedError {
                     status_code: StatusCode::BAD_REQUEST,
@@ -332,28 +340,11 @@ impl SatelliteProvider for ISHAREProvider {
                 });
             })?;
 
-        if client_assertion_token.claims.iat
-            > now
-                .timestamp()
-                .try_into()
-                .context("Error converting timestamp into i64")?
-        {
-            return Err(AppError::Expected(ExpectedError {
-                status_code: StatusCode::BAD_REQUEST,
-                message: "iat cannot be later than current time".to_owned(),
-                reason: format!(
-                    "iat {} is after now {}",
-                    client_assertion_token.claims.iat, now
-                ),
-                metadata: None,
-            }));
-        }
-
         let token = self.get_satellite_token().await?;
 
         let party_info = self
             .ishare
-            .validate_party(&client_id.to_string(), &token)
+            .validate_party(now, &client_id.to_string(), &token)
             .await
             .context(format!("error validating ishare party '{}'", &client_id))?;
 

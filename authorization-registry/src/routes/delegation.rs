@@ -70,7 +70,10 @@ async fn post_delegation(
 ) -> Result<Response, AppError> {
     match app_state
         .satellite_provider
-        .validate_party(&body.delegation_request.policy_issuer)
+        .validate_party(
+            app_state.time_provider.now(),
+            &body.delegation_request.policy_issuer,
+        )
         .await
     {
         Ok(_) => {}
@@ -89,7 +92,10 @@ async fn post_delegation(
 
     match app_state
         .satellite_provider
-        .validate_party(&body.delegation_request.target.access_subject)
+        .validate_party(
+            app_state.time_provider.now(),
+            &body.delegation_request.target.access_subject,
+        )
         .await
     {
         Ok(_) => {}

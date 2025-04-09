@@ -14,11 +14,12 @@ use crate::TimeProvider;
 use super::ishare_provider::SatelliteProvider;
 
 pub async fn validate_policy_set_ishare_parties(
+    now: chrono::DateTime<chrono::Utc>,
     args: &InsertPolicySetWithPolicies,
     ishare: std::sync::Arc<dyn SatelliteProvider>,
 ) -> Result<(), AppError> {
     ishare
-        .validate_party(&args.target.access_subject)
+        .validate_party(now, &args.target.access_subject)
         .await
         .map_err(|e| {
             AppError::Expected(ExpectedError {
@@ -33,7 +34,7 @@ pub async fn validate_policy_set_ishare_parties(
         })?;
 
     ishare
-        .validate_party(&args.policy_issuer)
+        .validate_party(now, &args.policy_issuer)
         .await
         .map_err(|e| {
             AppError::Expected(ExpectedError {
@@ -49,7 +50,7 @@ pub async fn validate_policy_set_ishare_parties(
 
     for p in args.policies.iter() {
         for sp in p.target.environment.service_providers.iter() {
-            ishare.validate_party(sp).await.map_err(|e| {
+            ishare.validate_party(now, sp).await.map_err(|e| {
                 AppError::Expected(ExpectedError {
                     status_code: StatusCode::BAD_REQUEST,
                     message: format!(
@@ -67,6 +68,7 @@ pub async fn validate_policy_set_ishare_parties(
 }
 
 pub async fn insert_policy_set_with_policies(
+    now: chrono::DateTime<chrono::Utc>,
     requester_company_id: &str,
     args: &InsertPolicySetWithPolicies,
     db: &DatabaseConnection,
@@ -74,7 +76,7 @@ pub async fn insert_policy_set_with_policies(
     time_provider: std::sync::Arc<dyn TimeProvider>,
     ishare: std::sync::Arc<dyn SatelliteProvider>,
 ) -> Result<Uuid, AppError> {
-    validate_policy_set_ishare_parties(args, ishare).await?;
+    validate_policy_set_ishare_parties(now, args, ishare).await?;
 
     let identifiers = args
         .policies
@@ -112,11 +114,12 @@ pub async fn insert_policy_set_with_policies(
 }
 
 pub async fn insert_policy_set_with_policies_admin(
+    now: chrono::DateTime<chrono::Utc>,
     args: &InsertPolicySetWithPolicies,
     db: &DatabaseConnection,
     ishare: std::sync::Arc<dyn SatelliteProvider>,
 ) -> Result<Uuid, AppError> {
-    validate_policy_set_ishare_parties(args, ishare).await?;
+    validate_policy_set_ishare_parties(now, args, ishare).await?;
 
     let policy_set_id = policy_store::insert_policy_set_with_policies(args, db)
         .await
@@ -283,6 +286,7 @@ pub async fn delete_policy_set(
 }
 
 pub async fn add_policy_to_policy_set(
+    now: chrono::DateTime<chrono::Utc>,
     requester_company_id: &str,
     policy_set_id: &Uuid,
     policy: ar_entity::delegation_evidence::Policy,
@@ -304,17 +308,20 @@ pub async fn add_policy_to_policy_set(
     }
 
     for sp in policy.target.environment.service_providers.iter() {
-        satellite_provider.validate_party(sp).await.map_err(|e| {
-            AppError::Expected(ExpectedError {
-                status_code: StatusCode::BAD_REQUEST,
-                message: format!(
-                    "Unable to verify service provider '{}' as valid iSHARE party",
-                    &sp
-                ),
-                reason: format!("{:?}", e),
-                metadata: None,
-            })
-        })?;
+        satellite_provider
+            .validate_party(now, sp)
+            .await
+            .map_err(|e| {
+                AppError::Expected(ExpectedError {
+                    status_code: StatusCode::BAD_REQUEST,
+                    message: format!(
+                        "Unable to verify service provider '{}' as valid iSHARE party",
+                        &sp
+                    ),
+                    reason: format!("{:?}", e),
+                    metadata: None,
+                })
+            })?;
     }
 
     let policy_set = match policy_store::get_policy_set_by_id(&policy_set_id, &db)
@@ -371,6 +378,7 @@ pub async fn add_policy_to_policy_set(
 }
 
 pub async fn replace_policy_in_policy_set(
+    now: chrono::DateTime<chrono::Utc>,
     requester_company_id: &str,
     policy_set_id: Uuid,
     policy_id: Uuid,
@@ -393,17 +401,20 @@ pub async fn replace_policy_in_policy_set(
     }
 
     for sp in policy.target.environment.service_providers.iter() {
-        satellite_provider.validate_party(sp).await.map_err(|e| {
-            AppError::Expected(ExpectedError {
-                status_code: StatusCode::BAD_REQUEST,
-                message: format!(
-                    "Unable to verify service provider '{}' as valid iSHARE party",
-                    &sp
-                ),
-                reason: format!("{:?}", e),
-                metadata: None,
-            })
-        })?;
+        satellite_provider
+            .validate_party(now, sp)
+            .await
+            .map_err(|e| {
+                AppError::Expected(ExpectedError {
+                    status_code: StatusCode::BAD_REQUEST,
+                    message: format!(
+                        "Unable to verify service provider '{}' as valid iSHARE party",
+                        &sp
+                    ),
+                    reason: format!("{:?}", e),
+                    metadata: None,
+                })
+            })?;
     }
 
     let policy_set = match policy_store::get_policy_set_by_id(&policy_set_id, &db)
