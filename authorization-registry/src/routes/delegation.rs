@@ -4,6 +4,7 @@ use axum::http::HeaderMap;
 use axum::middleware::from_fn_with_state;
 use axum::response::{IntoResponse, Response};
 use axum::{extract::Extension, routing::post, Json, Router};
+use axum_extra::extract::WithRejection;
 use reqwest::header::ACCEPT;
 use reqwest::StatusCode;
 use sea_orm::DatabaseConnection;
@@ -66,7 +67,7 @@ async fn post_delegation(
     Extension(db): Extension<DatabaseConnection>,
     Extension(role): Extension<Role>,
     app_state: State<AppState>,
-    body: Json<DelegationRequestContainer>,
+    body: WithRejection<Json<DelegationRequestContainer>, AppError>,
 ) -> Result<Response, AppError> {
     match app_state
         .satellite_provider
