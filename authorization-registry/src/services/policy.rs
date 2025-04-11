@@ -186,9 +186,9 @@ pub async fn verify_policy_set_access(
                         resource_type: "PDP.Policy".to_string(),
                         attributes: vec!["*".to_string()],
                     },
-                    environment: ishare::delegation_request::Environment {
+                    environment: Some(ishare::delegation_request::Environment {
                         service_providers: vec![client_eori.to_string()],
-                    },
+                    }),
                 },
                 rules: vec![ishare::delegation_request::ResourceRules {
                     effect: "Permit".to_string(),

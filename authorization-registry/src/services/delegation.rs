@@ -30,10 +30,9 @@ pub fn is_matching_policy(dr_policy: &Policy, de_policy_set: &DelegationEvidence
         &de_policy_set.attributes,
     ) && star_or_contained_by(&dr_policy.target.actions, &de_policy_set.actions)
         && dr_policy.target.resource.resource_type == de_policy_set.resource_type
-        && is_contained_by(
-            &dr_policy.target.environment.service_providers,
-            &de_policy_set.service_providers,
-        );
+        && dr_policy.target.environment.as_ref().is_none_or(|e| {
+            is_contained_by(&e.service_providers, &de_policy_set.service_providers)
+        });
 }
 
 pub fn mask_matching_policy_sets<'a>(
@@ -96,8 +95,11 @@ pub fn get_delegation_evidence_policy_sets(
                     ishare::delegation_evidence::Policy {
                         target: ResourceTarget {
                             actions: p.target.actions.clone(),
-                            environment: ishare::delegation_evidence::Environment {
-                                service_providers: p.target.environment.service_providers.clone(),
+                            environment: match p.target.environment.as_ref() {
+                                Some(e) => Some(ishare::delegation_evidence::Environment {
+                                    service_providers: e.service_providers.clone(),
+                                }),
+                                None => None,
                             },
                             resource: Resource {
                                 resource_type: p.target.resource.resource_type.clone(),
@@ -228,9 +230,9 @@ mod tests {
                         identifiers: vec!["chicken".to_owned()],
                         attributes: vec!["chicken".to_owned()],
                     },
-                    environment: Environment {
+                    environment: Some(Environment {
                         service_providers: vec!["fishery".to_owned()],
-                    },
+                    }),
                 },
                 rules: vec![ResourceRules {
                     effect: "Effect".to_owned(),
@@ -261,9 +263,9 @@ mod tests {
                         identifiers: vec!["id1".to_owned()],
                         attributes: vec!["att1".to_owned()],
                     },
-                    environment: Environment {
+                    environment: Some(Environment {
                         service_providers: vec!["fishery".to_owned()],
-                    },
+                    }),
                 },
                 rules: vec![ResourceRules {
                     effect: "Effect".to_owned(),
@@ -294,9 +296,9 @@ mod tests {
                         identifiers: vec!["chicken".to_owned()],
                         attributes: vec!["chicken".to_owned()],
                     },
-                    environment: Environment {
+                    environment: Some(Environment {
                         service_providers: vec!["fishery".to_owned()],
-                    },
+                    }),
                 },
                 rules: vec![ResourceRules {
                     effect: "Effect".to_owned(),
@@ -327,9 +329,9 @@ mod tests {
                         identifiers: vec!["chicken".to_owned()],
                         attributes: vec!["chicken".to_owned()],
                     },
-                    environment: Environment {
+                    environment: Some(Environment {
                         service_providers: vec!["fishery".to_owned()],
-                    },
+                    }),
                 },
                 rules: vec![ResourceRules {
                     effect: "Effect".to_owned(),
@@ -360,9 +362,9 @@ mod tests {
                         identifiers: vec!["chicken".to_owned()],
                         attributes: vec!["chicken".to_owned()],
                     },
-                    environment: Environment {
+                    environment: Some(Environment {
                         service_providers: vec!["fishery".to_owned()],
-                    },
+                    }),
                 },
                 rules: vec![ResourceRules {
                     effect: "Effect".to_owned(),
@@ -393,9 +395,9 @@ mod tests {
                         identifiers: vec!["chicken".to_owned()],
                         attributes: vec!["chicken".to_owned()],
                     },
-                    environment: Environment {
+                    environment: Some(Environment {
                         service_providers: vec!["another-fishery".to_owned()],
-                    },
+                    }),
                 },
                 rules: vec![ResourceRules {
                     effect: "Effect".to_owned(),
@@ -444,9 +446,9 @@ mod tests {
                             identifiers: vec!["fish".to_owned()],
                             attributes: vec!["chicken".to_owned()],
                         },
-                        environment: Environment {
+                        environment: Some(Environment {
                             service_providers: vec!["fishery".to_owned()],
-                        },
+                        }),
                     },
                     rules: vec![ResourceRules {
                         effect: "Effect".to_owned(),
@@ -488,9 +490,9 @@ mod tests {
                             identifiers: vec!["fish".to_owned()],
                             attributes: vec!["chicken".to_owned()],
                         },
-                        environment: Environment {
+                        environment: Some(Environment {
                             service_providers: vec!["fishery".to_owned()],
-                        },
+                        }),
                     },
                     rules: vec![ResourceRules {
                         effect: "Effect".to_owned(),
@@ -531,9 +533,9 @@ mod tests {
                         identifiers: vec!["chicken".to_owned()],
                         attributes: vec!["chicken".to_owned()],
                     },
-                    environment: Environment {
+                    environment: Some(Environment {
                         service_providers: vec!["fishery".to_owned()],
-                    },
+                    }),
                 },
                 rules: vec![ResourceRules {
                     effect: "Effect".to_owned(),
@@ -582,9 +584,9 @@ mod tests {
                         identifiers: vec!["chicken".to_owned()],
                         attributes: vec!["chicken".to_owned()],
                     },
-                    environment: Environment {
+                    environment: Some(Environment {
                         service_providers: vec!["fishery".to_owned()],
-                    },
+                    }),
                 },
                 rules: vec![ResourceRules {
                     effect: "Effect".to_owned(),
@@ -630,9 +632,9 @@ mod tests {
                                 identifiers: vec!["chicken".to_owned()],
                                 attributes: vec!["chicken".to_owned()],
                             },
-                            environment: Environment {
+                            environment: Some(Environment {
                                 service_providers: vec!["fishery".to_owned()],
-                            },
+                            }),
                         },
                         rules: vec![ResourceRules {
                             effect: "Effect".to_owned(),
@@ -705,9 +707,9 @@ mod tests {
                                 identifiers: vec!["chicken".to_owned()],
                                 attributes: vec!["chicken".to_owned()],
                             },
-                            environment: Environment {
+                            environment: Some(Environment {
                                 service_providers: vec!["fishery".to_owned()],
-                            },
+                            }),
                         },
                         rules: vec![ResourceRules {
                             effect: "Effect".to_owned(),
@@ -787,9 +789,9 @@ mod tests {
                                     identifiers: vec!["chicken".to_owned()],
                                     attributes: vec!["chicken".to_owned()],
                                 },
-                                environment: Environment {
+                                environment: Some(Environment {
                                     service_providers: vec!["fishery".to_owned()],
-                                },
+                                }),
                             },
                             rules: vec![ResourceRules {
                                 effect: "Effect".to_owned(),
@@ -805,9 +807,9 @@ mod tests {
                                     identifiers: vec!["chicken".to_owned()],
                                     attributes: vec!["chicken".to_owned()],
                                 },
-                                environment: Environment {
+                                environment: Some(Environment {
                                     service_providers: vec!["fishery".to_owned()],
-                                },
+                                }),
                             },
                             rules: vec![ResourceRules {
                                 effect: "Effect".to_owned(),
