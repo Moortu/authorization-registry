@@ -151,10 +151,6 @@ async fn post_delegation(
                 message: format!("only policy issuer and access subject are permitted"),
                 reason: format!("company: {} is not policy issuer or access subject and is not permitted to perfrom delegation request", &role.get_company_id()), metadata: None }));
         }
-
-        return Err(AppError::Expected(ExpectedError { status_code: StatusCode::BAD_REQUEST,
-            message: format!("only policy issuer and access subject are permitted"),
-            reason: format!("company: {} is not policy issuer or access subject and is not permitted to perfrom delegation request", &role.get_company_id()), metadata: None }));
     }
 
     for ps in &body.delegation_request.policy_sets {
