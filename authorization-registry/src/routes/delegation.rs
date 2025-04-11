@@ -69,7 +69,6 @@ async fn post_delegation(
     app_state: State<AppState>,
     body: WithRejection<Json<DelegationRequestContainer>, AppError>,
 ) -> Result<Response, AppError> {
-    tracing::info!("de => {:?}", body);
     match app_state
         .satellite_provider
         .validate_party(
@@ -585,7 +584,22 @@ mod test {
         )
         .unwrap();
 
-        assert_eq!(body.delegation_evidence.policy_sets.len() == 0, true);
+        assert_eq!(body.delegation_evidence.policy_sets.len() == 1, true);
+        assert_eq!(
+            body.delegation_evidence
+                .policy_sets
+                .get(0)
+                .unwrap()
+                .policies
+                .get(0)
+                .unwrap()
+                .rules
+                .get(0)
+                .unwrap()
+                .effect
+                == "Deny",
+            true
+        );
 
         Ok(())
     }

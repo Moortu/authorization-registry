@@ -93,6 +93,7 @@ pub trait SatelliteProvider: Send + Sync {
         client_assertion: &str,
         client_assertion_type: &str,
         scope: &str,
+        validate_certificate: bool,
     ) -> Result<String, AppError>;
 
     async fn validate_party(
@@ -348,6 +349,7 @@ impl SatelliteProvider for ISHAREProvider {
         client_assertion: &str,
         client_assertion_type: &str,
         scope: &str,
+        validate_certificate: bool,
     ) -> Result<String, AppError> {
         tracing::info!(
             "handeling machine 2 machine authentication for client_id: {}",
@@ -411,21 +413,23 @@ impl SatelliteProvider for ISHAREProvider {
             .await
             .context(format!("error validating ishare party '{}'", &client_id))?;
 
-        // if !self
-        //     .ishare
-        //     .validate_party_certificate(&client_assertion_token, &party_info)
-        //     .context(format!(
-        //         "Error validating party certificate for ishare party: '{}'",
-        //         &client_id
-        //     ))?
-        // {
-        //     return Err(AppError::Expected(ExpectedError {
-        //         status_code: StatusCode::UNAUTHORIZED,
-        //         message: "x5c header does not match any of the certificates from parties endpoint at the iSHARE satelite".to_owned(),
-        //           reason: "The client assertion x5c does not match any of the valid tokens from /parties".to_owned(),
-        //           metadata: None
-        //     }));
-        // }
+        if validate_certificate {
+            if !self
+                .ishare
+                .validate_party_certificate(&client_assertion_token, &party_info)
+                .context(format!(
+                    "Error validating party certificate for ishare party: '{}'",
+                    &client_id
+                ))?
+            {
+                return Err(AppError::Expected(ExpectedError {
+                    status_code: StatusCode::UNAUTHORIZED,
+                    message: "x5c header does not match any of the certificates from parties endpoint at the iSHARE satelite".to_owned(),
+                    reason: "The client assertion x5c does not match any of the valid tokens from /parties".to_owned(),
+                    metadata: None
+                }));
+            }
+        }
 
         let company_id =
             company_store::insert_if_not_exists(&client_id, &party_info.party_name, &self.db)

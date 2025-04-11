@@ -63,6 +63,7 @@ pub mod helpers {
             config: Arc::new(crate::AppConfig {
                 deploy_route: "".to_owned(),
                 client_eori: "NL.CONSUME_TOO_MUCH".to_owned(),
+                validate_m2m_certificate: true,
             }),
         };
         let app = get_app(db, app_state, true);
@@ -158,6 +159,7 @@ pub mod helpers {
             _client_assertion: &str,
             _client_assertion_type: &str,
             _scope: &str,
+            _validate_certificate: bool,
         ) -> Result<String, AppError> {
             return Ok("A_company".to_string());
         }

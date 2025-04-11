@@ -245,6 +245,7 @@ async fn get_machine_token(
             &body.client_assertion,
             &body.client_assertion_type,
             &body.scope,
+            state.config.validate_m2m_certificate,
         )
         .await?;
 
