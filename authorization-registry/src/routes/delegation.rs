@@ -69,6 +69,7 @@ async fn post_delegation(
     app_state: State<AppState>,
     body: WithRejection<Json<DelegationRequestContainer>, AppError>,
 ) -> Result<Response, AppError> {
+    tracing::info!("de => {:?}", body);
     match app_state
         .satellite_provider
         .validate_party(
