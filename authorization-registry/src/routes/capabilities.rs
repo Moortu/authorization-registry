@@ -25,7 +25,7 @@ pub fn create_capabilities(party_id: &str, api_url: &str, show_private: bool) ->
     let mut supported_features: Vec<SupportedFeatures> = vec![SupportedFeatures::Public(vec![
         SupportedFeature {
             id: "ebb696ab-bda7-44a9-8cec-382183d58d9d".to_owned(),
-            feature: "machine access token".to_owned(),
+            feature: "access token".to_owned(),
             url: format!("{}{}", api_url, "/connect/machine/token"),
             description: "retrieve machine access token for M2M authentication".to_owned(),
             token_endpoint: None,
