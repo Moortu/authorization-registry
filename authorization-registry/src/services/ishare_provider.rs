@@ -14,7 +14,6 @@ use tokio::sync::RwLock;
 use crate::{
     db::{company as company_store, user::insert_if_not_exists},
     error::{AppError, ExpectedError},
-    routes::capabilities::Capabilities,
     token_cache::TokenCache,
 };
 
@@ -56,6 +55,18 @@ pub struct SupportedFeature {
 pub enum SupportedFeatures {
     Public(Vec<SupportedFeature>),
     Private(Vec<SupportedFeature>),
+}
+
+#[derive(Serialize)]
+pub struct CapabilitiesInfo {
+    pub party_id: String,
+    pub ishare_roles: Vec<String>,
+    pub supported_versions: Vec<SupportedVersion>,
+}
+
+#[derive(Serialize)]
+pub struct Capabilities {
+    pub capabilities_info: CapabilitiesInfo,
 }
 
 #[async_trait]

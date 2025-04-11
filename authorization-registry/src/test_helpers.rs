@@ -12,8 +12,7 @@ pub mod helpers {
 
     use crate::error::AppError;
     use crate::get_app;
-    use crate::routes::capabilities::Capabilities;
-    use crate::services::ishare_provider::SatelliteProvider;
+    use crate::services::ishare_provider::{Capabilities, SatelliteProvider};
     use crate::services::server_token::{server_token_test_helper, UserOption};
     use crate::AppState;
     use crate::TimeProvider;

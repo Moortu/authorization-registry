@@ -1693,8 +1693,6 @@ dependencies = [
 [[package]]
 name = "ishare"
 version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2914fee2055879cb075afc2a084ac06f60bc0921c3212deca30d2f1092148685"
 dependencies = [
  "anyhow",
  "async-trait",

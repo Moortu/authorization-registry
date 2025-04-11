@@ -10,133 +10,63 @@ use serde::Serialize;
 
 use crate::{
     error::{AppError, ExpectedError},
+    services::ishare_provider::{
+        Capabilities, CapabilitiesInfo, SupportedFeature, SupportedFeatures, SupportedVersion,
+    },
     AppState,
 };
 use utoipa::ToSchema;
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct Version {
-    complies_with_framework_versions: Vec<String>,
-    complies_with_dataspace_versions: Vec<String>,
-    capabilities_version: String,
-}
-
-#[derive(Serialize)]
-struct Service {
-    identifier: String,
-    title: String,
-    description: String,
-    #[serde(rename = "descriptionURL")]
-    description_url: String,
-    #[serde(rename = "endpointURL")]
-    endpoint_url: String,
-    #[serde(rename = "tokenEndpoint")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    token_endpoint: Option<String>,
-    status: String,
-    #[serde(rename = "serviceType")]
-    service_type: String,
-    version: Version,
-    methods: Vec<String>,
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct CapabilitiesInfo {
-    public_services: Vec<Service>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    restriced_services: Option<Vec<Service>>,
-}
-
-#[derive(Serialize)]
-pub struct Capabilities {
-    capabilities_info: CapabilitiesInfo,
-}
 
 pub fn get_capabilities_routes() -> Router<AppState> {
     return Router::new().route("/", get(get_capabilities));
 }
 
-pub fn create_capabilities(api_url: &str, show_private: bool) -> Capabilities {
-    let capabilities = Capabilities {
+pub fn create_capabilities(party_id: &str, api_url: &str, show_private: bool) -> Capabilities {
+    let mut supported_features: Vec<SupportedFeatures> = vec![SupportedFeatures::Public(vec![
+        SupportedFeature {
+            id: "ebb696ab-bda7-44a9-8cec-382183d58d9d".to_owned(),
+            feature: "machine access token".to_owned(),
+            url: format!("{}{}", api_url, "/connect/machine/token"),
+            description: "retrieve machine access token for M2M authentication".to_owned(),
+            token_endpoint: None,
+        },
+        SupportedFeature {
+            id: "ebb696ab-bda7-44a9-8cec-382183d58d9d".to_owned(),
+            feature: "human access token".to_owned(),
+            url: format!("{}{}", api_url, "/connect/machine/token"),
+            description: "retrieve human access token for H2M authentication".to_owned(),
+            token_endpoint: None,
+        },
+        SupportedFeature {
+            id: "d7d27d71-2755-4eea-bb97-bfa5ce8addef".to_owned(),
+            feature: "capabilities".to_owned(),
+            url: format!("{}/capabilities", api_url),
+            description: "retrieve capabilities".to_owned(),
+            token_endpoint: Some(format!("{}/connect/machine/token", api_url)),
+        },
+    ])];
+
+    if show_private {
+        supported_features.push(SupportedFeatures::Private(vec![SupportedFeature {
+            id: "aaf5162b-82f2-4bf2-9eaa-e01b380e7ec3".to_owned(),
+            url: format!("{}{}", api_url, "/delegation"),
+            feature: "iSHARE delegation request".to_owned(),
+            description: "issue iSHARE delegation evidence based on your delegation request"
+                .to_owned(),
+            token_endpoint: Some(format!("{}{}", api_url, "/connect/machine/token")),
+        }]));
+    }
+
+    return Capabilities {
         capabilities_info: CapabilitiesInfo {
-            restriced_services: if show_private {
-                Some(vec![Service {
-                    identifier: "aaf5162b-82f2-4bf2-9eaa-e01b380e7ec3".to_owned(),
-                    title: "iSHARE delegation request".to_owned(),
-                    description:
-                        "issue iSHARE delegation evidence based on your delegation request"
-                            .to_owned(),
-                    endpoint_url: format!("{}{}", api_url, "/delegation"),
-                    description_url: "".to_owned(),
-                    status: "active".to_owned(),
-                    token_endpoint: Some(format!("{}{}", api_url, "/connect/machine/token")),
-                    service_type: "framework-defined".to_owned(),
-                    version: Version {
-                        complies_with_framework_versions: vec!["2.1".to_owned()],
-                        complies_with_dataspace_versions: vec!["1.0".to_owned()],
-                        capabilities_version: "0.1.0".to_owned(),
-                    },
-                    methods: vec!["POST".to_owned()],
-                }])
-            } else {
-                None
-            },
-            public_services: vec![
-                Service {
-                    identifier: "ebb696ab-bda7-44a9-8cec-382183d58d9d".to_owned(),
-                    title: "machine access token".to_owned(),
-                    endpoint_url: format!("{}{}", api_url, "/connect/machine/token"),
-                    description: "retrieve machine access token for M2M authentication".to_owned(),
-                    description_url: "".to_owned(),
-                    token_endpoint: None,
-                    status: "active".to_owned(),
-                    methods: vec!["POST".to_owned()],
-                    version: Version {
-                        complies_with_framework_versions: vec!["2.1".to_owned()],
-                        complies_with_dataspace_versions: vec!["1.0".to_owned()],
-                        capabilities_version: "0.1.0".to_owned(),
-                    },
-                    service_type: "framework-defined".to_owned(),
-                },
-                Service {
-                    identifier: "ebb696ab-bda7-44a9-8cec-382183d58d9d".to_owned(),
-                    title: "human access token".to_owned(),
-                    description: "retrieve human access token for H2M authentication".to_owned(),
-                    description_url: "".to_owned(),
-                    token_endpoint: None,
-                    status: "active".to_owned(),
-                    endpoint_url: format!("{}{}", api_url, "/connect/machine/token"),
-                    service_type: "framework-defined".to_owned(),
-                    version: Version {
-                        complies_with_framework_versions: vec!["2.1".to_owned()],
-                        complies_with_dataspace_versions: vec!["1.0".to_owned()],
-                        capabilities_version: "0.1.0".to_owned(),
-                    },
-                    methods: vec!["POST".to_owned()],
-                },
-                Service {
-                    identifier: "/capabilities".to_owned(),
-                    title: "iSHARE capabilities".to_owned(),
-                    description: "retrieve capabilities".to_owned(),
-                    endpoint_url: format!("{}/capabilities", api_url),
-                    description_url: "".to_owned(),
-                    token_endpoint: Some(format!("{}/connect/machine/token", api_url)),
-                    status: "active".to_owned(),
-                    service_type: "framework-defined".to_owned(),
-                    version: Version {
-                        complies_with_framework_versions: vec!["2.1".to_owned()],
-                        complies_with_dataspace_versions: vec!["1.0".to_owned()],
-                        capabilities_version: "0.1.0".to_owned(),
-                    },
-                    methods: vec!["GET".to_owned()],
-                },
-            ],
+            party_id: party_id.to_owned(),
+            ishare_roles: vec!["AuthorizationRegistry".to_owned()],
+            supported_versions: vec![SupportedVersion {
+                version: "1.7".to_owned(),
+                supported_features,
+            }],
         },
     };
-
-    return capabilities;
 }
 
 #[derive(Serialize, ToSchema)]
@@ -210,7 +140,7 @@ async fn get_capabilities(
     };
 
     let api_url = [scheme, host, app_state.config.deploy_route.clone()].join("");
-    let capabilities = create_capabilities(&api_url, show_private);
+    let capabilities = create_capabilities(&app_state.config.client_eori, &api_url, show_private);
 
     let capabilities_token = app_state
         .satellite_provider
