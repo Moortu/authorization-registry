@@ -79,6 +79,17 @@ pub mod helpers {
             return Ok("token".to_string());
         }
 
+        fn handle_previous_step_client_assertion(
+            &self,
+            _now: chrono::DateTime<chrono::Utc>,
+            _requestor_company_id: &str,
+            _client_assertion: &str,
+            _policy_issuer: &str,
+            _access_subject: &str,
+        ) -> bool {
+            true
+        }
+
         fn create_delegation_token(
             &self,
             _audience: &str,

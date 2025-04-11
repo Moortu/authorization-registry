@@ -113,9 +113,45 @@ async fn post_delegation(
         }
     }
 
+    tracing::info!("checking if requester is policy issuer or access subject");
     if &role.get_company_id() != &body.delegation_request.policy_issuer
         && &role.get_company_id() != &body.delegation_request.target.access_subject
     {
+        tracing::info!("requester is not policy issuer or access subject");
+        tracing::info!("checking if previous steps gives access");
+
+        if let Some(previous_steps) = &body.previous_steps {
+            let previous_step_client_assertion = match previous_steps.get(0) {
+                None => {
+                    tracing::info!("previous steps is empty");
+                    return Err(AppError::Expected(ExpectedError { status_code: StatusCode::BAD_REQUEST,
+                        message: format!("only policy issuer and access subject are permitted"),
+                        reason: format!("company: {} is not policy issuer or access subject and is not permitted to perfrom delegation request", &role.get_company_id()), metadata: None }));
+                }
+                Some(ps) => ps,
+            };
+
+            if !app_state
+                .satellite_provider
+                .handle_previous_step_client_assertion(
+                    app_state.time_provider.now(),
+                    &role.get_company_id(),
+                    &previous_step_client_assertion,
+                    &body.delegation_request.policy_issuer,
+                    &body.delegation_request.target.access_subject,
+                )
+            {
+                return Err(AppError::Expected(ExpectedError { status_code: StatusCode::BAD_REQUEST,
+                        message: format!("only policy issuer and access subject are permitted. access via previous step failed."),
+                        reason: format!("no access granted via previous step for requester: {}", &role.get_company_id()), metadata: None }));
+            }
+        } else {
+            tracing::info!("no previous steps found in request");
+            return Err(AppError::Expected(ExpectedError { status_code: StatusCode::BAD_REQUEST,
+                message: format!("only policy issuer and access subject are permitted"),
+                reason: format!("company: {} is not policy issuer or access subject and is not permitted to perfrom delegation request", &role.get_company_id()), metadata: None }));
+        }
+
         return Err(AppError::Expected(ExpectedError { status_code: StatusCode::BAD_REQUEST,
             message: format!("only policy issuer and access subject are permitted"),
             reason: format!("company: {} is not policy issuer or access subject and is not permitted to perfrom delegation request", &role.get_company_id()), metadata: None }));

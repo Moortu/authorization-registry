@@ -112,6 +112,15 @@ pub trait SatelliteProvider: Send + Sync {
         audience: &str,
         capabilities: &Capabilities,
     ) -> anyhow::Result<String>;
+
+    fn handle_previous_step_client_assertion(
+        &self,
+        now: chrono::DateTime<chrono::Utc>,
+        requestor_company_id: &str,
+        client_assertion: &str,
+        policy_issuer: &str,
+        access_subject: &str,
+    ) -> bool;
 }
 
 #[derive(Clone)]
@@ -232,6 +241,49 @@ impl SatelliteProvider for ISHAREProvider {
         Ok(url)
     }
 
+    fn handle_previous_step_client_assertion(
+        &self,
+        now: chrono::DateTime<chrono::Utc>,
+        requestor_company_id: &str,
+        client_assertion: &str,
+        policy_issuer: &str,
+        access_subject: &str,
+    ) -> bool {
+        let policy_issuer_access = match self.ishare.decode_token(
+            now,
+            client_assertion,
+            policy_issuer,
+            Some(requestor_company_id),
+        ) {
+            Err(e) => {
+                tracing::info!("no acces for policy issuer via previous step: {}", e);
+                false
+            }
+            Ok(_) => {
+                tracing::info!("access granted for policy issuer via previous step");
+                true
+            }
+        };
+
+        let access_subject_access = match self.ishare.decode_token(
+            now,
+            client_assertion,
+            access_subject,
+            Some(requestor_company_id),
+        ) {
+            Err(e) => {
+                tracing::info!("no acces for access subject via previous step: {}", e);
+                false
+            }
+            Ok(_) => {
+                tracing::info!("access granted for access subject via previous step");
+                true
+            }
+        };
+
+        policy_issuer_access || access_subject_access
+    }
+
     async fn handle_h2m_auth_callback(
         &self,
         server_url: &str,
@@ -341,7 +393,7 @@ impl SatelliteProvider for ISHAREProvider {
         // probably need to be more explicit here in case the token has expired etc
         let client_assertion_token = self
             .ishare
-            .decode_token(now, &client_assertion, client_id)
+            .decode_token(now, &client_assertion, client_id, None)
             .map_err(|e| {
                 return AppError::Expected(ExpectedError {
                     status_code: StatusCode::BAD_REQUEST,
