@@ -85,45 +85,83 @@ pub fn get_delegation_evidence_policy_sets(
     for ps in delegation_request.policy_sets.iter() {
         let matching_policy_sets = mask_matching_policy_sets(ps, &matching_policy_sets);
 
-        for matching in matching_policy_sets {
+        if matching_policy_sets.len() > 0 {
+            for matching in matching_policy_sets.into_iter() {
+                let policies: Vec<ishare::delegation_evidence::Policy> = ps
+                    .policies
+                    .iter()
+                    .map(|p| {
+                        let permit = is_permit(p, matching);
+
+                        ishare::delegation_evidence::Policy {
+                            target: ResourceTarget {
+                                actions: p.target.actions.clone(),
+                                environment: match p.target.environment.as_ref() {
+                                    Some(e) => Some(ishare::delegation_evidence::Environment {
+                                        service_providers: e.service_providers.clone(),
+                                    }),
+                                    None => None,
+                                },
+                                resource: Resource {
+                                    resource_type: p.target.resource.resource_type.clone(),
+                                    identifiers: p.target.resource.identifiers.clone(),
+                                    attributes: p.target.resource.attributes.clone(),
+                                },
+                            },
+                            rules: vec![ResourceRules {
+                                effect: if permit {
+                                    "Permit".to_string()
+                                } else {
+                                    "Deny".to_string()
+                                },
+                            }],
+                        }
+                    })
+                    .collect();
+
+                let new_policy_set = ishare::delegation_evidence::PolicySet {
+                    max_delegation_depth: matching.max_delegation_depth,
+                    policies,
+                    target: PolicySetTarget {
+                        environment: PolicySetTargetEnvironment {
+                            licenses: matching.licenses.clone(),
+                        },
+                    },
+                };
+
+                policy_sets.push(new_policy_set);
+            }
+        } else {
             let policies: Vec<ishare::delegation_evidence::Policy> = ps
                 .policies
                 .iter()
-                .map(|p| {
-                    let permit = is_permit(p, matching);
-
-                    ishare::delegation_evidence::Policy {
-                        target: ResourceTarget {
-                            actions: p.target.actions.clone(),
-                            environment: match p.target.environment.as_ref() {
-                                Some(e) => Some(ishare::delegation_evidence::Environment {
-                                    service_providers: e.service_providers.clone(),
-                                }),
-                                None => None,
-                            },
-                            resource: Resource {
-                                resource_type: p.target.resource.resource_type.clone(),
-                                identifiers: p.target.resource.identifiers.clone(),
-                                attributes: p.target.resource.attributes.clone(),
-                            },
+                .map(|p| ishare::delegation_evidence::Policy {
+                    target: ResourceTarget {
+                        actions: p.target.actions.clone(),
+                        environment: match p.target.environment.as_ref() {
+                            Some(e) => Some(ishare::delegation_evidence::Environment {
+                                service_providers: e.service_providers.clone(),
+                            }),
+                            None => None,
                         },
-                        rules: vec![ResourceRules {
-                            effect: if permit {
-                                "Permit".to_string()
-                            } else {
-                                "Deny".to_string()
-                            },
-                        }],
-                    }
+                        resource: Resource {
+                            resource_type: p.target.resource.resource_type.clone(),
+                            identifiers: p.target.resource.identifiers.clone(),
+                            attributes: p.target.resource.attributes.clone(),
+                        },
+                    },
+                    rules: vec![ResourceRules {
+                        effect: "Deny".to_string(),
+                    }],
                 })
                 .collect();
 
             let new_policy_set = ishare::delegation_evidence::PolicySet {
-                max_delegation_depth: matching.max_delegation_depth,
+                max_delegation_depth: 0,
                 policies,
                 target: PolicySetTarget {
                     environment: PolicySetTargetEnvironment {
-                        licenses: matching.licenses.clone(),
+                        licenses: vec!["ISHARE.0001".to_owned()],
                     },
                 },
             };
