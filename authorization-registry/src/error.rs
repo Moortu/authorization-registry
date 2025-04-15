@@ -40,13 +40,13 @@ pub enum AppError {
     #[error(transparent)]
     PathExtractorRejection(#[from] PathRejection),
     #[error(transparent)]
-    FormExtratorRejection(#[from] FormRejection),
+    FormExtractorRejection(#[from] FormRejection),
 }
 
 impl IntoResponse for AppError {
     fn into_response(self) -> axum::response::Response {
         match self {
-            AppError::FormExtratorRejection(form_rejection) => {
+            AppError::FormExtractorRejection(form_rejection) => {
                 let message = form_rejection.body_text();
                 tracing::error!("Error extracting path from request: '{}'", message);
 
