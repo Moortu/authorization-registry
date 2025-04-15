@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::Context;
 use ar_entity::delegation_evidence::ResourceRule;
 use ishare::delegation_evidence::{
@@ -10,6 +12,8 @@ use sea_orm::DatabaseConnection;
 use crate::db::policy::{self as policy_store, DelegationEvidencePolicy, MatchingPolicySetRow};
 use crate::error::AppError;
 use crate::TimeProvider;
+
+use super::ishare_provider::SatelliteProvider;
 
 pub fn is_contained_by<T: PartialEq>(vec_a: &Vec<T>, vec_b: &Vec<T>) -> bool {
     vec_a.iter().all(|x| vec_b.contains(x))
@@ -173,6 +177,70 @@ pub fn get_delegation_evidence_policy_sets(
     return policy_sets;
 }
 
+pub fn check_delegation_access(
+    now: chrono::DateTime<chrono::Utc>,
+    requester_company_id: &str,
+    delegation_request: &DelegationRequest,
+    previous_steps: &Option<Vec<String>>,
+    allows_service_provider_access: bool,
+    satellite_provider: Arc<dyn SatelliteProvider>,
+) -> bool {
+    tracing::info!("checking if requester is policy issuer or access subject");
+
+    if requester_company_id == delegation_request.target.access_subject {
+        tracing::info!("requester company is access subject. access allowed.");
+        return true;
+    }
+
+    if requester_company_id == delegation_request.policy_issuer {
+        tracing::info!("requester company is policy issuer. access allows.");
+        return true;
+    }
+
+    if allows_service_provider_access {
+        tracing::info!("checking if requester matches all service providers");
+
+        let service_providers: Vec<String> = delegation_request
+            .policy_sets
+            .iter()
+            .flat_map(|ps| ps.policies.iter().map(|p| p.target.environment.clone()))
+            .filter_map(|x| x)
+            .flat_map(|x| x.service_providers)
+            .collect();
+
+        // grant access if at least 1 service provider - only the same service provider is used - and that service provider is the requestor
+        if service_providers.len() > 0
+            && service_providers
+                .iter()
+                .all(|sp| sp == requester_company_id)
+        {
+            return true;
+        }
+    }
+
+    tracing::info!("checking if previous steps gives access");
+    if let Some(previous_steps) = previous_steps {
+        match previous_steps.get(0) {
+            None => {
+                tracing::info!("previous steps is empty");
+            }
+            Some(previous_step_client_assertion) => {
+                if satellite_provider.handle_previous_step_client_assertion(
+                    now,
+                    requester_company_id,
+                    &previous_step_client_assertion,
+                    &delegation_request.policy_issuer,
+                    &delegation_request.target.access_subject,
+                ) {
+                    return true;
+                }
+            }
+        };
+    }
+
+    false
+}
+
 pub async fn create_delegation_evidence(
     delegation_request: &DelegationRequest,
     time_provider: std::sync::Arc<dyn TimeProvider>,
@@ -218,7 +286,144 @@ mod tests {
     };
     use uuid::Uuid;
 
+    use crate::test_helpers::helpers::TestSatelliteProvider;
+
     use super::*;
+
+    #[test]
+    fn test_check_delegation_access_as_match() {
+        assert_eq!(
+            check_delegation_access(
+                chrono::Utc::now(),
+                "company",
+                &DelegationRequest {
+                    policy_issuer: "another-company".to_owned(),
+                    target: DelegationTarget {
+                        access_subject: "company".to_owned()
+                    },
+                    policy_sets: vec![],
+                },
+                &None,
+                false,
+                Arc::new(TestSatelliteProvider {})
+            ),
+            true
+        );
+    }
+
+    #[test]
+    fn test_check_delegation_access_pi_match() {
+        assert_eq!(
+            check_delegation_access(
+                chrono::Utc::now(),
+                "company",
+                &DelegationRequest {
+                    policy_issuer: "company".to_owned(),
+                    target: DelegationTarget {
+                        access_subject: "another-company".to_owned()
+                    },
+                    policy_sets: vec![],
+                },
+                &None,
+                false,
+                Arc::new(TestSatelliteProvider {})
+            ),
+            true
+        );
+    }
+
+    #[test]
+    fn test_check_delegation_access_service_providers_empty() {
+        assert_eq!(
+            check_delegation_access(
+                chrono::Utc::now(),
+                "another-company",
+                &DelegationRequest {
+                    policy_issuer: "company".to_owned(),
+                    target: DelegationTarget {
+                        access_subject: "difference-company".to_owned()
+                    },
+                    policy_sets: vec![],
+                },
+                &None,
+                true,
+                Arc::new(TestSatelliteProvider {})
+            ),
+            false
+        );
+    }
+
+    #[test]
+    fn test_check_delegation_access_service_providers_no_match() {
+        assert_eq!(
+            check_delegation_access(
+                chrono::Utc::now(),
+                "another-company",
+                &DelegationRequest {
+                    policy_issuer: "company".to_owned(),
+                    target: DelegationTarget {
+                        access_subject: "difference-company".to_owned()
+                    },
+                    policy_sets: vec![PolicySet {
+                        policies: vec![Policy {
+                            target: ResourceTarget {
+                                resource: ishare::delegation_request::Resource {
+                                    resource_type: "".to_owned(),
+                                    identifiers: vec![],
+                                    attributes: vec![],
+                                },
+                                actions: vec![],
+                                environment: Some(Environment {
+                                    service_providers: vec!["cool-company".to_owned()]
+                                }),
+                            },
+                            rules: vec![],
+                        }]
+                    }],
+                },
+                &None,
+                true,
+                Arc::new(TestSatelliteProvider {})
+            ),
+            false
+        );
+    }
+
+    #[test]
+    fn test_check_delegation_access_service_providers_match() {
+        assert_eq!(
+            check_delegation_access(
+                chrono::Utc::now(),
+                "another-company",
+                &DelegationRequest {
+                    policy_issuer: "company".to_owned(),
+                    target: DelegationTarget {
+                        access_subject: "difference-company".to_owned()
+                    },
+                    policy_sets: vec![PolicySet {
+                        policies: vec![Policy {
+                            target: ResourceTarget {
+                                resource: ishare::delegation_request::Resource {
+                                    resource_type: "".to_owned(),
+                                    identifiers: vec![],
+                                    attributes: vec![],
+                                },
+                                actions: vec![],
+                                environment: Some(Environment {
+                                    service_providers: vec!["another-company".to_owned()]
+                                }),
+                            },
+                            rules: vec![],
+                        }]
+                    }],
+                },
+                &None,
+                true,
+                Arc::new(TestSatelliteProvider {})
+            ),
+            true
+        );
+    }
 
     #[test]
     fn test_is_contained_by() {

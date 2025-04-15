@@ -64,6 +64,7 @@ pub mod helpers {
                 deploy_route: "".to_owned(),
                 client_eori: "NL.CONSUME_TOO_MUCH".to_owned(),
                 validate_m2m_certificate: true,
+                delegation_allows_service_providers: false,
             }),
         };
         let app = get_app(db, app_state, true);
