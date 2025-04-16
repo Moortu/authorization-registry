@@ -129,6 +129,7 @@ impl TimeProvider for RealTimeProvider {
     }
 }
 
+#[derive(Debug)]
 pub struct AppConfig {
     pub deploy_route: String,
     pub client_eori: String,
@@ -253,6 +254,8 @@ async fn main() {
             delegation_allows_service_providers: config.delegation_allows_service_providers,
         }),
     };
+
+    tracing::info!("application config --- [{:?}]", app_state.config);
 
     let app = get_app(db, app_state, config.disable_cors_check);
 
