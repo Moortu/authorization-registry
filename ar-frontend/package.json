@@ -13,6 +13,7 @@
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@fontsource-variable/merriweather-sans": "^5.1.0",
+    "@fontsource-variable/karla": "^5.1.1",
     "@mui/icons-material": "^5.16.6",
     "@mui/joy": "^5.0.0-beta.48",
     "@tanstack/react-form": "^0.34.0",

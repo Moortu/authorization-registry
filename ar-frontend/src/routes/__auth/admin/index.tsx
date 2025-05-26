@@ -30,7 +30,24 @@ function Component() {
 
   return (
     <div>
-      <Typography level="h2">Policy sets</Typography>
+      <Box paddingY={4} display="flex" gap={4}>
+        <Typography level="h2">Policy sets</Typography>
+        <div>
+          <Button
+            sx={{
+              borderRadius: "8px",
+              height: "43px",
+              boxShadow: "0px 0px 36px 0px #FF358340",
+              backgroundColor: "#007EFF",
+            }}
+            onClick={() =>
+              navigate({ to: "/admin/new_policy_set/prefill_template" })
+            }
+          >
+            New policy set
+          </Button>
+        </div>
+      </Box>
       <Stack paddingY={2} spacing={2} direction="row" alignItems="flex-end">
         <Box sx={{ width: 180 }}>
           <FormLabel>Policy issuer</FormLabel>
@@ -64,15 +81,7 @@ function Component() {
             }
           />
         </Box>
-        <Box>
-          <Button
-            onClick={() =>
-              navigate({ to: "/admin/new_policy_set/prefill_template" })
-            }
-          >
-            New policy set
-          </Button>
-        </Box>
+        <Box></Box>
       </Stack>
       <PageLoadingFallback isLoading={isLoading}>
         <Stack spacing={1}>
