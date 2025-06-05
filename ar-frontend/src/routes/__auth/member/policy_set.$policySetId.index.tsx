@@ -71,7 +71,7 @@ function Component() {
       }}
       onAddPolicy={() => {
         navigate({
-          to: "/admin/policy_set/$policySetId/add_policy/step1",
+          to: "/admin/policy_set/$policySetId/add_policy",
           params: { policySetId: params.policySetId },
         });
       }}

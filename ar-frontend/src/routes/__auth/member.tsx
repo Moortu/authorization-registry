@@ -28,7 +28,7 @@ function Component() {
         <Header>
           <HeaderLink
             onClick={() => navigate({ to: "/member" })}
-            selected={location.pathname === "/member"}
+            selected={location.pathname.split("/")?.[1] === "member"}
           >
             Policy sets
           </HeaderLink>

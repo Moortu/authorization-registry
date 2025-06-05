@@ -6,8 +6,8 @@ export function ModalHeader({
   caption,
   title,
 }: {
-  caption: string,
-  title: string,
+  caption: string;
+  title: string;
 }) {
   return (
     <Box

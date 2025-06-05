@@ -1,7 +1,6 @@
-import { Typography, Box } from "@mui/joy";
 import { LogoPurple } from "./logo-purple";
 
-export function Logo({ admin }: { admin: boolean }) {
+export function Logo() {
   return (
     <>
       <LogoPurple />

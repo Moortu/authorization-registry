@@ -41,7 +41,7 @@ function Component() {
       <Header>
         <HeaderLink
           onClick={() => navigate({ to: "/admin" })}
-          selected={location.pathname === "/admin"}
+          selected={location.pathname.split("/")?.[1] === "admin"}
         >
           Policy sets
         </HeaderLink>
@@ -60,7 +60,7 @@ function Component() {
               }
             />
             <Stack
-              paddingY={2}
+              paddingBottom={2}
               spacing={2}
               direction="row"
               alignItems="flex-end"

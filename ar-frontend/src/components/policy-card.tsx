@@ -274,7 +274,7 @@ export function PolicyCard({
             </Box>
 
             <Box display="flex" flexDirection="column" gap={0.5}>
-              <Caption>Exception Rules</Caption>
+              <Caption>Rules</Caption>
               {detailed ? (
                 <DetailedRules rules={policy.rules} />
               ) : (

@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import {
-  Typography,
   Stack,
   Button,
   Box,
@@ -12,6 +11,7 @@ import {
 } from "@mui/joy";
 import { Policy, useAddAdminPolicyToPolicySet } from "@/network/policy-set";
 import { PolicyForm } from "@/components/policy-form";
+import { ModalHeader } from "@/components/modal-header";
 
 export const Route = createFileRoute(
   "/__auth/admin/policy_set/$policySetId/add_policy",
@@ -45,11 +45,9 @@ function Component() {
       onClose={() => navigate({ to: "/admin/policy_set/$policySetId", params })}
     >
       <ModalOverflow>
-        <ModalDialog>
+        <ModalDialog sx={{ padding: 0 }} size="lg" minWidth={900}>
           <Stack direction="column" spacing={1}>
-            <Typography paddingBottom={2} level="h2">
-              Add policy to policy set
-            </Typography>
+            <ModalHeader caption="add" title="Add policy to policy set" />
             {error && (
               <Box>
                 <Alert color="danger">
@@ -57,26 +55,28 @@ function Component() {
                 </Alert>
               </Box>
             )}
-            <PolicyForm
-              isSubmitPending={isPending}
-              submitText="Add policy"
-              onSubmit={onSubmit}
-              backButton={
-                <Button
-                  startDecorator={<ArrowBackIcon />}
-                  variant="plain"
-                  color="neutral"
-                  onClick={() =>
-                    navigate({
-                      to: "/admin/policy_set/$policySetId",
-                      params,
-                    })
-                  }
-                >
-                  Back to policy set
-                </Button>
-              }
-            />
+            <Box padding={2}>
+              <PolicyForm
+                isSubmitPending={isPending}
+                submitText="Add policy"
+                onSubmit={onSubmit}
+                backButton={
+                  <Button
+                    startDecorator={<ArrowBackIcon />}
+                    variant="plain"
+                    color="neutral"
+                    onClick={() =>
+                      navigate({
+                        to: "/admin/policy_set/$policySetId",
+                        params,
+                      })
+                    }
+                  >
+                    Back to policy set
+                  </Button>
+                }
+              />
+            </Box>
           </Stack>
         </ModalDialog>
       </ModalOverflow>

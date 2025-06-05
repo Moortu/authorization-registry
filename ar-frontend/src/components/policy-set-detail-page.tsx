@@ -5,7 +5,6 @@ import {
   ModalDialog,
   ModalOverflow,
   Stack,
-  Typography,
 } from "@mui/joy";
 import { PageLoadingFallback } from "./page-loading-fallback";
 import { PolicySetWithPolicies } from "@/network/policy-set";
@@ -14,6 +13,7 @@ import { Caption, Subtitle2 } from "./extra-typography";
 import { PolicyCard } from "./policy-card";
 import { useState } from "react";
 import { ErrorResponse } from "@/network/fetch";
+import { ModalHeader } from "./modal-header";
 
 function DeletePolicyModal({
   onClose,
@@ -28,15 +28,6 @@ function DeletePolicyModal({
   pending?: boolean;
   isOpen: boolean;
 }) {
-  // function onClose() {
-  //   navigate({
-  //     replace: true,
-  //     to: "/admin/policy_set/$policySetId",
-  //     params,
-  //     search: { ...search, delete_policy: undefined },
-  //   });
-  // }
-
   return (
     <ConfirmDialog
       error={error}
@@ -128,7 +119,12 @@ export function PolicySetDetail({
   return (
     <Modal open={true} onClose={onModalClose}>
       <ModalOverflow>
-        <ModalDialog maxWidth="900px" size="lg" minWidth="900px">
+        <ModalDialog
+          maxWidth="900px"
+          size="lg"
+          minWidth="900px"
+          sx={{ padding: 0 }}
+        >
           <PageLoadingFallback isLoading={Boolean(isLoading)}>
             {policySet && (
               <>
@@ -154,69 +150,78 @@ export function PolicySetDetail({
                   pending={deletePolicySetPending}
                 />
 
-                <Stack spacing={3}>
-                  <Typography level="h2">Policy set</Typography>
+                <Stack>
+                  <ModalHeader caption="detail" title="View policy set" />
 
-                  <Stack direction="row" spacing={2}>
-                    <Box>
-                      <Caption>Policy issuer</Caption>
-                      <Subtitle2>{policySet.policy_issuer}</Subtitle2>
-                    </Box>
-                    <Box>
-                      <Caption>Access subject</Caption>
-                      <Subtitle2>{policySet.access_subject}</Subtitle2>
-                    </Box>
-                  </Stack>
-
-                  <Box>
-                    <Caption>Policies</Caption>
-                    <Stack
-                      spacing={1}
-                      direction="row"
-                      flexWrap="wrap"
-                      useFlexGap
-                    >
-                      {policySet.policies.map((p) => (
-                        <PolicyCard
-                          detailed
-                          policy={p}
-                          key={p.id}
-                          actions={
-                            <Stack padding={0} spacing={1} direction="row">
-                              <Button
-                                onClick={() => setDeletePolicyId(p.id)}
-                                color="danger"
-                                variant="outlined"
-                              >
-                                Delete
-                              </Button>
-                              <Button
-                                onClick={() => onEdit(p.id)}
-                                variant="outlined"
-                              >
-                                Edit
-                              </Button>
-                            </Stack>
-                          }
-                        />
-                      ))}
+                  <Box padding={2}>
+                    <Stack direction="row" spacing={2}>
+                      <Box>
+                        <Caption>Policy issuer</Caption>
+                        <Subtitle2>{policySet.policy_issuer}</Subtitle2>
+                      </Box>
+                      <Box>
+                        <Caption>Access subject</Caption>
+                        <Subtitle2>{policySet.access_subject}</Subtitle2>
+                      </Box>
                     </Stack>
-                    <Box paddingTop={1}>
-                      <Button variant="soft" onClick={onAddPolicy}>
-                        Add policy
-                      </Button>
-                    </Box>
-
-                    <Stack paddingY={2} direction="row" spacing={1}>
-                      <Button
-                        size="lg"
-                        color="danger"
-                        onClick={() => setDeletePolicySetOpen(true)}
+                    <Box paddingTop={2}>
+                      <Caption>Policies</Caption>
+                      <Stack
+                        spacing={1}
+                        direction="row"
+                        flexWrap="wrap"
+                        useFlexGap
                       >
-                        Delete policy set
-                      </Button>
-                    </Stack>
+                        {policySet.policies.map((p) => (
+                          <PolicyCard
+                            detailed
+                            policy={p}
+                            key={p.id}
+                            actions={
+                              <Stack padding={0} spacing={1} direction="row">
+                                <Button
+                                  onClick={() => setDeletePolicyId(p.id)}
+                                  color="danger"
+                                  variant="outlined"
+                                >
+                                  Delete
+                                </Button>
+                                <Button
+                                  onClick={() => onEdit(p.id)}
+                                  variant="outlined"
+                                >
+                                  Edit
+                                </Button>
+                              </Stack>
+                            }
+                          />
+                        ))}
+                      </Stack>
+                      <Box paddingTop={1}>
+                        <Button variant="soft" onClick={onAddPolicy}>
+                          Add policy
+                        </Button>
+                      </Box>
+                    </Box>
                   </Box>
+                  <Stack
+                    padding={2}
+                    direction="row"
+                    spacing={1}
+                    sx={(theme) => ({
+                      borderTopStyle: "solid",
+                      borderColor: theme.vars.palette.neutral[100],
+                      borderWidth: "1px",
+                    })}
+                  >
+                    <Button
+                      size="lg"
+                      color="danger"
+                      onClick={() => setDeletePolicySetOpen(true)}
+                    >
+                      Delete policy set
+                    </Button>
+                  </Stack>
                 </Stack>
               </>
             )}
