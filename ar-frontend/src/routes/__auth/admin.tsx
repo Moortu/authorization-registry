@@ -1,126 +1,123 @@
 import {
   createFileRoute,
+  Link,
   Outlet,
-  useLocation,
   useNavigate,
 } from "@tanstack/react-router";
-import { initLogout } from "@/network/idp";
-import { Box, Button, Typography } from "@mui/joy";
-import { Logo } from "@/components/logo";
-import { SlashIcon } from "@/icons/slash-icon";
-import { KeyIcon } from "@/icons/key-icon";
+import { CatchBoundary } from "@/components/catch-boundary";
+import { Box, FormLabel, Input, Stack } from "@mui/joy";
+import { z } from "zod";
+import { PageLoadingFallback } from "@/components/page-loading-fallback";
+import { useDebounce } from "@uidotdev/usehooks";
+import { useAdminPolicySets } from "@/network/policy-set";
+import { PolicySetCard } from "@/components/policy-set-list-page";
+import { Header, HeaderLink } from "@/components/header";
+import { PolicySetOverviewHeader } from "@/components/policy-set-overview";
+
+const searchSchema = z.object({
+  access_subject: z.string().optional(),
+  policy_issuer: z.string().optional(),
+});
 
 export const Route = createFileRoute("/__auth/admin")({
   component: Component,
+  validateSearch: searchSchema,
+  errorComponent: CatchBoundary,
 });
 
-function Header() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const splittedPathname = location.pathname.split("/");
-
-  console.log({ splittedPathname });
-
-  return (
-    <Box padding={2}>
-      <Box
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-        flexGrow={1}
-        paddingLeft={3}
-        paddingRight={3}
-        paddingY={1}
-        sx={{ backgroundColor: "white", borderRadius: "64px" }}
-      >
-        <Box display="flex" alignItems="center" gap={1}>
-          <Logo admin />
-
-          <Box
-            width="24px"
-            height="24px"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <SlashIcon />
-          </Box>
-
-          <Box
-            sx={{
-              height: "40px",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              backgroundColor: "#f4f5f6",
-              borderRadius: "4px",
-            }}
-          >
-            <Box
-              gap={1}
-              display="flex"
-              flexDirection="row"
-              alignItems="center"
-              padding={1}
-            >
-              <KeyIcon />
-              <Typography fontWeight={400} fontSize="16px" textColor="#3602A7">
-                Authorization registry
-              </Typography>
-            </Box>
-          </Box>
-
-          <Box paddingLeft={4}>
-            <Button
-              variant="plain"
-              color="neutral"
-              onClick={() => navigate({ to: "/admin" })}
-              sx={{
-                typography: {
-                  color:
-                    splittedPathname?.[splittedPathname.length - 1] === "admin"
-                      ? "#4890DA"
-                      : "#49525B",
-                  fontWeight: 300,
-                },
-              }}
-            >
-              Policy sets
-            </Button>
-            <Button
-              variant="plain"
-              color="neutral"
-              onClick={() => navigate({ to: "/admin/policy_set_templates" })}
-              sx={{
-                typography: {
-                  color:
-                    splittedPathname?.[splittedPathname.length - 1] ===
-                    "policy_set_templates"
-                      ? "#4890DA"
-                      : "#49525B",
-                  fontWeight: 300,
-                },
-              }}
-            >
-              Policy set templates
-            </Button>
-          </Box>
-        </Box>
-        <Button variant="soft" onClick={() => initLogout()}>
-          Logout
-        </Button>
-      </Box>
-    </Box>
-  );
-}
-
 function Component() {
+  const search = Route.useSearch();
+  const accessSubject = useDebounce(search.access_subject, 300);
+  const policyIssuer = useDebounce(search.policy_issuer, 300);
+  const navigate = useNavigate();
+  const { data: policySets, isLoading } = useAdminPolicySets({
+    accessSubject,
+    policyIssuer,
+  });
+
   return (
     <>
-      <Header />
-      <Box maxWidth={1360} display="flex" justifyContent="center">
-        <Box>
-          <Outlet />
+      <Outlet />
+      <Header>
+        <HeaderLink
+          onClick={() => navigate({ to: "/admin" })}
+          selected={location.pathname === "/admin"}
+        >
+          Policy sets
+        </HeaderLink>
+      </Header>
+      <Box
+        width="100%"
+        display="flex"
+        alignItems="center"
+        flexDirection="column"
+      >
+        <Box maxWidth={1360} width="100%" paddingX={4} boxSizing="border-box">
+          <Box width="100%">
+            <PolicySetOverviewHeader
+              onNewPolicySet={() =>
+                navigate({ to: "/admin/new_policy_set/prefill_template" })
+              }
+            />
+            <Stack
+              paddingY={2}
+              spacing={2}
+              direction="row"
+              alignItems="flex-end"
+            >
+              <Box sx={{ width: 180 }}>
+                <FormLabel>Policy issuer</FormLabel>
+                <Input
+                  size="sm"
+                  defaultValue={search.policy_issuer || ""}
+                  onChange={(e) =>
+                    navigate({
+                      to: "/admin",
+                      search: {
+                        ...search,
+                        policy_issuer: e.target.value,
+                      },
+                    })
+                  }
+                />
+              </Box>
+              <Box sx={{ width: 180 }}>
+                <FormLabel>Access subject</FormLabel>
+                <Input
+                  size="sm"
+                  defaultValue={search.access_subject || ""}
+                  onChange={(e) =>
+                    navigate({
+                      to: "/admin",
+                      search: {
+                        ...search,
+                        access_subject: e.target.value,
+                      },
+                    })
+                  }
+                />
+              </Box>
+              <Box></Box>
+            </Stack>
+            <PageLoadingFallback isLoading={isLoading}>
+              <Stack spacing={1}>
+                {policySets?.map((ps) => (
+                  <Link
+                    key={ps.policy_set_id}
+                    style={{
+                      textDecorationLine: "none",
+                    }}
+                    to="/admin/policy_set/$policySetId"
+                    params={{
+                      policySetId: ps.policy_set_id,
+                    }}
+                  >
+                    <PolicySetCard policySet={ps} />
+                  </Link>
+                ))}
+              </Stack>
+            </PageLoadingFallback>
+          </Box>
         </Box>
       </Box>
     </>
