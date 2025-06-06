@@ -41,16 +41,25 @@ export function PolicyForm({
   backButton,
   submitText,
   isSubmitPending,
+  initialValues,
 }: {
   onSubmit: (policy: PolicyFormFields) => void;
   backButton?: ReactNode;
   submitText: string;
   isSubmitPending?: boolean;
+  initialValues?: PolicyFormFields;
 }) {
   const form = useForm({
-    defaultValues,
+    defaultValues: initialValues || defaultValues,
     onSubmit: ({ value }) => {
-      onSubmit(value);
+      const policy = {
+        ...value,
+        rules:
+          value.rules?.[0]?.effect === "Permit"
+            ? value.rules
+            : [{ effect: "Permit" as const }, ...value.rules],
+      };
+      onSubmit(policy);
     },
   });
 

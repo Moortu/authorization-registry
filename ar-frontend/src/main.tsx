@@ -98,6 +98,13 @@ const theme = extendTheme({
         },
       },
     },
+    JoyModalOverflow: {
+      styleOverrides: {
+        root: {
+          height: "unset",
+        },
+      },
+    },
     JoyChip: {
       styleOverrides: {
         // root: () => ({
@@ -122,7 +129,7 @@ const theme = extendTheme({
     },
     JoyOption: {
       styleOverrides: {
-        root: ({ theme }) => ({
+        root: () => ({
           fontSize: "16px",
           fontWeight: 400,
         }),

@@ -40,22 +40,20 @@ function Component() {
   }
 
   return (
-    <Modal
-      open={true}
-      onClose={() => navigate({ to: "/admin/policy_set/$policySetId", params })}
-    >
+    <Modal open={true} onClose={() => navigate({ to: "/admin" })}>
       <ModalOverflow>
         <ModalDialog sx={{ padding: 0 }} size="lg" minWidth={900}>
           <Stack direction="column" spacing={1}>
             <ModalHeader caption="add" title="Add policy to policy set" />
-            {error && (
-              <Box>
-                <Alert color="danger">
-                  <Box>{error.message}</Box>
-                </Alert>
-              </Box>
-            )}
+
             <Box padding={2}>
+              {error && (
+                <Box paddingBottom={2}>
+                  <Alert color="danger">
+                    <Box>{error.message}</Box>
+                  </Alert>
+                </Box>
+              )}
               <PolicyForm
                 isSubmitPending={isPending}
                 submitText="Add policy"

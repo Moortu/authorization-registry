@@ -59,10 +59,10 @@ function Component() {
       onDeletePolicySet={onDeletePolicySet}
       policySet={policySet}
       isLoading={isLoading}
-      onModalClose={() => navigate({ to: "/admin" })}
+      onModalClose={() => navigate({ to: "/member" })}
       onEdit={(policyId: string) => {
         navigate({
-          to: "/admin/policy_set/$policySetId/edit_policy/$policyId/step1",
+          to: "/member/policy_set/$policySetId/edit_policy/$policyId/step1",
           params: {
             policyId: policyId,
             policySetId: params.policySetId,
@@ -71,7 +71,7 @@ function Component() {
       }}
       onAddPolicy={() => {
         navigate({
-          to: "/admin/policy_set/$policySetId/add_policy",
+          to: "/member/policy_set/$policySetId/add_policy",
           params: { policySetId: params.policySetId },
         });
       }}
