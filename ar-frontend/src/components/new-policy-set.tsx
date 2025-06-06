@@ -35,7 +35,7 @@ import { PolicyCard } from "./policy-card";
 import { PolicyForm } from "./policy-form";
 import { ModalHeader } from "./modal-header";
 
-function StyledStep({ ...props }: {} & StepProps) {
+export function StyledStep({ ...props }: {} & StepProps) {
   return (
     <Step
       sx={(theme) => ({
@@ -422,7 +422,7 @@ export function AddPoliciesStep({
           <Box>
             <FormLabel sx={{ fontSize: "16px" }}>Add policies</FormLabel>
             <FormHelperText sx={{ fontSize: "16px" }}>
-              Add one or more policies to the policies
+              Add one or more policies to the policy set
             </FormHelperText>
           </Box>
           {addPolicyFormOpen ? (

@@ -7,19 +7,17 @@ import {
   useState,
 } from "react";
 import { CreatePolicySetTemplate } from "@/network/policy-set-templates";
-import { Typography } from "@mui/joy";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/__auth/admin/new_policy_set_template")({
+export const Route = createFileRoute(
+  "/__auth/admin/policy_set_templates/new_policy_set_template",
+)({
   component: Component,
 });
 
 function Component() {
   return (
     <CreatePolicySetTemplateContext>
-      <Typography paddingBottom={2} level="h2">
-        New policy set template
-      </Typography>
       <Outlet />
     </CreatePolicySetTemplateContext>
   );

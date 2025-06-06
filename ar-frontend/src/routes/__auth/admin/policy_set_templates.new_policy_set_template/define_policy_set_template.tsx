@@ -1,13 +1,13 @@
-import { AddPolicySetTemplateStepper } from "@/components/wizzard-stepper";
-import { useCreatePolicySetTemplateContext } from "../new_policy_set_template";
+import { useCreatePolicySetTemplateContext } from "../policy_set_templates.new_policy_set_template";
 import { FormField } from "@/components/form-field";
-import { Box, Button, FormHelperText, Input, Stack } from "@mui/joy";
+import { FormHelperText, Input, Stack } from "@mui/joy";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { required } from "@/form-field-validators";
+import { NewPolicySetTemplateModalWrapper } from "@/components/new-policy-set-template";
 
 export const Route = createFileRoute(
-  "/__auth/admin/new_policy_set_template/define_policy_set_template",
+  "/__auth/admin/policy_set_templates/new_policy_set_template/define_policy_set_template",
 )({
   component: Component,
 });
@@ -26,13 +26,22 @@ function Component() {
       changeValue((oldValue) => ({ ...oldValue, ...value }));
 
       // have to validate here
-      navigate({ to: "/admin/new_policy_set_template/add_policies" });
+      navigate({
+        to: "/admin/policy_set_templates/new_policy_set_template/add_policies",
+      });
     },
   });
 
   return (
-    <Box paddingTop={2}>
-      <AddPolicySetTemplateStepper activeStep="Define policy set template" />
+    <NewPolicySetTemplateModalWrapper
+      step="Define policy set template"
+      onNext={() => {
+        form.handleSubmit();
+      }}
+      onBack={() => {
+        navigate({ to: "/admin/policy_set_templates" });
+      }}
+    >
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -40,7 +49,7 @@ function Component() {
           form.handleSubmit();
         }}
       >
-        <Stack paddingTop={2} spacing={1}>
+        <Stack width="100%" spacing={2}>
           <form.Field
             name="name"
             validators={required}
@@ -89,11 +98,8 @@ function Component() {
               </FormField>
             )}
           />
-          <Stack direction="row" spacing={1}>
-            <Button type="submit">Next step</Button>
-          </Stack>
         </Stack>
       </form>
-    </Box>
+    </NewPolicySetTemplateModalWrapper>
   );
 }
