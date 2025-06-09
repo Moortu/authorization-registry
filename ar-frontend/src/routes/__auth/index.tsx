@@ -14,10 +14,10 @@ function Component() {
   useEffect(() => {
     if (isAuthenticated(token) && token) {
       const tokenContent = getTokenContent(token);
-      console.log("helloo ");
+
       navigate({
-        to: tokenContent.realm_access_roles.includes("dexspace_adminzzs")
-          ? "/admin"
+        to: tokenContent.realm_access_roles.includes("dexspace_admin")
+          ? "/admin/policy_set"
           : "/member",
         replace: true,
         search: {

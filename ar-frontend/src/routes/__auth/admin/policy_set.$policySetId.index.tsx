@@ -57,10 +57,10 @@ function Component() {
       onDeletePolicySet={onDeletePolicySet}
       policySet={policySet}
       isLoading={isLoading}
-      onModalClose={() => navigate({ to: "/admin" })}
+      onModalClose={() => navigate({ to: "/admin/policy_set" })}
       onEdit={(policyId: string) => {
         navigate({
-          to: "/admin/policy_set/$policySetId/edit_policy/$policyId/step1",
+          to: "/admin/policy_set/$policySetId/edit_policy/$policyId",
           params: {
             policyId: policyId,
             policySetId: params.policySetId,

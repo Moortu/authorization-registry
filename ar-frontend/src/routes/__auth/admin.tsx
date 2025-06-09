@@ -1,6 +1,7 @@
 import {
   createFileRoute,
   Outlet,
+  useLocation,
   useNavigate,
 } from "@tanstack/react-router";
 import { CatchBoundary } from "@/components/catch-boundary";
@@ -14,13 +15,15 @@ export const Route = createFileRoute("/__auth/admin")({
 
 function Component() {
   const navigate = useNavigate();
+  const location = useLocation();
+  console.log("location", location.pathname);
 
   return (
     <>
       <Header>
         <HeaderLink
-          onClick={() => navigate({ to: "/admin" })}
-          selected={location.pathname === "/admin"}
+          onClick={() => navigate({ to: "/admin/policy_set" })}
+          selected={location.pathname === "/admin/policy_set"}
         >
           Policy sets
         </HeaderLink>

@@ -57,7 +57,7 @@ function Component() {
   }
 
   return (
-    <Modal open={true} onClose={() => navigate({ to: "/admin" })}>
+    <Modal open={true} onClose={() => navigate({ to: "/admin/policy_set" })}>
       <ModalOverflow>
         <ModalDialog sx={{ padding: 0 }} size="lg" minWidth={900}>
           <Stack direction="column" spacing={1}>

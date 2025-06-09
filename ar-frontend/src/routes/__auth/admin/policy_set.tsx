@@ -17,7 +17,7 @@ const searchSchema = z.object({
   policy_issuer: z.string().optional(),
 });
 
-export const Route = createFileRoute("/__auth/admin/")({
+export const Route = createFileRoute("/__auth/admin/policy_set")({
   component: Component,
   validateSearch: searchSchema,
 });
@@ -53,7 +53,7 @@ function Component() {
             defaultValue={search.policy_issuer || ""}
             onChange={(e) =>
               navigate({
-                to: "/admin",
+                to: "/admin/policy_set",
                 search: {
                   ...search,
                   policy_issuer: e.target.value,
@@ -69,7 +69,7 @@ function Component() {
             defaultValue={search.access_subject || ""}
             onChange={(e) =>
               navigate({
-                to: "/admin",
+                to: "/admin/policy_set",
                 search: {
                   ...search,
                   access_subject: e.target.value,

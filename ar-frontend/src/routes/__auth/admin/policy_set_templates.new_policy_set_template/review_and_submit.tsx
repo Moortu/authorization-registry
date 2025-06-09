@@ -56,7 +56,7 @@ function Component() {
             </Alert>
           </Box>
         )}
-                <FormField label="Name" errors={[]}>
+        <FormField label="Name" errors={[]}>
           <Input
             sx={(theme) => ({
               "&.Mui-disabled": {

@@ -12,7 +12,7 @@ function Component() {
 
   return (
     <PrefillTemplateStep
-      onBack={() => navigate({ to: "/admin" })}
+      onBack={() => navigate({ to: "/admin/policy_set" })}
       onNextNavigation={() =>
         navigate({ to: "/admin/new_policy_set/define_policy_set" })
       }

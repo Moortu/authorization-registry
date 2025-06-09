@@ -62,7 +62,7 @@ function Component() {
       onModalClose={() => navigate({ to: "/member" })}
       onEdit={(policyId: string) => {
         navigate({
-          to: "/member/policy_set/$policySetId/edit_policy/$policyId/step1",
+          to: "/member/policy_set/$policySetId/edit_policy/$policyId",
           params: {
             policyId: policyId,
             policySetId: params.policySetId,
