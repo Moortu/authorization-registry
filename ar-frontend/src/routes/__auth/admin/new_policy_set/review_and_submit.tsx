@@ -21,9 +21,7 @@ function Component() {
   return (
     <ReviewAndSubmitStep
       onNext={() =>
-        createPolicySet(value).then(() =>
-          navigate({ to: "/admin/new_policy_set" }),
-        )
+        createPolicySet(value).then(() => navigate({ to: "/admin/policy_set" }))
       }
       nextPending={isPending}
       onBack={() => navigate({ to: "/admin/new_policy_set/add_policies" })}

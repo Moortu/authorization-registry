@@ -24,7 +24,7 @@ export function FormField({
       {children}
 
       {errors.map((e, idx) => (
-        <FormHelperText key={idx}>{e}</FormHelperText>
+        <FormHelperText key={idx}>{e as string}</FormHelperText>
       ))}
     </FormControl>
   );
