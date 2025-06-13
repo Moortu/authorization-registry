@@ -69,6 +69,19 @@ function Component() {
             value={value.name}
           />
         </FormField>
+        <FormField label="Name" errors={[]}>
+          <Input
+            sx={(theme) => ({
+              "&.Mui-disabled": {
+                backgroundColor: "#F4F5F6",
+                color: "#212529",
+                borderColor: theme.vars.palette.neutral[200],
+              },
+            })}
+            disabled
+            value={value.description}
+          />
+        </FormField>
         <FormField label="Policy issuer" errors={[]}>
           <Input
             sx={(theme) => ({

@@ -21,6 +21,7 @@ function Component() {
       name: value.name,
       access_subject: value.access_subject,
       policy_issuer: value.policy_issuer,
+      description: value.description,
     },
     onSubmit: ({ value }) => {
       changeValue((oldValue) => ({ ...oldValue, ...value }));
@@ -43,6 +44,9 @@ function Component() {
       }}
     >
       <form
+        style={{
+          width: "100%",
+        }}
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -58,6 +62,17 @@ function Component() {
                 label="Policy template name"
                 errors={field.state.meta.errors}
               >
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+              </FormField>
+            )}
+          />
+          <form.Field
+            name="description"
+            children={(field) => (
+              <FormField label="Description" errors={field.state.meta.errors}>
                 <Input
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}

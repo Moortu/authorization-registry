@@ -17,6 +17,7 @@ import {
   stepIndicatorClasses,
   Stepper,
   StepProps,
+  Typography,
 } from "@mui/joy";
 import { LeftArrowIcon } from "@/icons/left-arrow-icons";
 import { ReactNode } from "@tanstack/react-router";
@@ -34,6 +35,7 @@ import { FormField } from "./form-field";
 import { PolicyCard } from "./policy-card";
 import { PolicyForm } from "./policy-form";
 import { ModalHeader } from "./modal-header";
+import { AttentionIcon } from "@/icons/attention-icon";
 
 export function StyledStep({ ...props }: {} & StepProps) {
   return (
@@ -275,6 +277,16 @@ export function PrefillTemplateStep({
     onNextNavigation();
   }
 
+  let description: string | undefined = undefined;
+
+  if (
+    template &&
+    template !== -1 &&
+    policySetTemplates?.[template]?.description
+  ) {
+    description = policySetTemplates?.[template]?.description;
+  }
+
   return (
     <div>
       <NewPolicySetModalWrapper
@@ -307,6 +319,16 @@ export function PrefillTemplateStep({
               ))}
               <Option value={-1}>Start from scratch</Option>
             </Select>
+            {description && (
+              <Box sx={{ maxWidth: 680 }}>
+                <Stack paddingLeft={2} spacing={2} direction="row">
+                  <Box>
+                    <AttentionIcon />
+                  </Box>
+                  <Typography>{description}</Typography>
+                </Stack>
+              </Box>
+            )}
           </Stack>
         </PageLoadingFallback>
       </NewPolicySetModalWrapper>

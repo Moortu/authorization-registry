@@ -16,7 +16,6 @@ export const Route = createFileRoute("/__auth/admin")({
 function Component() {
   const navigate = useNavigate();
   const location = useLocation();
-  console.log("location", location.pathname);
 
   return (
     <>

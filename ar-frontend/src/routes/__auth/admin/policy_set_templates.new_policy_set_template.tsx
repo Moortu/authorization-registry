@@ -26,6 +26,7 @@ function Component() {
 const defaultValue: CreatePolicySetTemplate = {
   access_subject: "",
   name: "",
+  description: "",
   policy_issuer: "",
   policies: [],
 };

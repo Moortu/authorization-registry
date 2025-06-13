@@ -74,22 +74,38 @@ function Component() {
             <Stack spacing={2} padding={2}>
               <Stack direction="row" spacing={2}>
                 <Box>
+                  <Caption>Name</Caption>
+                  <Subtitle2>{data?.name}</Subtitle2>
+                </Box>
+                <Box>
                   <Caption>Policy issuer</Caption>
-                  <Subtitle2>{data?.policy_issuer}</Subtitle2>
+                  <Subtitle2>
+                    {data?.policy_issuer ? data?.policy_issuer : "<empty>"}
+                  </Subtitle2>
                 </Box>
                 <Box>
                   <Caption>Access subject</Caption>
-                  <Subtitle2>{data?.access_subject}</Subtitle2>
+                  <Subtitle2>
+                    {data?.access_subject ? data?.access_subject : "<empty>"}
+                  </Subtitle2>
                 </Box>
               </Stack>
 
               <Box>
-                <Typography level="title-lg">Policies</Typography>
+                <Caption>Description</Caption>
+                <Typography>{data?.description}</Typography>
+              </Box>
+
+              <Box>
+                <Caption>Policies</Caption>
                 <Stack direction="row" spacing={1}>
                   {data?.policies.map((p, idx) => (
                     <PolicyCard policy={p} key={idx} />
                   ))}
                 </Stack>
+                {data?.policies && data?.policies.length === 0 && (
+                  <Subtitle2>{"<empty>"}</Subtitle2>
+                )}
               </Box>
             </Stack>
 
