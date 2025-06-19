@@ -2,6 +2,7 @@ pub use sea_orm_migration::prelude::*;
 
 mod m20220101_000001_create_table;
 mod m20250127_143038_policy_set_template;
+mod m20250619_124921_add_audit_log_table;
 
 pub struct Migrator;
 
@@ -11,6 +12,7 @@ impl MigratorTrait for Migrator {
         vec![
             Box::new(m20220101_000001_create_table::Migration),
             Box::new(m20250127_143038_policy_set_template::Migration),
+            Box::new(m20250619_124921_add_audit_log_table::Migration),
         ]
     }
 }
