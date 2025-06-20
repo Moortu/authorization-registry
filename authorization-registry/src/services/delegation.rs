@@ -164,9 +164,7 @@ pub fn get_delegation_evidence_policy_sets(
                 max_delegation_depth: 0,
                 policies,
                 target: PolicySetTarget {
-                    environment: PolicySetTargetEnvironment {
-                        licenses: vec![],
-                    },
+                    environment: PolicySetTargetEnvironment { licenses: vec![] },
                 },
             };
 
