@@ -8,3 +8,4 @@ pub mod ishare_user;
 pub mod policy;
 pub mod policy_set;
 pub mod policy_set_template;
+pub mod audit_event;
