@@ -473,7 +473,7 @@ export function useAdminCreatePolicySet() {
           target: {
             accessSubject: policySet.access_subject,
           },
-          licences: ["ISHARE.0001"],
+          licences: [],
           maxDelegationDepth: 1,
           policies: policySet.policies.map((p) => ({
             rules: p.rules,
@@ -515,7 +515,7 @@ export function useCreatePolicySet() {
           target: {
             accessSubject: policySet.access_subject,
           },
-          licences: ["ISHARE.0001"],
+          licences: [],
           maxDelegationDepth: 1,
           policies: policySet.policies.map((p) => ({
             rules: p.rules,

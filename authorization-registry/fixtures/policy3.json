@@ -23,7 +23,7 @@
   "attributes": ["item"],
   "policy_issuer": "COMPANY-ISSUER",
   "access_subject": "COMPANY-REQUESTER",
-  "licenses": ["ISHARE.0002"],
+  "licenses": [],
   "resource_type": "Resource",
   "actions": ["Read"]
 }

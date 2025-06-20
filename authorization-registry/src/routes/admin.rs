@@ -969,7 +969,7 @@ mod test {
                     "accessSubject": "sadfasdf"
                 },
                 "policyIssuer": "sss",
-                "licences": ["ISHARE.0001"],
+                "licences": [],
                 "maxDelegationDepth": 2
         }));
 

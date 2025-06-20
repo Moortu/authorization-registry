@@ -165,7 +165,7 @@ pub fn get_delegation_evidence_policy_sets(
                 policies,
                 target: PolicySetTarget {
                     environment: PolicySetTargetEnvironment {
-                        licenses: vec!["ISHARE.0001".to_owned()],
+                        licenses: vec![],
                     },
                 },
             };
@@ -664,7 +664,7 @@ mod tests {
     fn test_mask_matching_policy_sets_match() {
         let matching_policy_set_rows = vec![MatchingPolicySetRow {
             access_subject: "as".to_owned(),
-            licenses: vec!["ISHARE.001".to_owned()],
+            licenses: vec![],
             policy_set_id: Uuid::new_v4(),
             policy_issuer: "issuer".to_owned(),
             max_delegation_depth: 1,
@@ -708,7 +708,7 @@ mod tests {
     fn test_mask_matching_policy_sets_no_match() {
         let matching_policy_set_rows = vec![MatchingPolicySetRow {
             access_subject: "as".to_owned(),
-            licenses: vec!["ISHARE.001".to_owned()],
+            licenses: vec![],
             policy_set_id: Uuid::new_v4(),
             policy_issuer: "issuer".to_owned(),
             max_delegation_depth: 1,
@@ -752,7 +752,7 @@ mod tests {
     fn test_is_permit_permit() {
         let matching_policy_set_row = MatchingPolicySetRow {
             access_subject: "as".to_owned(),
-            licenses: vec!["ISHARE.001".to_owned()],
+            licenses: vec![],
             policy_set_id: Uuid::new_v4(),
             policy_issuer: "issuer".to_owned(),
             max_delegation_depth: 1,
@@ -794,7 +794,7 @@ mod tests {
     fn test_is_permit_deny() {
         let matching_policy_set_row = MatchingPolicySetRow {
             access_subject: "as".to_owned(),
-            licenses: vec!["ISHARE.001".to_owned()],
+            licenses: vec![],
             policy_set_id: Uuid::new_v4(),
             policy_issuer: "issuer".to_owned(),
             max_delegation_depth: 1,
@@ -845,7 +845,7 @@ mod tests {
     fn test_get_delegation_evidence_policy_sets() {
         let matching_policy_set_rows = vec![MatchingPolicySetRow {
             access_subject: "as".to_owned(),
-            licenses: vec!["ISHARE.001".to_owned()],
+            licenses: vec![],
             policy_set_id: Uuid::new_v4(),
             policy_issuer: "issuer".to_owned(),
             max_delegation_depth: 1,
@@ -908,7 +908,7 @@ mod tests {
     fn test_get_delegation_evidence_policy_sets_deny() {
         let matching_policy_set_rows = vec![MatchingPolicySetRow {
             access_subject: "as".to_owned(),
-            licenses: vec!["ISHARE.001".to_owned()],
+            licenses: vec![],
             policy_set_id: Uuid::new_v4(),
             policy_issuer: "issuer".to_owned(),
             max_delegation_depth: 1,
@@ -984,7 +984,7 @@ mod tests {
         let matching_policy_set_rows = vec![
             MatchingPolicySetRow {
                 access_subject: "as".to_owned(),
-                licenses: vec!["ISHARE.001".to_owned()],
+                licenses: vec![],
                 policy_set_id: Uuid::new_v4(),
                 policy_issuer: "issuer".to_owned(),
                 max_delegation_depth: 1,
@@ -1000,7 +1000,7 @@ mod tests {
             },
             MatchingPolicySetRow {
                 access_subject: "as".to_owned(),
-                licenses: vec!["ISHARE.001".to_owned()],
+                licenses: vec![],
                 policy_set_id: Uuid::new_v4(),
                 policy_issuer: "issuer".to_owned(),
                 max_delegation_depth: 1,

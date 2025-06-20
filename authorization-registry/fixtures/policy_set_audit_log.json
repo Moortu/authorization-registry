@@ -3,7 +3,7 @@
     "policy_issuer": "NL.CONSUME_TOO_MUCH",
     "access_subject": "NL.44444",
     "id": "87fe1aaf-2aa9-47a7-b014-b44b3a8dd8d7",
-    "licenses": ["ISHARE.0001"],
+    "licenses": [],
     "max_delegation_depth": 2
   },
   "policies": [
