@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::{AppError, ErrorResponse, ExpectedError};
 use crate::middleware::extract_role_middleware;
+use crate::services::audit_log::log_event;
 use crate::services::delegation as delegation_service;
 use crate::services::server_token::{Role, ServerToken};
 use crate::AppState;
@@ -114,6 +115,18 @@ async fn post_delegation(
     }
 
     let now = app_state.time_provider.now();
+
+    log_event(
+        now,
+        crate::services::audit_log::EventType::DmiDelegationRequest(
+            body.delegation_request.clone(),
+        ),
+        None,
+        None,
+        &db,
+    )
+    .await?;
+
     if !crate::services::delegation::check_delegation_access(
         now,
         &role.get_company_id(),

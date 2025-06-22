@@ -1,0 +1,25 @@
+{
+  "policy_set": {
+    "policy_issuer": "NL.CONSUME_TOO_MUCH",
+    "access_subject": "NL.44444",
+    "id": "87fe1aaf-2aa9-47a7-b014-b44b3a8dd8d7",
+    "licenses": [],
+    "max_delegation_depth": 2
+  },
+  "policies": [
+    {
+      "id": "aa743f4e-1cb9-4d29-88bb-1df89c4c509c",
+      "policy_set": "87fe1aaf-2aa9-47a7-b014-b44b3a8dd8d7",
+      "resource_type": "AuditLog",
+      "identifiers": ["*"],
+      "attributes": ["*"],
+      "actions": ["Read"],
+      "service_providers": ["NL.CONSUME_TOO_MUCH"],
+      "rules": [
+        {
+          "effect": "Permit"
+        }
+      ]
+    }
+  ]
+}

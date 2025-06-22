@@ -564,7 +564,7 @@ mod test {
                     "accessSubject": "sadfasdf"
                 },
                 "policyIssuer": "nice-company",
-                "licences": ["ISHARE.0001"],
+                "licences": [],
                 "maxDelegationDepth": 2
         }));
 
@@ -651,7 +651,7 @@ mod test {
                     "accessSubject": "sadfasdf"
                 },
                 "policyIssuer": "nice-company2",
-                "licences": ["ISHARE.0001"],
+                "licences": [],
                 "maxDelegationDepth": 2
         }));
 
@@ -740,7 +740,7 @@ mod test {
                     "accessSubject": "sadfasdf"
                 },
                 "policyIssuer": "NL.24244",
-                "licences": ["ISHARE.0001"],
+                "licences": [],
                 "maxDelegationDepth": 2
         }));
 
