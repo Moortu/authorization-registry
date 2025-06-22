@@ -725,7 +725,7 @@ mod test {
                 "accessSubject": "NL.24244",
             },
             "policyIssuer": "NL.44444",
-            "licences": ["ISHARE.0001"],
+            "licences": [],
             "maxDelegationDepth": 2,
             "policies": [
                 {

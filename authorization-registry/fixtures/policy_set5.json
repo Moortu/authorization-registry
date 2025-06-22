@@ -3,7 +3,7 @@
     "policy_issuer": "NL.44444",
     "access_subject": "NL.24244",
     "id": "ff044535-bcac-448e-8863-49c916650e3a",
-    "licenses": ["ISHARE.0001"],
+    "licenses": [],
     "max_delegation_depth": 0
   },
   "policies": [
