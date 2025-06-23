@@ -112,7 +112,7 @@ function Component() {
 
         <Box>
           <FormLabel>Policies</FormLabel>
-          <Stack direction="row" spacing={1} paddingBottom={2}>
+          <Box flexWrap="wrap" display="flex" gap={1} paddingBottom={2}>
             {value.policies.map((p, idx) => (
               <Box
                 key={idx}
@@ -126,7 +126,7 @@ function Component() {
                 <PolicyCard detailed policy={p} />
               </Box>
             ))}
-          </Stack>
+          </Box>
         </Box>
       </Stack>
     </NewPolicySetTemplateModalWrapper>

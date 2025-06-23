@@ -166,11 +166,11 @@ export function PolicySetDetail({
                     </Stack>
                     <Box paddingTop={2}>
                       <Caption>Policies</Caption>
-                      <Stack
-                        spacing={1}
-                        direction="row"
+                      <Box
                         flexWrap="wrap"
-                        useFlexGap
+                        display="flex"
+                        gap={1}
+                        paddingBottom={2}
                       >
                         {policySet.policies.map((p) => (
                           <PolicyCard
@@ -196,7 +196,7 @@ export function PolicySetDetail({
                             }
                           />
                         ))}
-                      </Stack>
+                      </Box>
                       <Box paddingTop={1}>
                         <Button variant="soft" onClick={onAddPolicy}>
                           Add policy

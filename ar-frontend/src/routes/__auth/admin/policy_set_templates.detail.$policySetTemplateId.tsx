@@ -98,11 +98,21 @@ function Component() {
 
               <Box>
                 <Caption>Policies</Caption>
-                <Stack direction="row" spacing={1}>
+                <Box flexWrap="wrap" display="flex" gap={1} paddingBottom={2}>
                   {data?.policies.map((p, idx) => (
-                    <PolicyCard policy={p} key={idx} />
+                    <Box
+                      key={idx}
+                      width={{
+                        xs: "100%",
+                        sm: "47%",
+                        md: "32%",
+                      }}
+                      height="100%"
+                    >
+                      <PolicyCard policy={p} />
+                    </Box>
                   ))}
-                </Stack>
+                </Box>
                 {data?.policies && data?.policies.length === 0 && (
                   <Subtitle2>{"<empty>"}</Subtitle2>
                 )}
