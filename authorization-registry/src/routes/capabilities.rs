@@ -44,6 +44,13 @@ pub fn create_capabilities(party_id: &str, api_url: &str, show_private: bool) ->
             description: "retrieve capabilities".to_owned(),
             token_endpoint: Some(format!("{}/connect/machine/token", api_url)),
         },
+        SupportedFeature {
+            id: "igds-auditlog".to_owned(),
+            feature: "igds-auditlog".to_owned(),
+            token_endpoint: Some(format!("{}/connect/machine/token", api_url)),
+            url: format!("{}/audit-log", api_url),
+            description: "InformationGrid DataSharing auditlog".to_string(),
+        },
     ])];
 
     if show_private {
