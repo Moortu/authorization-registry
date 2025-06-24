@@ -30,7 +30,7 @@ function Component() {
     deletePolicySet().then(() => {
       navigate({
         replace: true,
-        to: "/admin",
+        to: "/admin/policy_set",
       });
     });
   }

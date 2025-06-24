@@ -10,26 +10,26 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { useDebounce } from "@uidotdev/usehooks";
-import { z } from "zod";
-
-const searchSchema = z.object({
-  access_subject: z.string().optional(),
-  policy_issuer: z.string().optional(),
-});
+import { useState } from "react";
 
 export const Route = createFileRoute("/__auth/admin/policy_set")({
   component: Component,
-  validateSearch: searchSchema,
 });
 
 function Component() {
-  const search = Route.useSearch();
-  const accessSubject = useDebounce(search.access_subject, 300);
-  const policyIssuer = useDebounce(search.policy_issuer, 300);
+  const [accessSubject, setAccessSubject] = useState<string | undefined>(
+    undefined,
+  );
+  const [policyIssuer, setPolicyIssuer] = useState<string | undefined>(
+    undefined,
+  );
+
+  const deboundedAccessSubject = useDebounce(accessSubject, 300);
+  const debouncedPolicyIssuer = useDebounce(policyIssuer, 300);
   const navigate = useNavigate();
   const { data: policySets, isLoading } = useAdminPolicySets({
-    accessSubject,
-    policyIssuer,
+    accessSubject: deboundedAccessSubject,
+    policyIssuer: debouncedPolicyIssuer,
   });
 
   return (
@@ -50,32 +50,18 @@ function Component() {
           <FormLabel>Policy issuer</FormLabel>
           <Input
             size="sm"
-            defaultValue={search.policy_issuer || ""}
-            onChange={(e) =>
-              navigate({
-                to: "/admin/policy_set",
-                search: {
-                  ...search,
-                  policy_issuer: e.target.value,
-                },
-              })
-            }
+            value={policyIssuer}
+            onChange={(e) => {
+              setPolicyIssuer(e.target.value);
+            }}
           />
         </Box>
         <Box sx={{ width: 180 }}>
           <FormLabel>Access subject</FormLabel>
           <Input
             size="sm"
-            defaultValue={search.access_subject || ""}
-            onChange={(e) =>
-              navigate({
-                to: "/admin/policy_set",
-                search: {
-                  ...search,
-                  access_subject: e.target.value,
-                },
-              })
-            }
+            value={accessSubject}
+            onChange={(e) => setAccessSubject(e.target.value)}
           />
         </Box>
         <Box></Box>

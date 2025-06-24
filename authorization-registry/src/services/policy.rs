@@ -106,7 +106,7 @@ pub async fn insert_policy_set_with_policies(
         }));
     }
 
-    let policy_set_id = policy_store::insert_policy_set_with_policies(args, db)
+    let policy_set_id = policy_store::insert_policy_set_with_policies(now, args, db)
         .await
         .context("Error inserting policy set with policies")?;
 
@@ -121,7 +121,7 @@ pub async fn insert_policy_set_with_policies_admin(
 ) -> Result<Uuid, AppError> {
     validate_policy_set_ishare_parties(now, args, ishare).await?;
 
-    let policy_set_id = policy_store::insert_policy_set_with_policies(args, db)
+    let policy_set_id = policy_store::insert_policy_set_with_policies(now, args, db)
         .await
         .context("Error inserting policy set with policies")?;
 
@@ -749,7 +749,7 @@ mod test {
             ]
         }))
         .unwrap();
-        policy_store::insert_policy_set_with_policies(&policy_set, &db)
+        policy_store::insert_policy_set_with_policies(chrono::Utc::now(), &policy_set, &db)
             .await
             .unwrap();
 

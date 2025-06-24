@@ -1,5 +1,6 @@
 use anyhow::{bail, Context};
 use ar_entity::delegation_evidence::{Policy, ResourceRule};
+use chrono::Utc;
 use sea_orm::{self, ConnectionTrait, QueryFilter, TransactionTrait};
 use sea_orm::{
     entity::*, DatabaseConnection, EntityTrait, FromJsonQueryResult, FromQueryResult, JsonValue,
@@ -154,6 +155,9 @@ pub async fn get_policy_sets_with_policies(
         {}
         group by
             ps.id
+        order by
+            ps.created
+            desc
     "#,
         condition
     );
@@ -328,6 +332,7 @@ pub struct AccessSubjectTarget {
 }
 
 pub async fn insert_policy_set<C: ConnectionTrait>(
+    now: chrono::DateTime<Utc>,
     target: &AccessSubjectTarget,
     policy_issuer: &str,
     licences: &Vec<String>,
@@ -342,6 +347,7 @@ pub async fn insert_policy_set<C: ConnectionTrait>(
         access_subject: sea_orm::ActiveValue::set(target.access_subject.clone()),
         policy_issuer: sea_orm::ActiveValue::set(policy_issuer.to_owned()),
         max_delegation_depth: sea_orm::ActiveValue::set(max_delegation_depth.to_owned()),
+        created: sea_orm::ActiveValue::set(now),
     };
 
     let policy_set_id = ar_entity::policy_set::Entity::insert(active_policy_set)
@@ -495,12 +501,14 @@ pub struct InsertPolicySetWithPolicies {
 }
 
 pub async fn insert_policy_set_with_policies(
+    now: chrono::DateTime<Utc>,
     args: &InsertPolicySetWithPolicies,
     db: &DatabaseConnection,
 ) -> anyhow::Result<Uuid> {
     let transaction = db.begin().await.context("Error opening db transaction")?;
 
     let policy_set_id = insert_policy_set(
+        now,
         &args.target,
         &args.policy_issuer,
         &args.licences,
