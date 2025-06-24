@@ -90,9 +90,13 @@ export function usePolicySet({ policySetId }: { policySetId: string }) {
 export function useAdminPolicySets({
   accessSubject,
   policyIssuer,
+  skip,
+  limit,
 }: {
   accessSubject?: string;
   policyIssuer?: string;
+  skip?: string;
+  limit?: string;
 }) {
   const search = new URLSearchParams();
   const authenticatedFetch = useAuthenticatedFetch();
@@ -103,6 +107,14 @@ export function useAdminPolicySets({
 
   if (policyIssuer) {
     search.append("policy_issuer", policyIssuer);
+  }
+
+  if (skip) {
+    search.append("skip", skip);
+  }
+
+  if (limit) {
+    search.append("limit", limit);
   }
 
   return useQuery({
