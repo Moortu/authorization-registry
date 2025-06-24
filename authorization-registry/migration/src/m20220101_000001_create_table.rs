@@ -22,7 +22,7 @@ enum IshareUser {
 }
 
 #[derive(DeriveIden)]
-enum PolicySet {
+pub enum PolicySet {
     Table,
     Id,
     Licenses,

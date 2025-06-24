@@ -3,6 +3,10 @@
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
+fn default_created() -> DateTimeUtc {
+    chrono::Utc::now()
+}
+
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "policy_set")]
 pub struct Model {
@@ -14,6 +18,9 @@ pub struct Model {
     pub id: Uuid,
     pub licenses: Vec<String>,
     pub max_delegation_depth: i32,
+    #[sea_orm(default_value = "now()")]
+    #[serde(default = "default_created")]
+    pub created: DateTimeUtc,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
