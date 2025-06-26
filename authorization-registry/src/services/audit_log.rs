@@ -83,6 +83,7 @@ pub async fn log_event<T: ConnectionTrait>(
 pub struct AuditEventWithIssAndSub {
     pub id: Uuid,
     pub timestamp: DateTime<Utc>,
+    #[serde(rename = "type")]
     pub event_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
