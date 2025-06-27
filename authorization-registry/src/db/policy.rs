@@ -152,7 +152,7 @@ pub async fn get_total_number_of_policy_sets(
     let result = Count::find_by_statement(stmt)
         .one(db)
         .await
-        .context("blabla")?
+        .context("Error fetching number of policy sets")?
         .expect("At least one row with the count");
 
     Ok(result.count)
