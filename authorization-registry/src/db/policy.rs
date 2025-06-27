@@ -1,5 +1,6 @@
 use anyhow::{bail, Context};
 use ar_entity::delegation_evidence::{Policy, ResourceRule};
+use chrono::Utc;
 use sea_orm::{self, ConnectionTrait, QueryFilter, TransactionTrait};
 use sea_orm::{
     entity::*, DatabaseConnection, EntityTrait, FromJsonQueryResult, FromQueryResult, JsonValue,
@@ -108,13 +109,11 @@ struct Count {
     count: i64,
 }
 
-pub async fn get_policy_sets_with_policies(
+pub async fn get_total_number_of_policy_sets(
     access_subject: Option<String>,
     policy_issuer: Option<String>,
-    skip: Option<u32>,
-    limit: Option<u32>,
     db: &DatabaseConnection,
-) -> anyhow::Result<PolicySetsWithPagination> {
+) -> anyhow::Result<i64> {
     let mut conditions = Vec::new();
     let mut values: Vec<Value> = Vec::new();
 
@@ -126,6 +125,57 @@ pub async fn get_policy_sets_with_policies(
     if let Some(policy_issuer) = policy_issuer {
         conditions.push(format!("policy_issuer like ${}", values.len() + 1));
         values.push(format!("%{}%", &policy_issuer).into());
+    }
+
+    let condition = if conditions.len() > 0 {
+        let joined_conditions: String = conditions.join(" and ");
+        format!("where ({joined_conditions})")
+    } else {
+        "".to_owned()
+    };
+
+    let sql = format!(
+        r#"
+        SELECT
+            COUNT(*) as count
+        FROM
+            policy_set ps
+        {}
+        "#,
+        condition
+    );
+
+    tracing::info!("condition: {} {:?}", condition, values);
+
+    let stmt = Statement::from_sql_and_values(sea_orm::DatabaseBackend::Postgres, sql, values);
+
+    let result = Count::find_by_statement(stmt)
+        .one(db)
+        .await
+        .context("blabla")?
+        .expect("At least one row with the count");
+
+    Ok(result.count)
+}
+
+pub async fn get_policy_sets_with_policies(
+    access_subject: Option<String>,
+    policy_issuer: Option<String>,
+    skip: Option<u32>,
+    limit: Option<u32>,
+    db: &DatabaseConnection,
+) -> anyhow::Result<PolicySetsWithPagination> {
+    let mut conditions = Vec::new();
+    let mut values: Vec<Value> = Vec::new();
+
+    if let Some(access_subject) = &access_subject {
+        conditions.push(format!("access_subject like ${}", values.len() + 1));
+        values.push(format!("%{}%", access_subject).into());
+    }
+
+    if let Some(policy_issuer) = &policy_issuer {
+        conditions.push(format!("policy_issuer like ${}", values.len() + 1));
+        values.push(format!("%{}%", policy_issuer).into());
     }
 
     let condition = if conditions.len() > 0 {
@@ -186,6 +236,9 @@ pub async fn get_policy_sets_with_policies(
         {}
         group by
             ps.id
+        order by
+            ps.created
+            desc
         {}
     "#,
         condition, pagination,
@@ -207,30 +260,13 @@ pub async fn get_policy_sets_with_policies(
     let policy_sets = policy_sets_parse_result
         .context("Error parsing policy sets 'QueryResult' into 'MatchingPolicySetRow'")?;
 
-    let sql = format!(
-        r#"
-        SELECT
-            COUNT(*) as count
-        FROM
-            policy_set ps
-        {}
-        "#,
-        condition
-    );
-
-    let stmt = Statement::from_sql_and_values(sea_orm::DatabaseBackend::Postgres, sql, values);
-
-    let result = Count::find_by_statement(stmt)
-        .one(db)
+    let total_count = get_total_number_of_policy_sets(access_subject, policy_issuer, db)
         .await
-        .context("blabla")?
-        .expect("At least one row with the count");
+        .context("Error getting total number of policy sets")?;
 
     Ok(PolicySetsWithPagination {
         data: policy_sets,
-        pagination: Pagination {
-            total_count: result.count,
-        },
+        pagination: Pagination { total_count },
     })
 }
 
@@ -386,6 +422,7 @@ pub struct AccessSubjectTarget {
 }
 
 pub async fn insert_policy_set<C: ConnectionTrait>(
+    now: chrono::DateTime<Utc>,
     target: &AccessSubjectTarget,
     policy_issuer: &str,
     licences: &Vec<String>,
@@ -400,6 +437,7 @@ pub async fn insert_policy_set<C: ConnectionTrait>(
         access_subject: sea_orm::ActiveValue::set(target.access_subject.clone()),
         policy_issuer: sea_orm::ActiveValue::set(policy_issuer.to_owned()),
         max_delegation_depth: sea_orm::ActiveValue::set(max_delegation_depth.to_owned()),
+        created: sea_orm::ActiveValue::set(now),
     };
 
     let policy_set_id = ar_entity::policy_set::Entity::insert(active_policy_set)
@@ -553,12 +591,14 @@ pub struct InsertPolicySetWithPolicies {
 }
 
 pub async fn insert_policy_set_with_policies(
+    now: chrono::DateTime<Utc>,
     args: &InsertPolicySetWithPolicies,
     db: &DatabaseConnection,
 ) -> anyhow::Result<Uuid> {
     let transaction = db.begin().await.context("Error opening db transaction")?;
 
     let policy_set_id = insert_policy_set(
+        now,
         &args.target,
         &args.policy_issuer,
         &args.licences,

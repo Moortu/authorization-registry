@@ -9,6 +9,7 @@ import "@fontsource-variable/inter";
 import { CssVarsProvider, extendTheme } from "@mui/joy";
 
 import { routeTree } from "./routeTree.gen";
+import { ThemeProvider, CssBaseline, createTheme } from "@mui/material";
 import { AuthProvider } from "./auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -244,13 +245,15 @@ const theme = extendTheme({
 
 function WrappedApp() {
   return (
-    <CssVarsProvider theme={theme}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <RouterProvider router={router} />
-        </AuthProvider>
-      </QueryClientProvider>
-    </CssVarsProvider>
+    <ThemeProvider theme={createTheme()}>
+      <CssVarsProvider theme={theme}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <RouterProvider router={router} />
+          </AuthProvider>
+        </QueryClientProvider>
+      </CssVarsProvider>
+    </ThemeProvider>
   );
 }
 

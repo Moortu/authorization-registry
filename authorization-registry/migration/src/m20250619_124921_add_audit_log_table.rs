@@ -17,7 +17,11 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(AuditEvent::Timestamp).timestamp_with_time_zone().not_null())
+                    .col(
+                        ColumnDef::new(AuditEvent::Timestamp)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
                     .col(ColumnDef::new(AuditEvent::EventType).text().not_null())
                     .col(ColumnDef::new(AuditEvent::Source).text())
                     .col(ColumnDef::new(AuditEvent::Context).json())

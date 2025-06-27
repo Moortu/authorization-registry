@@ -878,7 +878,7 @@ mod test {
     }
 
     #[sqlx::test]
-    async fn test_get_policy_sets_skip_limit(
+    async fn test_get_policy_sets_skip(
         _pool_options: PgPoolOptions,
         conn_option: PgConnectOptions,
     ) -> sqlx::Result<()> {
@@ -897,6 +897,50 @@ mod test {
             .oneshot(
                 Request::builder()
                     .uri("/admin/policy-set?skip=3")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body: PolicySetsWithPagination = serde_json::from_str(
+            std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
+        )
+        .unwrap();
+
+        assert_eq!(body.data.len(), 2);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_get_policy_sets_skip_limit(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set2.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set3.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set4.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set5.json", &db).await;
+
+        let _policy_set4 = load_policy_set_fixture("./fixtures/policy_set4.json");
+
+        let app = get_test_app(db);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set?skip=2&limit=2")
                     .method("GET")
                     .header(
                         AUTHORIZATION,
