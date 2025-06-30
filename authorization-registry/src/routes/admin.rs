@@ -554,6 +554,7 @@ async fn insert_policy_set(
 struct GetPolicySetsQuery {
     access_subject: Option<String>,
     policy_issuer: Option<String>,
+    q: Option<String>,
     limit: Option<u32>,
     skip: Option<u32>,
 }
@@ -567,7 +568,8 @@ struct GetPolicySetsQuery {
         ("access_subject" = Option<String>, Query, description = "Filter by access subject"),
         ("policy_issuer" = Option<String>, Query, description = "Filter by policy issuer"),
         ("limit" = Option<u32>, Query, description = "Limit the number of results for pagination"),
-        ("skip" = Option<u32>, Query, description = "Skip a number of results for pagination")
+        ("skip" = Option<u32>, Query, description = "Skip a number of results for pagination"),
+        ("q" = Option<String>, Query, description = "Filter on any match in the policy set"),
     ),
     security(
         ("h2m_bearer_admin" = [])
@@ -594,6 +596,7 @@ async fn get_all_policy_sets(
     let policy_sets = policy_store::get_policy_sets_with_policies(
         query.access_subject,
         query.policy_issuer,
+        query.q,
         query.skip,
         query.limit,
         &db,
@@ -607,7 +610,7 @@ async fn get_all_policy_sets(
 #[cfg(test)]
 mod test {
     use crate::{
-        db::policy::{MatchingPolicySetRow, PolicySetsWithPagination},
+        db::policy::PolicySetsWithPagination,
         fixtures::fixtures::{insert_policy_set_fixture, load_policy_set_fixture},
         routes::admin::InsertPolicySetTemplateResponse,
         services::server_token,
@@ -1003,6 +1006,261 @@ mod test {
         .unwrap();
 
         assert_eq!(body.data.len(), 4);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_get_policy_sets_query_as(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set2.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set3.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set5.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set7.json", &db).await;
+
+        let app = get_test_app(db);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set?q=NL.CONSUME")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body: PolicySetsWithPagination = serde_json::from_str(
+            std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
+        )
+        .unwrap();
+
+        assert_eq!(body.data.len(), 1);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_get_policy_sets_query_pi(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set2.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set3.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set5.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set6.json", &db).await;
+
+        let app = get_test_app(db);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set?q=NL.CONSUME")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body: PolicySetsWithPagination = serde_json::from_str(
+            std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
+        )
+        .unwrap();
+
+        assert_eq!(body.data.len(), 1);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_get_policy_sets_filter_resource_type(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set2.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set3.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set5.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set6.json", &db).await;
+
+        let app = get_test_app(db);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set?q=Amazinggg")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body: PolicySetsWithPagination = serde_json::from_str(
+            std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
+        )
+        .unwrap();
+
+        assert_eq!(body.data.len(), 1);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_get_policy_sets_filter_identifier(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set2.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set3.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set4.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set5.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set6.json", &db).await;
+
+        let app = get_test_app(db);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set?q=CrazyID")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body: PolicySetsWithPagination = serde_json::from_str(
+            std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
+        )
+        .unwrap();
+
+        assert_eq!(body.data.len(), 1);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_get_policy_sets_filter_att(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set2.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set3.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set4.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set5.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set6.json", &db).await;
+
+        let app = get_test_app(db);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set?q=CrazyATT")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body: PolicySetsWithPagination = serde_json::from_str(
+            std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
+        )
+        .unwrap();
+
+        assert_eq!(body.data.len(), 1);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_get_policy_sets_filter_sp(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set2.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set3.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set4.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set5.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set6.json", &db).await;
+
+        let app = get_test_app(db);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set?q=CrazyATT")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(None, None),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body: PolicySetsWithPagination = serde_json::from_str(
+            std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
+        )
+        .unwrap();
+
+        assert_eq!(body.data.len(), 1);
 
         Ok(())
     }

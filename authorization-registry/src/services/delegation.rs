@@ -256,6 +256,7 @@ pub async fn create_delegation_evidence(
         Some(delegation_request.policy_issuer.to_owned()),
         None,
         None,
+        None,
         &db,
     )
     .await
