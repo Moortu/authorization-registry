@@ -5,14 +5,12 @@ use axum::{
     routing::get,
     Json, Router,
 };
+use ishare::ishare::{Capabilities, CapabilitiesInfo, SupportedFeature, SupportedFeatures, SupportedVersion};
 use reqwest::StatusCode;
 use serde::Serialize;
 
 use crate::{
     error::{AppError, ExpectedError},
-    services::ishare_provider::{
-        Capabilities, CapabilitiesInfo, SupportedFeature, SupportedFeatures, SupportedVersion,
-    },
     AppState,
 };
 use utoipa::ToSchema;
@@ -54,7 +52,7 @@ pub fn create_capabilities(party_id: &str, api_url: &str, show_private: bool) ->
     ])];
 
     if show_private {
-        supported_features.push(SupportedFeatures::Private(vec![SupportedFeature {
+        supported_features.push(SupportedFeatures::Restricted(vec![SupportedFeature {
             id: "aaf5162b-82f2-4bf2-9eaa-e01b380e7ec3".to_owned(),
             url: format!("{}{}", api_url, "/delegation"),
             feature: "iSHARE delegation request".to_owned(),

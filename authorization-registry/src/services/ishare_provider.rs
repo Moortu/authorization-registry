@@ -1,12 +1,12 @@
 use anyhow::Context;
 use reqwest::StatusCode;
 use sea_orm::DatabaseConnection;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use axum::async_trait;
 use ishare::{
     delegation_evidence::DelegationEvidenceContainer,
-    ishare::{PartyInfo, ValidatePartyError, ISHARE},
+    ishare::{Capabilities, PartyInfo, ValidatePartyError, ISHARE},
 };
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -32,41 +32,6 @@ struct IdTokenClaims {
     pub email: String,
     pub first_name: String,
     pub last_name: String,
-}
-
-#[derive(Serialize)]
-pub struct SupportedVersion {
-    pub version: String,
-    pub supported_features: Vec<SupportedFeatures>,
-}
-
-#[derive(Serialize)]
-pub struct SupportedFeature {
-    pub id: String,
-    pub feature: String,
-    pub description: String,
-    pub url: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub token_endpoint: Option<String>,
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum SupportedFeatures {
-    Public(Vec<SupportedFeature>),
-    Private(Vec<SupportedFeature>),
-}
-
-#[derive(Serialize)]
-pub struct CapabilitiesInfo {
-    pub party_id: String,
-    pub ishare_roles: Vec<String>,
-    pub supported_versions: Vec<SupportedVersion>,
-}
-
-#[derive(Serialize)]
-pub struct Capabilities {
-    pub capabilities_info: CapabilitiesInfo,
 }
 
 #[async_trait]
@@ -303,7 +268,7 @@ impl SatelliteProvider for ISHAREProvider {
 
         let decoded_id_token = self
             .ishare
-            .decode_token_custom_claims::<IdTokenClaims>(&response.id_token)
+            .decode_token_custom_claims::<IdTokenClaims>(&response.id_token, None)
             .context("Error decoding id_token")?;
 
         let company_id = company_store::insert_if_not_exists(
