@@ -1,3 +1,4 @@
+use crate::config::FrontendConfig;
 use crate::routes::audit_log::get_audit_log_routes;
 use crate::services::idp_connector::IdpConnector;
 use crate::services::ishare_provider::{ISHAREProvider, SatelliteProvider};
@@ -136,6 +137,7 @@ pub struct AppConfig {
     pub client_eori: String,
     pub validate_m2m_certificate: bool,
     pub delegation_allows_service_providers: bool,
+    pub frontend: FrontendConfig,
 }
 
 #[derive(Clone)]
@@ -170,6 +172,8 @@ pub fn get_app(db: DatabaseConnection, app_state: AppState, disable_cors_check: 
     let capabilities_routes = get_capabilities_routes();
     let policy_set_template_routes = get_policy_set_template_routes(app_state.server_token.clone());
     let audit_log_routes = get_audit_log_routes(app_state.server_token.clone());
+    let config_routes = routes::config::get_config_routes(app_state.server_token.clone());
+
 
     let app = Router::new()
         .nest("/connect", connect_routes)
@@ -179,6 +183,8 @@ pub fn get_app(db: DatabaseConnection, app_state: AppState, disable_cors_check: 
         .nest("/capabilities", capabilities_routes)
         .nest("/policy-set-template", policy_set_template_routes)
         .nest("/audit-log", audit_log_routes)
+        .nest("/config", config_routes)
+
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &axum::http::Request<_>| {
@@ -255,6 +261,7 @@ async fn main() {
             client_eori: config.client_eori.clone(),
             validate_m2m_certificate: config.validate_m2m_certificate,
             delegation_allows_service_providers: config.delegation_allows_service_providers,
+            frontend: config.frontend,
         }),
     };
 
