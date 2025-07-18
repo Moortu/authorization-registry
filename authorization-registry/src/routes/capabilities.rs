@@ -5,7 +5,9 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use ishare::ishare::{Capabilities, CapabilitiesInfo, SupportedFeature, SupportedFeatures, SupportedVersion};
+use ishare::ishare::{
+    Capabilities, CapabilitiesInfo, SupportedFeature, SupportedFeatures, SupportedVersion,
+};
 use reqwest::StatusCode;
 use serde::Serialize;
 
