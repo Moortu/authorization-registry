@@ -174,7 +174,6 @@ pub fn get_app(db: DatabaseConnection, app_state: AppState, disable_cors_check: 
     let audit_log_routes = get_audit_log_routes(app_state.server_token.clone());
     let config_routes = routes::config::get_config_routes(app_state.server_token.clone());
 
-
     let app = Router::new()
         .nest("/connect", connect_routes)
         .nest("/admin", admin_routes)
@@ -184,7 +183,6 @@ pub fn get_app(db: DatabaseConnection, app_state: AppState, disable_cors_check: 
         .nest("/policy-set-template", policy_set_template_routes)
         .nest("/audit-log", audit_log_routes)
         .nest("/config", config_routes)
-
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &axum::http::Request<_>| {

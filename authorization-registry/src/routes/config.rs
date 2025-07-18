@@ -1,7 +1,8 @@
 use axum::{extract::State, middleware::from_fn_with_state, routing::get, Json, Router};
 
 use crate::{
-    config::FrontendConfig, middleware::extract_role_middleware, services::server_token::ServerToken, AppState
+    config::FrontendConfig, middleware::extract_role_middleware,
+    services::server_token::ServerToken, AppState,
 };
 
 pub fn get_config_routes(server_token: std::sync::Arc<ServerToken>) -> Router<AppState> {
