@@ -7,7 +7,7 @@ const configSchema = z.object({
     navigation: z.object({
       passport: z.string(),
       catalogue: z.string(),
-      authorization_registry: z.string(),
+      clearing: z.string(),
       datastation: z.string(),
     }),
     general: z.object({
