@@ -84,7 +84,7 @@ export function Footer() {
               <a href={config.footer.navigation.catalogue}>
                 <NavigationLink>Data catalogue</NavigationLink>
               </a>
-              <a href={config.footer.navigation.authorization_registry}>
+              <a href={config.footer.navigation.clearing}>
                 <NavigationLink>Clearing</NavigationLink>
               </a>
               <a href={config.footer.navigation.datastation}>
