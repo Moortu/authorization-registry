@@ -10,6 +10,10 @@ pub mod helpers {
     use sqlx::{postgres::PgConnectOptions, ConnectOptions};
     use std::sync::Arc;
 
+    use crate::config::{
+        AddressConfig, ContactConfig, FooterConfig, FrontendConfig, GeneralConfig,
+        NavigationConfig, SocialsConfig,
+    };
     use crate::error::AppError;
     use crate::get_app;
     use crate::services::ishare_provider::SatelliteProvider;
@@ -65,6 +69,35 @@ pub mod helpers {
                 client_eori: "NL.CONSUME_TOO_MUCH".to_owned(),
                 validate_m2m_certificate: true,
                 delegation_allows_service_providers: false,
+                frontend: FrontendConfig {
+                    footer: FooterConfig {
+                        navigation: NavigationConfig {
+                            passport: "".to_owned(),
+                            catalogue: "".to_owned(),
+                            authorization_registry: "".to_owned(),
+                            datastation: "".to_owned(),
+                        },
+                        contact: ContactConfig {
+                            address: AddressConfig {
+                                name: "".to_owned(),
+                                address_content: vec![],
+                            },
+                            email: "".to_owned(),
+                            tax_number: "".to_owned(),
+                            phone_number: "".to_owned(),
+                        },
+                        general: GeneralConfig {
+                            become_member: "".to_owned(),
+                            faq: "".to_owned(),
+                            about: "".to_owned(),
+                            support: "".to_owned(),
+                        },
+                        socials: SocialsConfig {
+                            linkedin: "".to_owned(),
+                            x: "".to_owned(),
+                        },
+                    },
+                },
             }),
         };
         let app = get_app(db, app_state, true);

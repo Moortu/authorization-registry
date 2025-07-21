@@ -90,7 +90,8 @@ sea-orm-cli migrate up
   "ishare_ca_path": "$ISHARE_CERTIFICATE_CHAIN",
   "idp_url": "$IDP_URL",
   "idp_eori": "$IDP_EORI",
-  "deploy_route": ""
+  "deploy_route": "",
+  "frontend": "$FRONTEND" 
 }
 ```
 
@@ -108,6 +109,44 @@ Here's a comprehensive table outlining each variable, its description, and an ex
 | $ISHARE_CERTIFICATE_CHAIN | File path to the iSHARE certificate chain in pem format | `/etc/ishare/certs/chain.pem` |
 | $IDP_URL | URL of the Identity Provider service | `https://idp.isharetest.net` |
 | $IDP_EORI | EORI number of the Identity Provider | `EU.EORI.NL000000003` |
+| $FRONTEND | Frontend configuration to configure parts of the frontend: e.g. the footer. | [see below](#frontend-example) |
+
+#### $FRONTEND example
+ ```json
+ {
+    "footer": {
+      "navigation": {
+        "passport": "http://passport.com",
+        "catalogue": "http://catalogue.com",
+        "authorization_registry": "http://ar.com",
+        "datastation": "http://datastation.com"
+      },
+      "general": {
+        "become_member": "http://become_member",
+        "faq": "http://faq.com",
+        "about": "http://about.com",
+        "support": "http://support.com"
+      },
+      "contact": {
+        "address": {
+          "name": "Kantoor Utrecht",
+          "address_content": [
+            "Vleutensevaart 100",
+            "3532 AD UTRECHT",
+            "The Netherlands"
+          ]
+        },
+        "tax_number": "76659119",
+        "email": "info@dexes.nl",
+        "phone_number": "+31 6 4637 4892"
+      },
+      "socials": {
+        "linkedin": "http://linkedin.com",
+        "x": "http://x.com"
+      }
+    }
+  }
+``` 
 
 Note: When you run the ar with `cargo run`, put this directory into the `authorization-registry` directory (same where you run cargo build).
 
