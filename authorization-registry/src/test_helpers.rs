@@ -4,7 +4,7 @@ pub mod helpers {
     use axum::body::Body;
     use axum::{async_trait, Router};
     use ishare::delegation_evidence::DelegationEvidenceContainer;
-    use ishare::ishare::{Adherence, PartyInfo, ValidatePartyError};
+    use ishare::ishare::{Adherence, Capabilities, PartyInfo, ValidatePartyError};
     use sea_orm::{Database, DatabaseConnection};
     use serde_json::Value;
     use sqlx::{postgres::PgConnectOptions, ConnectOptions};
@@ -12,7 +12,7 @@ pub mod helpers {
 
     use crate::error::AppError;
     use crate::get_app;
-    use crate::services::ishare_provider::{Capabilities, SatelliteProvider};
+    use crate::services::ishare_provider::SatelliteProvider;
     use crate::services::server_token::{server_token_test_helper, UserOption};
     use crate::AppState;
     use crate::TimeProvider;
