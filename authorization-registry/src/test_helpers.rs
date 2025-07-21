@@ -74,7 +74,7 @@ pub mod helpers {
                         navigation: NavigationConfig {
                             passport: "".to_owned(),
                             catalogue: "".to_owned(),
-                            authorization_registry: "".to_owned(),
+                            clearing: "".to_owned(),
                             datastation: "".to_owned(),
                         },
                         contact: ContactConfig {

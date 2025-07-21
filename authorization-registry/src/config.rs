@@ -32,7 +32,7 @@ fn default_delegation_allows_service_providers() -> bool {
 pub struct NavigationConfig {
     pub passport: String,
     pub catalogue: String,
-    pub authorization_registry: String,
+    pub clearing: String,
     pub datastation: String,
 }
 
