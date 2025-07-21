@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 fn default_listen_address() -> String {
     "0.0.0.0:4000".to_string()
@@ -28,8 +28,58 @@ fn default_delegation_allows_service_providers() -> bool {
     true
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct NavigationConfig {
+    pub passport: String,
+    pub catalogue: String,
+    pub authorization_registry: String,
+    pub datastation: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct AddressConfig {
+    pub name: String,
+    pub address_content: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct ContactConfig {
+    pub address: AddressConfig,
+    pub tax_number: String,
+    pub email: String,
+    pub phone_number: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct GeneralConfig {
+    pub become_member: String,
+    pub faq: String,
+    pub about: String,
+    pub support: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct SocialsConfig {
+    pub linkedin: String,
+    pub x: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct FooterConfig {
+    pub navigation: NavigationConfig,
+    pub contact: ContactConfig,
+    pub general: GeneralConfig,
+    pub socials: SocialsConfig,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct FrontendConfig {
+    pub footer: FooterConfig,
+}
+
 #[derive(Deserialize, Clone, Debug)]
 pub struct Config {
+    pub frontend: FrontendConfig,
     pub client_eori: String,
     pub idp_url: String,
     pub idp_eori: String,

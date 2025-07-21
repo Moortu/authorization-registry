@@ -66,6 +66,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
 
   const getToken = useCallback(() => {
+    const search = new URLSearchParams(window.location.search);
+
+    //token is in url
+    const tokenFromSearch = search.get("token");
+    if (tokenFromSearch && isAuthenticated(tokenFromSearch)) {
+      return tokenFromSearch;
+    }
+
     if (token === null) {
       initLogin();
       throw new Error("initiating login");
