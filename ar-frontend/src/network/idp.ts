@@ -5,11 +5,11 @@ export const IDP_URL = new URL(
   import.meta.env.VITE_IDP_URL,
 );
 
-/*export function initLogin() {
-  const redirectUrl = encodeURIComponent(window.location.href);
-  const loginUrl = `${baseAPIUrl}/connect/human/auth?redirect_uri=${redirectUrl}`;
-  window.location.href = loginUrl;
-}*/
+//export function initLogin() {
+//  const redirectUrl = encodeURIComponent(window.location.href);
+//  const loginUrl = `${baseAPIUrl}/connect/human/auth?redirect_uri=${redirectUrl}`;
+//  window.location.href = loginUrl;
+//}
 
 let called = false;
 export function initLogin() {

@@ -16,7 +16,7 @@ pub mod helpers {
     };
     use crate::error::AppError;
     use crate::get_app;
-    use crate::services::ishare_provider::SatelliteProvider;
+    use crate::services::ishare_provider::{OAuthRequestForm, SatelliteProvider};
     use crate::services::server_token::{server_token_test_helper, UserOption};
     use crate::AppState;
     use crate::TimeProvider;
@@ -165,6 +165,27 @@ pub mod helpers {
         ) -> anyhow::Result<String> {
             let url = "a_url".to_string();
             Ok(url)
+        }
+
+        fn get_h2m_redirect_base_url(
+            &self
+        ) -> String {
+            let url = "a_url".to_string();
+            url
+        }
+
+        async fn get_h2m_redirect_form(
+            &self,
+            _server_url: &str,
+            _redirect_url: &str,
+        ) -> anyhow::Result<OAuthRequestForm> {
+            return Ok(OAuthRequestForm {
+                response_type: "code".to_owned(),
+                scope: "ishare openid".to_owned(),
+                request: "client_assertion".to_owned(),
+                client_id: "client_id".to_owned(),
+                state: "state".to_owned(),
+            })
         }
 
         async fn handle_h2m_auth_callback(
