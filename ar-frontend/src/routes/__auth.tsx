@@ -43,7 +43,7 @@ function Component() {
         return;
       }
 
-      initLogin();
+      //initLogin();
     }
   }, [token, search?.token, search, setToken, navigate]);
 

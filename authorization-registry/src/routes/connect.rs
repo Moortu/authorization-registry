@@ -1,4 +1,5 @@
 use crate::error::{AppError, ErrorResponse};
+use crate::services::ishare_provider::OAuthRequestForm;
 use crate::{services::server_token::ServerToken, AppState};
 use anyhow::Context;
 use axum::extract::Query;
@@ -20,7 +21,8 @@ use utoipa::ToSchema;
 pub fn get_connect_routes() -> Router<AppState> {
     let router = Router::new()
         .route("/machine/token", post(get_machine_token))
-        .route("/human/auth", get(get_auth))
+        .route("/human/auth_params", get(get_auth_params))
+        .route("/human/auth", get(get_auth).post(post_auth))
         .route("/human/auth/code", get(get_auth_callback));
 
     return router;
@@ -98,6 +100,45 @@ async fn get_auth(
     return Ok(Redirect::to(&redirect_url));
 }
 
+async fn get_auth_params(
+    State(app_state): State<AppState>,
+    Host(host): Host,
+    headers: HeaderMap,
+    Query(query): Query<AuthQuery>,
+) -> Result<Json<OAuthRequestForm>, AppError> {
+
+    tracing::info!("handle post auth");
+
+    let server_base_url = get_server_base_url(headers, host, &app_state.config.deploy_route)?;
+    let state = serde_json::to_string(&query).map_err(|e| {
+        return AppError::Unexpected(anyhow::anyhow!("error serialising auth query: {}", e));
+    })?;
+
+    let oauth_form = app_state
+        .satellite_provider
+        .get_h2m_redirect_form(&server_base_url, &state)
+        .await
+        .map_err(|err| {
+            tracing::error!("error handling h2m redirect request");
+            err
+        })?;
+
+    return Ok(axum::Json(oauth_form))
+}
+
+async fn post_auth(
+    State(app_state): State<AppState>,
+) -> Result<Redirect, AppError> {
+
+    tracing::info!("handle post auth");
+
+    let redirect_url = app_state
+        .satellite_provider
+        .get_h2m_redirect_base_url();
+
+    return Ok(Redirect::temporary(&redirect_url));
+}
+
 #[derive(Deserialize)]
 struct AuthCallbackQuery {
     code: String,
@@ -142,6 +183,9 @@ async fn get_auth_callback(
     headers: HeaderMap,
     query: Query<AuthCallbackQuery>,
 ) -> Result<Redirect, AppError> {
+
+    tracing::info!("Handle auth callback");
+
     let server_base_url = get_server_base_url(headers, host, &state.config.deploy_route)?;
 
     let (company_id, user_option) = state

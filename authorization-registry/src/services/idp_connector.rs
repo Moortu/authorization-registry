@@ -1,10 +1,11 @@
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
+use textnonce::TextNonce;
 
 #[derive(Clone)]
 pub struct IdpConnector {
     pub idp_url: String,
-    client_id: String,
+    pub client_id: String,
     pub idp_eori: String,
 }
 
@@ -15,6 +16,9 @@ pub struct AuthRequestClaims {
     redirect_uri: String,
     response_type: String,
     state: String,
+    nonce: String,
+    acr_values: String,
+    language: Option<String>
 }
 
 #[derive(Deserialize)]
@@ -29,6 +33,11 @@ impl IdpConnector {
             client_id,
             idp_eori,
         }
+    }
+
+    pub fn get_realm_url(&self) -> String {
+        let idp_url = self.idp_url.clone();
+        return format!("{idp_url}/protocol/openid-connect/auth");
     }
 
     pub fn generate_auth_url(&self, client_assertion: &str, state: &str) -> String {
@@ -47,12 +56,26 @@ impl IdpConnector {
     ) -> AuthRequestClaims {
         let redirect_uri = self.get_redirect_uri(server_base_url);
 
+        let textnonce = TextNonce::sized_urlsafe(32).unwrap();
+
+        // to-do: generate random nonce
+        //let nonce = textnonce.to_string();
+        let nonce = textnonce.to_string();
+        // once of: urn:http://eidas.europa.eu/LoA/NotNotified/low, urn:http://eidas.europa.eu/LoA/NotNotified/substantial or urn:http://eidas.europa.eu/LoA/NotNotified/high,
+        //let acr_values = "";
+        //let acr_values = "urn:http://eidas.europa.eu/LoA/NotNotified/substantial";
+        let acr_values = "urn:http://eidas.europa.eu/LoA/NotNotified/low";
+        let language = "nl";
+
         return AuthRequestClaims {
             client_id: self.client_id.clone(),
             scope: "openid ishare".to_owned(),
             redirect_uri: redirect_uri.to_owned(),
             response_type: "code".to_owned(),
             state: callback_url.to_owned(),
+            nonce: nonce.to_owned(),
+            acr_values: acr_values.to_owned(),
+            language: Some(language.to_owned()),
         };
     }
 

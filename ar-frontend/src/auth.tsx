@@ -7,7 +7,7 @@ import {
 } from "react";
 import * as jose from "jose";
 import { z } from "zod";
-import { baseAPIUrl } from "./network/fetch";
+import { initLogin } from "./network/idp";
 
 type AuthContext = {
   token: string | null;
@@ -56,12 +56,6 @@ export function isAuthenticated(token: string | null): boolean {
   return true;
 }
 
-function initLogin() {
-  const redirectUrl = encodeURIComponent(window.location.href);
-  const loginUrl = `${baseAPIUrl}/connect/human/auth?redirect_uri=${redirectUrl}`;
-  window.location.href = loginUrl;
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
 
@@ -71,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     //token is in url
     const tokenFromSearch = search.get("token");
     if (tokenFromSearch && isAuthenticated(tokenFromSearch)) {
+      console.log("token", tokenFromSearch)
       return tokenFromSearch;
     }
 
