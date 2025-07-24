@@ -6,7 +6,7 @@ use axum::{
     Json, Router,
 };
 use ishare::ishare::{
-    Capabilities, CapabilitiesInfo, SupportedFeature, SupportedFeatures, SupportedVersion,
+    Capabilities, CapabilitiesInfo, Role, SupportedFeature, SupportedFeatures, SupportedVersion,
 };
 use reqwest::StatusCode;
 use serde::Serialize;
@@ -67,7 +67,9 @@ pub fn create_capabilities(party_id: &str, api_url: &str, show_private: bool) ->
     return Capabilities {
         capabilities_info: CapabilitiesInfo {
             party_id: party_id.to_owned(),
-            ishare_roles: vec!["AuthorizationRegistry".to_owned()],
+            ishare_roles: vec![Role {
+                role: "AuthorizationRegistry".to_owned(),
+            }],
             supported_versions: vec![SupportedVersion {
                 version: "1.7".to_owned(),
                 supported_features,
