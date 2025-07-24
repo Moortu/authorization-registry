@@ -1,17 +1,9 @@
-use axum::{extract::State, middleware::from_fn_with_state, routing::get, Json, Router};
+use axum::{extract::State, routing::get, Json, Router};
 
-use crate::{
-    config::FrontendConfig, middleware::extract_role_middleware,
-    services::server_token::ServerToken, AppState,
-};
+use crate::{config::FrontendConfig, AppState};
 
-pub fn get_config_routes(server_token: std::sync::Arc<ServerToken>) -> Router<AppState> {
-    let router = Router::new()
-        .route("/", get(get_config))
-        .layer(from_fn_with_state(
-            server_token.clone(),
-            extract_role_middleware,
-        ));
+pub fn get_config_routes() -> Router<AppState> {
+    let router = Router::new().route("/", get(get_config));
 
     router
 }

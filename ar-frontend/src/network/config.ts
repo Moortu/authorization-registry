@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { baseAPIUrl, useAuthenticatedFetch } from "./fetch";
+import { baseAPIUrl } from "./fetch";
 import { z } from "zod";
 
 const configSchema = z.object({
@@ -33,13 +33,11 @@ const configSchema = z.object({
 });
 
 export function useConfig() {
-  const authenticatedFetch = useAuthenticatedFetch();
-
   return useQuery({
     queryKey: ["config"],
     throwOnError: true,
     queryFn: async () => {
-      const response = await authenticatedFetch(`${baseAPIUrl}/config`);
+      const response = await fetch(`${baseAPIUrl}/config`);
 
       const json = await response.json();
 

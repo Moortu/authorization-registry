@@ -18,7 +18,7 @@ pub struct AuthRequestClaims {
     state: String,
     nonce: String,
     acr_values: String,
-    language: Option<String>
+    language: Option<String>,
 }
 
 #[derive(Deserialize)]

@@ -167,9 +167,7 @@ pub mod helpers {
             Ok(url)
         }
 
-        fn get_h2m_redirect_base_url(
-            &self
-        ) -> String {
+        fn get_h2m_redirect_base_url(&self) -> String {
             let url = "a_url".to_string();
             url
         }
@@ -185,7 +183,7 @@ pub mod helpers {
                 request: "client_assertion".to_owned(),
                 client_id: "client_id".to_owned(),
                 state: "state".to_owned(),
-            })
+            });
         }
 
         async fn handle_h2m_auth_callback(

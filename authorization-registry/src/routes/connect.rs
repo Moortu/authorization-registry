@@ -106,7 +106,6 @@ async fn get_auth_params(
     headers: HeaderMap,
     Query(query): Query<AuthQuery>,
 ) -> Result<Json<OAuthRequestForm>, AppError> {
-
     tracing::info!("handle post auth");
 
     let server_base_url = get_server_base_url(headers, host, &app_state.config.deploy_route)?;
@@ -123,18 +122,13 @@ async fn get_auth_params(
             err
         })?;
 
-    return Ok(axum::Json(oauth_form))
+    return Ok(axum::Json(oauth_form));
 }
 
-async fn post_auth(
-    State(app_state): State<AppState>,
-) -> Result<Redirect, AppError> {
-
+async fn post_auth(State(app_state): State<AppState>) -> Result<Redirect, AppError> {
     tracing::info!("handle post auth");
 
-    let redirect_url = app_state
-        .satellite_provider
-        .get_h2m_redirect_base_url();
+    let redirect_url = app_state.satellite_provider.get_h2m_redirect_base_url();
 
     return Ok(Redirect::temporary(&redirect_url));
 }
@@ -183,7 +177,6 @@ async fn get_auth_callback(
     headers: HeaderMap,
     query: Query<AuthCallbackQuery>,
 ) -> Result<Redirect, AppError> {
-
     tracing::info!("Handle auth callback");
 
     let server_base_url = get_server_base_url(headers, host, &state.config.deploy_route)?;

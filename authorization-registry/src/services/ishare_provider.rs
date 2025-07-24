@@ -53,9 +53,7 @@ pub trait SatelliteProvider: Send + Sync {
         redirect_url: &str,
     ) -> anyhow::Result<String>;
 
-    fn get_h2m_redirect_base_url(
-        &self,
-    ) -> String;
+    fn get_h2m_redirect_base_url(&self) -> String;
 
     async fn get_h2m_redirect_form(
         &self,
@@ -226,9 +224,7 @@ impl SatelliteProvider for ISHAREProvider {
         Ok(url)
     }
 
-    fn get_h2m_redirect_base_url(
-        &self,
-    ) -> String {
+    fn get_h2m_redirect_base_url(&self) -> String {
         return self.idp_connector.get_realm_url();
     }
 
@@ -244,12 +240,15 @@ impl SatelliteProvider for ISHAREProvider {
         let idp_eori = self.idp_connector.idp_eori.clone();
         let now = chrono::Utc::now();
 
-        let idp_info = self.validate_party(
-            now,
-            idp_eori.as_str(),
-        ).await.context("Error getting party info IDP")?;
+        let idp_info = self
+            .validate_party(now, idp_eori.as_str())
+            .await
+            .context("Error getting party info IDP")?;
 
-        let idp_cert: &ishare::ishare::Certificate = idp_info.certificates.first().context("No certificate found for IDP")?;
+        let idp_cert: &ishare::ishare::Certificate = idp_info
+            .certificates
+            .first()
+            .context("No certificate found for IDP")?;
 
         let encrypted_client_assertion = self
             .ishare
@@ -336,7 +335,6 @@ impl SatelliteProvider for ISHAREProvider {
             .ishare
             .decode_token_custom_claims::<IdTokenClaims>(&response.id_token, None)
             .context("Error decoding id_token")?;
-
 
         let company_id = company_store::insert_if_not_exists(
             &decoded_id_token.claims.extra.company_id,
