@@ -1,8 +1,13 @@
-import { Outlet, createRootRoute } from "@tanstack/react-router";
+import {
+  Outlet,
+  createRootRoute,
+  createRootRouteWithContext,
+} from "@tanstack/react-router";
 import { Box } from "@mui/joy";
 import { z } from "zod";
 import backgroundImage from "../assets/background.png";
 import { Footer } from "@/components/footer";
+import { AuthContext } from "@/auth";
 
 const searchSchema = z
   .object({
@@ -10,7 +15,7 @@ const searchSchema = z
   })
   .optional();
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<AuthContext>()({
   validateSearch: searchSchema,
   component: () => {
     return (

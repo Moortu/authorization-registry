@@ -9,7 +9,7 @@ import * as jose from "jose";
 import { z } from "zod";
 import { initLogin } from "./network/idp";
 
-type AuthContext = {
+export type AuthContext = {
   token: string | null;
   setToken: (token: string) => void;
   getToken: () => string;
@@ -65,7 +65,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     //token is in url
     const tokenFromSearch = search.get("token");
     if (tokenFromSearch && isAuthenticated(tokenFromSearch)) {
-      console.log("token", tokenFromSearch)
       return tokenFromSearch;
     }
 

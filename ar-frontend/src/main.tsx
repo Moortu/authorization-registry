@@ -9,7 +9,7 @@ import "@fontsource-variable/inter";
 import { CssVarsProvider, extendTheme } from "@mui/joy";
 
 import { routeTree } from "./routeTree.gen";
-import { AuthProvider } from "./auth";
+import { AuthProvider, useAuth } from "./auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Create a new router instance
@@ -242,12 +242,18 @@ const theme = extendTheme({
   },
 });
 
+function InnerApp() {
+  const auth = useAuth();
+
+  return <RouterProvider router={router} context={auth} />;
+}
+
 function WrappedApp() {
   return (
     <CssVarsProvider theme={theme}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <RouterProvider router={router} />
+          <InnerApp />
         </AuthProvider>
       </QueryClientProvider>
     </CssVarsProvider>
