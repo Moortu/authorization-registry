@@ -17,6 +17,7 @@ use uuid::Uuid;
 use crate::{
     db::policy::{self as policy_store, MatchingPolicySetRow, PolicySetsWithPagination},
     error::ExpectedError,
+    services::policy::InsertPolicySetWithPolicies,
 };
 use crate::{db::policy_set_template::InsertPolicySetTemplate, services::policy as policy_service};
 use crate::{error::AppError, error::ErrorResponse, AppState};
@@ -499,7 +500,7 @@ struct InsertPolicySetResponse {
     path = "/admin/policy-set",
     tag = "Policy Management - Admin",
     request_body(
-        content = policy_store::InsertPolicySetWithPolicies,
+        content = InsertPolicySetWithPolicies,
         description = "Policy set details and its initial policies",
         content_type = "application/json"
     ),
@@ -530,10 +531,7 @@ struct InsertPolicySetResponse {
 async fn insert_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     State(app_state): State<AppState>,
-    WithRejection(Json(body), _): WithRejection<
-        Json<policy_store::InsertPolicySetWithPolicies>,
-        AppError,
-    >,
+    WithRejection(Json(body), _): WithRejection<Json<InsertPolicySetWithPolicies>, AppError>,
 ) -> Result<Json<InsertPolicySetResponse>, AppError> {
     let policy_set_id = policy_service::insert_policy_set_with_policies_admin(
         app_state.time_provider.now(),

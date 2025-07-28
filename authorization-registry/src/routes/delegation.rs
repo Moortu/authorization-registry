@@ -118,6 +118,7 @@ async fn post_delegation(
 
     log_event(
         now,
+        "".to_owned(),
         crate::services::audit_log::EventType::DmiDelegationRequest(
             body.delegation_request.clone(),
         ),

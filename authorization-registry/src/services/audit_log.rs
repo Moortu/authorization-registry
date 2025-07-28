@@ -25,8 +25,39 @@ use crate::{
     TimeProvider,
 };
 
+#[derive(Serialize, Deserialize)]
+pub struct PolicySetCreatedEventMetadata {
+    pub policy_set_id: Uuid,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct PolicyRemoved {
+    pub policy_id: Uuid,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct PolicyAdded {
+    pub policy_id: Uuid,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(tag = "edit_type")]
+pub enum EditedType {
+    PolicyRemoved(PolicyRemoved),
+    PolicyAdded(PolicyAdded),
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct PolicySetEditedEventMetadata {
+    pub policy_set_id: Uuid,
+    #[serde(flatten)]
+    pub edited_type: EditedType,
+}
+
 pub enum EventType {
     DmiDelegationRequest(DelegationRequest),
+    ArPolicySetCreated(PolicySetCreatedEventMetadata),
+    ArPolicySetEdited(PolicySetEditedEventMetadata),
 }
 
 impl EventType {
@@ -36,6 +67,12 @@ impl EventType {
                 serde_json::to_value(delegation_request)
                     .context("Error parsing serde_json value")?,
             )),
+            Self::ArPolicySetCreated(meta_data) => Ok(Some(
+                serde_json::to_value(meta_data).context("Error parsing serde_json value")?,
+            )),
+            Self::ArPolicySetEdited(meta_data) => Ok(Some(
+                serde_json::to_value(meta_data).context("Error parsing serde_json value")?,
+            )),
         }
     }
 }
@@ -43,7 +80,9 @@ impl EventType {
 impl fmt::Display for EventType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
-            EventType::DmiDelegationRequest(_) => "dmi:authorization_registry:delegation:request",
+            EventType::DmiDelegationRequest(_) => "dmi:ar:delegation:request",
+            EventType::ArPolicySetCreated(_) => "dmi:ar:policy_set:created",
+            EventType::ArPolicySetEdited(_) => "dmi:ar:policy_set:edited",
         };
         write!(f, "{}", s)
     }
@@ -51,6 +90,7 @@ impl fmt::Display for EventType {
 
 pub async fn log_event<T: ConnectionTrait>(
     now: DateTime<Utc>,
+    entry_id: String,
     event_type: EventType,
     source: Option<String>,
     data: Option<Value>,
@@ -61,6 +101,7 @@ pub async fn log_event<T: ConnectionTrait>(
     let id = uuid::Uuid::new_v4();
 
     let log_entry = AuditEventModel {
+        entry_id: ActiveValue::Set(entry_id.clone()),
         id: ActiveValue::Set(id.clone()),
         source: ActiveValue::Set(source),
         timestamp: ActiveValue::Set(now),

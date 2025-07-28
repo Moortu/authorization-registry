@@ -504,10 +504,10 @@ pub async fn get_policy_set_by_id(
         .context(format!("Error retrieving from db policy set: {}", id))
 }
 
-pub async fn add_policy_to_policy_set(
+pub async fn add_policy_to_policy_set<T: ConnectionTrait>(
     policy_set_id: &Uuid,
     policy_args: Policy,
-    db: &DatabaseConnection,
+    db: &T,
 ) -> anyhow::Result<ar_entity::policy::Model> {
     let id = uuid::Uuid::new_v4();
 
@@ -532,49 +532,7 @@ pub async fn add_policy_to_policy_set(
     Ok(result)
 }
 
-#[derive(Deserialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct InsertPolicySetWithPolicies {
-    pub target: AccessSubjectTarget,
-    pub policy_issuer: String,
-    licences: Vec<String>,
-    pub policies: Vec<ar_entity::delegation_evidence::Policy>,
-    max_delegation_depth: i32,
-}
-
-pub async fn insert_policy_set_with_policies(
-    now: chrono::DateTime<Utc>,
-    args: &InsertPolicySetWithPolicies,
-    db: &DatabaseConnection,
-) -> anyhow::Result<Uuid> {
-    let transaction = db.begin().await.context("Error opening db transaction")?;
-
-    let policy_set_id = insert_policy_set(
-        now,
-        &args.target,
-        &args.policy_issuer,
-        &args.licences,
-        &args.max_delegation_depth,
-        &transaction,
-    )
-    .await
-    .context("Error inserting policy set into db")?;
-
-    for policy in args.policies.iter() {
-        insert_policy(policy_set_id, &policy, &transaction)
-            .await
-            .context("Error inserting policy into db")?;
-    }
-
-    transaction
-        .commit()
-        .await
-        .context("Error commiting transaction to db")?;
-
-    Ok(policy_set_id)
-}
-
-pub async fn delete_policy(id: &Uuid, db: &DatabaseConnection) -> anyhow::Result<()> {
+pub async fn delete_policy<T: ConnectionTrait>(id: &Uuid, db: &T) -> anyhow::Result<()> {
     ar_entity::policy::Entity::delete_by_id(*id)
         .exec(db)
         .await

@@ -15,7 +15,7 @@ use uuid::Uuid;
 
 use crate::db::policy::{MatchingPolicySetRow, PolicySetsWithPagination};
 use crate::error::{ErrorResponse, ExpectedError};
-use crate::services::policy::{self as policy_service};
+use crate::services::policy::{self as policy_service, InsertPolicySetWithPolicies};
 use crate::{db::policy as policy_store, services::server_token::Role};
 use crate::{error::AppError, AppState};
 use crate::{middleware::extract_role_middleware, services::server_token::ServerToken};
@@ -130,6 +130,7 @@ async fn delete_policy_from_policy_set(
     State(app_state): State<AppState>,
 ) -> Result<(), AppError> {
     policy_service::remove_policy_from_policy_set(
+        app_state.time_provider.now(),
         &role.get_company_id(),
         &policy_set_id,
         &policy_id,
@@ -406,9 +407,9 @@ async fn delete_policy_set(
     Ok(())
 }
 
-#[derive(Serialize, ToSchema)]
-struct InsertPolicySetResponse {
-    uuid: Uuid,
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct InsertPolicySetResponse {
+    pub uuid: Uuid,
 }
 
 /// Create a new policy set with associated policies
@@ -417,7 +418,7 @@ struct InsertPolicySetResponse {
     path = "/policy-sets",
     tag = "Policy Management",
     request_body(
-        content = policy_store::InsertPolicySetWithPolicies,
+        content = InsertPolicySetWithPolicies,
         description = "Policy set details and its initial policies",
         content_type = "application/json"
     ),
@@ -455,10 +456,7 @@ async fn insert_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     Extension(role): Extension<Role>,
     State(app_state): State<AppState>,
-    WithRejection(Json(body), _): WithRejection<
-        Json<policy_store::InsertPolicySetWithPolicies>,
-        AppError,
-    >,
+    WithRejection(Json(body), _): WithRejection<Json<InsertPolicySetWithPolicies>, AppError>,
 ) -> Result<Json<InsertPolicySetResponse>, AppError> {
     let policy_set_id = policy_service::insert_policy_set_with_policies(
         app_state.time_provider.now(),
