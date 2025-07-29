@@ -12,8 +12,8 @@ use uuid::Uuid;
 use crate::db::policy::{self as policy_store, AccessSubjectTarget, MatchingPolicySetRow};
 use crate::error::{AppError, ExpectedError};
 use crate::services::audit_log::{
-    log_event, PolicyAdded, PolicyRemoved, PolicySetCreatedEventMetadata,
-    PolicySetEditedEventMetadata,
+    log_event, PolicyAdded, PolicyRemoved, PolicyReplaced, PolicySetCreatedEventMetadata,
+    PolicySetDeletedEventMetadata, PolicySetEditedEventMetadata,
 };
 use crate::services::delegation::create_delegation_evidence;
 use crate::TimeProvider;
@@ -288,6 +288,7 @@ pub async fn verify_policy_set_access(
 }
 
 pub async fn delete_policy_set(
+    now: chrono::DateTime<Utc>,
     requester_company_id: &str,
     id: &Uuid,
     client_eori: &str,
@@ -340,9 +341,29 @@ pub async fn delete_policy_set(
         }));
     }
 
-    policy_store::delete_policy_set(&id, &db)
+    let transaction = db.begin().await.context("error starting db transaction")?;
+
+    policy_store::delete_policy_set(&id, &transaction)
         .await
         .context(format!("Error deleting policy set: {}", id))?;
+
+    log_event(
+        now,
+        id.to_string(),
+        crate::services::audit_log::EventType::ArPolicySetDeleted(PolicySetDeletedEventMetadata {
+            policy_set_id: id.to_owned(),
+        }),
+        None,
+        None,
+        &transaction,
+    )
+    .await
+    .context("Error logging policy set deleted event")?;
+
+    transaction
+        .commit()
+        .await
+        .context("error commiting transaction to db")?;
 
     Ok(())
 }
@@ -548,9 +569,33 @@ pub async fn replace_policy_in_policy_set(
         }));
     }
 
-    let policy = policy_store::replace_policy(policy_set_id, policy_id, &policy, db)
+    let transaction = db.begin().await.context("error starting db transtaction")?;
+
+    let policy = policy_store::replace_policy(policy_set_id, policy_id, &policy, &transaction)
         .await
         .context("Error adding policy to policy set")?;
+
+    log_event(
+        now,
+        policy_set_id.to_string(),
+        crate::services::audit_log::EventType::ArPolicySetEdited(PolicySetEditedEventMetadata {
+            policy_set_id: policy_set_id.to_owned(),
+            edited_type: crate::services::audit_log::EditedType::PolicyReplaced(PolicyReplaced {
+                old_policy_id: policy_id.to_owned(),
+                new_policy_id: policy.id.to_owned(),
+            }),
+        }),
+        None,
+        None,
+        &transaction,
+    )
+    .await
+    .context("Error logging policy set edited event")?;
+
+    transaction
+        .commit()
+        .await
+        .context("error commiting transaction to db")?;
 
     Ok(policy)
 }

@@ -396,6 +396,7 @@ async fn delete_policy_set(
     State(app_state): State<AppState>,
 ) -> Result<(), AppError> {
     policy_service::delete_policy_set(
+        app_state.time_provider.now(),
         &role.get_company_id(),
         &id,
         &app_state.config.client_eori,

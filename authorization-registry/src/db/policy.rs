@@ -466,9 +466,9 @@ pub async fn replace_policy<C: ConnectionTrait>(
     Ok(policy)
 }
 
-pub async fn delete_policy_set(
+pub async fn delete_policy_set<T: TransactionTrait>(
     policy_set_id: &Uuid,
-    db: &DatabaseConnection,
+    db: &T,
 ) -> anyhow::Result<()> {
     let transaction = db.begin().await.context("Error opening db transaction")?;
 

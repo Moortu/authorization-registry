@@ -69,7 +69,7 @@ mod tests {
     use crate::fixtures::fixtures::insert_policy_set_fixture;
     use crate::routes::policy_set::InsertPolicySetResponse;
     use crate::services::audit_log::{
-        AuditEventWithIssAndSub, EditedType, PolicyAdded, PolicyRemoved,
+        AuditEventWithIssAndSub, EditedType, PolicyAdded, PolicyRemoved, PolicyReplaced,
         PolicySetCreatedEventMetadata, PolicySetEditedEventMetadata,
     };
     use crate::services::server_token;
@@ -1116,6 +1116,101 @@ mod tests {
     }
 
     #[sqlx::test]
+    async fn test_remove_policy_from_policy_set_audit_event_admin(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set_audit_log.json", &db).await;
+
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+
+        let app = get_test_app(db.clone());
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set/84b7fba4-05f3-4af8-9d84-dde384abe881/policy/564f3b46-7127-4c3c-a0b8-2859c01cc9c1")
+                    .method("DELETE")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.24244".to_owned()),
+                            None,
+                        ),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let audit_log_response = get_test_app(db.clone())
+            .oneshot(
+                Request::builder()
+                    .uri("/audit-log")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.44444".to_owned()),
+                            Some("lovely-user".to_owned()),
+                        ),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(audit_log_response.status(), StatusCode::OK);
+
+        let audit_log: Vec<AuditEventWithIssAndSub> = serde_json::from_str(
+            std::str::from_utf8(
+                &audit_log_response
+                    .into_body()
+                    .collect()
+                    .await
+                    .unwrap()
+                    .to_bytes(),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+
+        let events: Vec<AuditEventWithIssAndSub> = audit_log
+            .into_iter()
+            .filter(|a| a.event_type == "dmi:ar:policy_set:edited")
+            .collect();
+
+        assert_eq!(events.len(), 1);
+
+        let context: PolicySetEditedEventMetadata =
+            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+
+        assert_eq!(
+            context.policy_set_id,
+            Uuid::parse_str("84b7fba4-05f3-4af8-9d84-dde384abe881").unwrap()
+        );
+
+        match context.edited_type {
+            EditedType::PolicyRemoved(PolicyRemoved { policy_id }) => {
+                assert_eq!(
+                    Uuid::parse_str("564f3b46-7127-4c3c-a0b8-2859c01cc9c1").unwrap(),
+                    policy_id
+                )
+            }
+            _ => panic!(),
+        };
+
+        Ok(())
+    }
+
+    #[sqlx::test]
     async fn test_add_policy_to_policy_set_via_de(
         _pool_options: PgPoolOptions,
         conn_option: PgConnectOptions,
@@ -1224,6 +1319,534 @@ mod tests {
         match context.edited_type {
             EditedType::PolicyAdded(PolicyAdded { policy_id }) => {
                 assert_eq!(policy.id, policy_id)
+            }
+            _ => panic!(),
+        };
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_add_policy_to_policy_set_via_de_admin(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set_audit_log.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set4.json", &db).await;
+
+        let app = get_test_app(db.clone());
+
+        let request_body = create_request_body(&json!({
+            "target": {
+                "resource": {
+                    "type": "TestResource",
+                    "identifiers": ["test", "test-2"],
+                    "attributes": ["*"]
+                },
+                "actions": ["Read"],
+                "environment": {
+                    "serviceProviders": ["NL.EORI.LIFEELEC4DMI"]
+                }
+            },
+            "rules": [
+                {
+                    "effect": "Permit"
+                }
+            ]
+        }));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set/84b7fba4-05f3-4af8-9d84-dde384abe881/policy")
+                    .method("POST")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.44444".to_owned()),
+                            None,
+                        ),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::new(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let policy: ar_entity::policy::Model = serde_json::from_str(
+            std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
+        )
+        .unwrap();
+
+        let audit_log_response = get_test_app(db.clone())
+            .oneshot(
+                Request::builder()
+                    .uri("/audit-log")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.44444".to_owned()),
+                            Some("lovely-user".to_owned()),
+                        ),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(audit_log_response.status(), StatusCode::OK);
+
+        let audit_log: Vec<AuditEventWithIssAndSub> = serde_json::from_str(
+            std::str::from_utf8(
+                &audit_log_response
+                    .into_body()
+                    .collect()
+                    .await
+                    .unwrap()
+                    .to_bytes(),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+
+        let events: Vec<AuditEventWithIssAndSub> = audit_log
+            .into_iter()
+            .filter(|a| a.event_type == "dmi:ar:policy_set:edited")
+            .collect();
+
+        assert_eq!(events.len(), 1);
+
+        let context: PolicySetEditedEventMetadata =
+            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+
+        assert_eq!(
+            context.policy_set_id,
+            Uuid::parse_str("84b7fba4-05f3-4af8-9d84-dde384abe881").unwrap()
+        );
+
+        match context.edited_type {
+            EditedType::PolicyAdded(PolicyAdded { policy_id }) => {
+                assert_eq!(policy.id, policy_id)
+            }
+            _ => panic!(),
+        };
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_replace_policy_in_policy_set_audit_event(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set_audit_log.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+
+        let app = get_test_app(db.clone());
+
+        let request_body = create_request_body(&json!({
+            "target": {
+                "resource": {
+                    "type": "test-iden2",
+                    "identifiers": ["test", "test-2"],
+                    "attributes": ["*"]
+                },
+                "actions": ["Read"],
+                "environment": {
+                    "serviceProviders": ["NL.EORI.LIFEELEC4DMI"]
+                }
+            },
+            "rules": [
+                {
+                    "effect": "Permit"
+                }
+            ]
+        }));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/policy-set/84b7fba4-05f3-4af8-9d84-dde384abe881/policy/564f3b46-7127-4c3c-a0b8-2859c01cc9c1")
+                    .method("PUT")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.24244".to_owned()),
+                            None,
+                        ),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::new(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let new_policy: ar_entity::policy::Model = serde_json::from_str(
+            std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
+        )
+        .unwrap();
+
+        let audit_log_response = get_test_app(db.clone())
+            .oneshot(
+                Request::builder()
+                    .uri("/audit-log")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.44444".to_owned()),
+                            Some("lovely-user".to_owned()),
+                        ),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(audit_log_response.status(), StatusCode::OK);
+
+        let audit_log: Vec<AuditEventWithIssAndSub> = serde_json::from_str(
+            std::str::from_utf8(
+                &audit_log_response
+                    .into_body()
+                    .collect()
+                    .await
+                    .unwrap()
+                    .to_bytes(),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+
+        let events: Vec<AuditEventWithIssAndSub> = audit_log
+            .into_iter()
+            .filter(|a| a.event_type == "dmi:ar:policy_set:edited")
+            .collect();
+
+        assert_eq!(events.len(), 1);
+
+        let context: PolicySetEditedEventMetadata =
+            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+
+        assert_eq!(
+            context.policy_set_id,
+            Uuid::parse_str("84b7fba4-05f3-4af8-9d84-dde384abe881").unwrap()
+        );
+
+        match context.edited_type {
+            EditedType::PolicyReplaced(PolicyReplaced {
+                old_policy_id,
+                new_policy_id,
+            }) => {
+                assert_eq!(
+                    old_policy_id,
+                    Uuid::parse_str("564f3b46-7127-4c3c-a0b8-2859c01cc9c1").unwrap()
+                );
+                assert_eq!(new_policy_id, new_policy.id)
+            }
+            _ => panic!(),
+        };
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_delete_policy_set_audit_event(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set_audit_log.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+
+        let app = get_test_app(db.clone());
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/policy-set/84b7fba4-05f3-4af8-9d84-dde384abe881")
+                    .method("DELETE")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.24244".to_owned()),
+                            None,
+                        ),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let audit_log_response = get_test_app(db.clone())
+            .oneshot(
+                Request::builder()
+                    .uri("/audit-log")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.44444".to_owned()),
+                            Some("lovely-user".to_owned()),
+                        ),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(audit_log_response.status(), StatusCode::OK);
+
+        let audit_log: Vec<AuditEventWithIssAndSub> = serde_json::from_str(
+            std::str::from_utf8(
+                &audit_log_response
+                    .into_body()
+                    .collect()
+                    .await
+                    .unwrap()
+                    .to_bytes(),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+
+        let events: Vec<AuditEventWithIssAndSub> = audit_log
+            .into_iter()
+            .filter(|a| a.event_type == "dmi:ar:policy_set:deleted")
+            .collect();
+
+        assert_eq!(events.len(), 1);
+
+        let context: PolicySetCreatedEventMetadata =
+            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+
+        assert_eq!(
+            context.policy_set_id,
+            Uuid::parse_str("84b7fba4-05f3-4af8-9d84-dde384abe881").unwrap()
+        );
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_delete_policy_set_audit_event_admin(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set_audit_log.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+
+        let app = get_test_app(db.clone());
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set/84b7fba4-05f3-4af8-9d84-dde384abe881")
+                    .method("DELETE")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.24244".to_owned()),
+                            None,
+                        ),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let audit_log_response = get_test_app(db.clone())
+            .oneshot(
+                Request::builder()
+                    .uri("/audit-log")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.44444".to_owned()),
+                            Some("lovely-user".to_owned()),
+                        ),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(audit_log_response.status(), StatusCode::OK);
+
+        let audit_log: Vec<AuditEventWithIssAndSub> = serde_json::from_str(
+            std::str::from_utf8(
+                &audit_log_response
+                    .into_body()
+                    .collect()
+                    .await
+                    .unwrap()
+                    .to_bytes(),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+
+        let events: Vec<AuditEventWithIssAndSub> = audit_log
+            .into_iter()
+            .filter(|a| a.event_type == "dmi:ar:policy_set:deleted")
+            .collect();
+
+        assert_eq!(events.len(), 1);
+
+        let context: PolicySetCreatedEventMetadata =
+            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+
+        assert_eq!(
+            context.policy_set_id,
+            Uuid::parse_str("84b7fba4-05f3-4af8-9d84-dde384abe881").unwrap()
+        );
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_replace_policy_in_policy_set_audit_event_admin(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+        insert_policy_set_fixture("./fixtures/policy_set_audit_log.json", &db).await;
+        insert_policy_set_fixture("./fixtures/policy_set1.json", &db).await;
+
+        let app = get_test_app(db.clone());
+
+        let request_body = create_request_body(&json!({
+            "target": {
+                "resource": {
+                    "type": "test-iden2",
+                    "identifiers": ["test", "test-2"],
+                    "attributes": ["*"]
+                },
+                "actions": ["Read"],
+                "environment": {
+                    "serviceProviders": ["NL.EORI.LIFEELEC4DMI"]
+                }
+            },
+            "rules": [
+                {
+                    "effect": "Permit"
+                }
+            ]
+        }));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/policy-set/84b7fba4-05f3-4af8-9d84-dde384abe881/policy/564f3b46-7127-4c3c-a0b8-2859c01cc9c1")
+                    .method("PUT")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.24244".to_owned()),
+                            None,
+                        ),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::new(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let new_policy: ar_entity::policy::Model = serde_json::from_str(
+            std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
+        )
+        .unwrap();
+
+        let audit_log_response = get_test_app(db.clone())
+            .oneshot(
+                Request::builder()
+                    .uri("/audit-log")
+                    .method("GET")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some("NL.44444".to_owned()),
+                            Some("lovely-user".to_owned()),
+                        ),
+                    )
+                    .header("Content-Type", "application/json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(audit_log_response.status(), StatusCode::OK);
+
+        let audit_log: Vec<AuditEventWithIssAndSub> = serde_json::from_str(
+            std::str::from_utf8(
+                &audit_log_response
+                    .into_body()
+                    .collect()
+                    .await
+                    .unwrap()
+                    .to_bytes(),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+
+        let events: Vec<AuditEventWithIssAndSub> = audit_log
+            .into_iter()
+            .filter(|a| a.event_type == "dmi:ar:policy_set:edited")
+            .collect();
+
+        assert_eq!(events.len(), 1);
+
+        let context: PolicySetEditedEventMetadata =
+            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+
+        assert_eq!(
+            context.policy_set_id,
+            Uuid::parse_str("84b7fba4-05f3-4af8-9d84-dde384abe881").unwrap()
+        );
+
+        match context.edited_type {
+            EditedType::PolicyReplaced(PolicyReplaced {
+                old_policy_id,
+                new_policy_id,
+            }) => {
+                assert_eq!(
+                    old_policy_id,
+                    Uuid::parse_str("564f3b46-7127-4c3c-a0b8-2859c01cc9c1").unwrap()
+                );
+                assert_eq!(new_policy_id, new_policy.id)
             }
             _ => panic!(),
         };

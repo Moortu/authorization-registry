@@ -41,10 +41,17 @@ pub struct PolicyAdded {
 }
 
 #[derive(Deserialize, Serialize)]
+pub struct PolicyReplaced {
+    pub old_policy_id: Uuid,
+    pub new_policy_id: Uuid,
+}
+
+#[derive(Deserialize, Serialize)]
 #[serde(tag = "edit_type")]
 pub enum EditedType {
     PolicyRemoved(PolicyRemoved),
     PolicyAdded(PolicyAdded),
+    PolicyReplaced(PolicyReplaced),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -54,10 +61,16 @@ pub struct PolicySetEditedEventMetadata {
     pub edited_type: EditedType,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct PolicySetDeletedEventMetadata {
+    pub policy_set_id: Uuid,
+}
+
 pub enum EventType {
     DmiDelegationRequest(DelegationRequest),
     ArPolicySetCreated(PolicySetCreatedEventMetadata),
     ArPolicySetEdited(PolicySetEditedEventMetadata),
+    ArPolicySetDeleted(PolicySetDeletedEventMetadata),
 }
 
 impl EventType {
@@ -73,6 +86,9 @@ impl EventType {
             Self::ArPolicySetEdited(meta_data) => Ok(Some(
                 serde_json::to_value(meta_data).context("Error parsing serde_json value")?,
             )),
+            Self::ArPolicySetDeleted(meta_data) => Ok(Some(
+                serde_json::to_value(meta_data).context("Error parsing serde_json value")?,
+            )),
         }
     }
 }
@@ -83,6 +99,7 @@ impl fmt::Display for EventType {
             EventType::DmiDelegationRequest(_) => "dmi:ar:delegation:request",
             EventType::ArPolicySetCreated(_) => "dmi:ar:policy_set:created",
             EventType::ArPolicySetEdited(_) => "dmi:ar:policy_set:edited",
+            EventType::ArPolicySetDeleted(_) => "dmi:ar:policy_set:deleted",
         };
         write!(f, "{}", s)
     }
