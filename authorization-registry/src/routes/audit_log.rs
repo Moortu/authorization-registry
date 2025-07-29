@@ -741,7 +741,7 @@ mod tests {
         assert_eq!(events.len(), 1);
 
         let context: DelegationRequest =
-            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
 
         assert_eq!(context.policy_issuer, "NL.24244");
     }
@@ -879,7 +879,7 @@ mod tests {
         assert_eq!(events.len(), 1);
 
         let context: PolicySetCreatedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
 
         assert_eq!(context.policy_set_id, policy_set_response.uuid);
     }
@@ -1015,7 +1015,7 @@ mod tests {
         assert_eq!(events.len(), 1);
 
         let context: PolicySetCreatedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
 
         assert_eq!(context.policy_set_id, policy_set_response.uuid);
     }
@@ -1095,7 +1095,7 @@ mod tests {
         assert_eq!(events.len(), 1);
 
         let context: PolicySetEditedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
 
         assert_eq!(
             context.policy_set_id,
@@ -1190,7 +1190,7 @@ mod tests {
         assert_eq!(events.len(), 1);
 
         let context: PolicySetEditedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
 
         assert_eq!(
             context.policy_set_id,
@@ -1309,7 +1309,7 @@ mod tests {
         assert_eq!(events.len(), 1);
 
         let context: PolicySetEditedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
 
         assert_eq!(
             context.policy_set_id,
@@ -1425,7 +1425,7 @@ mod tests {
         assert_eq!(events.len(), 1);
 
         let context: PolicySetEditedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
 
         assert_eq!(
             context.policy_set_id,
@@ -1540,7 +1540,7 @@ mod tests {
         assert_eq!(events.len(), 1);
 
         let context: PolicySetEditedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
 
         assert_eq!(
             context.policy_set_id,
@@ -1638,7 +1638,7 @@ mod tests {
         assert_eq!(events.len(), 1);
 
         let context: PolicySetCreatedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
 
         assert_eq!(
             context.policy_set_id,
@@ -1722,7 +1722,7 @@ mod tests {
         assert_eq!(events.len(), 1);
 
         let context: PolicySetCreatedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
 
         assert_eq!(
             context.policy_set_id,
@@ -1830,7 +1830,7 @@ mod tests {
         assert_eq!(events.len(), 1);
 
         let context: PolicySetEditedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone().unwrap()).unwrap();
+            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
 
         assert_eq!(
             context.policy_set_id,
