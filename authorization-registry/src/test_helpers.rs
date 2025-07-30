@@ -154,7 +154,7 @@ pub mod helpers {
                 },
                 party_id: eori.to_string(),
                 party_name: "cool party".to_string(),
-                certificates: vec![],
+                certificates_or_spor: ishare::ishare::CertificatesOrSpor::Certificates(vec![]),
             });
         }
 
