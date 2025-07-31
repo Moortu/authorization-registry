@@ -67,7 +67,7 @@ pub mod helpers {
 
             tracing_subscriber::fmt()
                 .with_env_filter(env_filter)
-                .with_test_writer() // ensures it shows up in `cargo test` output
+                .with_test_writer() 
                 .init();
         });
 
