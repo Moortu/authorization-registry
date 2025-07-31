@@ -301,6 +301,87 @@ pub async fn get_policy_sets_with_policies(
     })
 }
 
+pub async fn get_policy_sets_with_policies_for_creating_de(
+    access_subject: String,
+    policy_issuer: String,
+    db: &DatabaseConnection,
+) -> anyhow::Result<Vec<MatchingPolicySetRow>> {
+    let mut values: Vec<Value> = Vec::new();
+    let mut conditions = Vec::new();
+
+    conditions.push(format!("access_subject like ${}", values.len() + 1));
+    values.push(format!("%{}%", &access_subject).into());
+
+    conditions.push(format!("policy_issuer like ${}", values.len() + 1));
+    values.push(format!("%{}%", &policy_issuer).into());
+
+    let condition = if conditions.len() > 0 {
+        let joined_conditions: String = conditions.join(" and ");
+        format!("({joined_conditions})")
+    } else {
+        "".to_owned()
+    };
+
+    let sql = format!(
+        r#"
+            select
+                ps.id as policy_set_id,
+                ps.access_subject as access_subject,
+                ps.policy_issuer as policy_issuer,
+                ps.licenses as licenses,
+                ps.max_delegation_depth as max_delegation_depth,
+                coalesce(
+                    array_agg(
+                        json_build_object(
+                            'id',
+                            p.id,
+                            'identifiers',
+                            p.identifiers,
+                            'attributes',
+                            p.attributes,
+                            'actions',
+                            p.actions,
+                            'service_providers',
+                            p.service_providers,
+                            'resource_type',
+                            p.resource_type,
+                            'rules',
+                            p.rules
+                        )
+                    ) filter (where p.id is not null),
+                    '{{}}'
+                ) as policies
+            from
+                policy_set ps
+            left join
+                policy p
+                    on p.policy_set = ps.id
+            where {}
+            group by
+                ps.id 
+        "#,
+        condition,
+    );
+
+    let stmt =
+        Statement::from_sql_and_values(sea_orm::DatabaseBackend::Postgres, sql, values.clone());
+
+    let raw_result = JsonValue::find_by_statement(stmt)
+        .all(db)
+        .await
+        .context("Error fetching policy sets from database")?;
+
+    let policy_sets_parse_result: Result<Vec<MatchingPolicySetRow>, serde_json::Error> = raw_result
+        .iter()
+        .map(|r| serde_json::from_value::<MatchingPolicySetRow>(r.to_owned()))
+        .collect();
+
+    let policy_sets = policy_sets_parse_result
+        .context("Error parsing policy sets 'QueryResult' into 'MatchingPolicySetRow'")?;
+
+    Ok(policy_sets)
+}
+
 pub async fn get_policy_set_with_policies(
     policy_set_id: &Uuid,
     db: &DatabaseConnection,
@@ -537,9 +618,9 @@ pub async fn add_policy_to_policy_set(
 pub struct InsertPolicySetWithPolicies {
     pub target: AccessSubjectTarget,
     pub policy_issuer: String,
-    licences: Vec<String>,
+    pub licences: Vec<String>,
     pub policies: Vec<ar_entity::delegation_evidence::Policy>,
-    max_delegation_depth: i32,
+    pub max_delegation_depth: i32,
 }
 
 pub async fn insert_policy_set_with_policies(

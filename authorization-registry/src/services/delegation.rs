@@ -251,18 +251,15 @@ pub async fn create_delegation_evidence(
         &delegation_request.policy_issuer
     );
 
-    let de_policy_sets = policy_store::get_policy_sets_with_policies(
-        Some(delegation_request.target.access_subject.to_owned()),
-        Some(delegation_request.policy_issuer.to_owned()),
-        None,
-        None,
-        None,
+    let de_policy_sets = policy_store::get_policy_sets_with_policies_for_creating_de(
+        delegation_request.target.access_subject.to_owned(),
+        delegation_request.policy_issuer.to_owned(),
         &db,
     )
     .await
     .context("Error getting policy sets")?;
 
-    let policy_sets = get_delegation_evidence_policy_sets(delegation_request, &de_policy_sets.data);
+    let policy_sets = get_delegation_evidence_policy_sets(delegation_request, &de_policy_sets);
     let now = time_provider.now().timestamp();
     let de_container = DelegationEvidenceContainer {
         delegation_evidence: DelegationEvidence {

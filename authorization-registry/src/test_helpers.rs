@@ -9,6 +9,10 @@ pub mod helpers {
     use serde_json::Value;
     use sqlx::{postgres::PgConnectOptions, ConnectOptions};
     use std::sync::Arc;
+    use std::sync::Once;
+    use tracing_subscriber::EnvFilter;
+
+    static INIT: Once = Once::new();
 
     use crate::config::{
         AddressConfig, ContactConfig, FooterConfig, FrontendConfig, GeneralConfig,
@@ -56,6 +60,17 @@ pub mod helpers {
     }
 
     pub fn get_test_app(db: DatabaseConnection) -> Router {
+        INIT.call_once(|| {
+            let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                EnvFilter::new("tower_http=debug,authorization_registry=debug,ishare=debug")
+            });
+
+            tracing_subscriber::fmt()
+                .with_env_filter(env_filter)
+                .with_test_writer() // ensures it shows up in `cargo test` output
+                .init();
+        });
+
         let sat_provider = TestSatelliteProvider {};
         let server_token = server_token_test_helper::get_test_service();
 
