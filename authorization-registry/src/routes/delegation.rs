@@ -211,8 +211,8 @@ mod test {
     use crate::db::policy::{
         insert_policy_set_with_policies, AccessSubjectTarget, InsertPolicySetWithPolicies,
     };
-    use crate::services::server_token;
     use crate::fixtures::fixtures::insert_policy_set_fixture;
+    use crate::services::server_token;
     use axum::{
         body::Body,
         http::{Request, StatusCode},
