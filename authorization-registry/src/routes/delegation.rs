@@ -203,8 +203,14 @@ async fn post_delegation(
 
 #[cfg(test)]
 mod test {
+    use ar_entity::delegation_evidence::{
+        Environment, Policy, Resource, ResourceRule, ResourceTarget,
+    };
     use ishare::delegation_evidence::DelegationEvidenceContainer;
 
+    use crate::db::policy::{
+        insert_policy_set_with_policies, AccessSubjectTarget, InsertPolicySetWithPolicies,
+    };
     use crate::fixtures::fixtures::insert_policy_set_fixture;
     use crate::services::server_token;
     use axum::{
@@ -735,6 +741,123 @@ mod test {
             .unwrap();
 
         assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_delegation_evidence_pi_different_as(
+        _pool_options: PgPoolOptions,
+        conn_option: PgConnectOptions,
+    ) -> sqlx::Result<()> {
+        let db = init_test_db(&conn_option).await;
+
+        let pi = "1".to_owned();
+        let as1 = "2".to_owned();
+        let as2 = "3".to_owned();
+        let target_id = "target".to_owned();
+        let resource_type = "Resource".to_owned();
+        let actions = vec!["Read".to_owned()];
+        let environment = Environment {
+            service_providers: vec!["service".to_owned()],
+        };
+
+        insert_policy_set_with_policies(
+            chrono::Utc::now(),
+            &InsertPolicySetWithPolicies {
+                policy_issuer: pi.clone(),
+                target: AccessSubjectTarget {
+                    access_subject: as1.clone(),
+                },
+                licences: vec![],
+                policies: vec![Policy {
+                    target: ResourceTarget {
+                        resource: Resource {
+                            identifiers: vec![target_id],
+                            attributes: vec!["*".to_owned()],
+                            resource_type: resource_type,
+                        },
+                        actions,
+                        environment,
+                    },
+                    rules: vec![ResourceRule::Permit],
+                }],
+                max_delegation_depth: 1,
+            },
+            &db,
+        )
+        .await
+        .unwrap();
+
+        let app = get_test_app(db);
+        let request_body = create_request_body(&json!({
+            "delegationRequest": {
+                "policyIssuer": pi,
+                "target": {
+                    "accessSubject": as2
+                },
+                "policySets": [
+                    {
+                        "policies": [
+                            {
+                                "target": {
+                                    "resource": {
+                                        "type": "Resource",
+                                        "identifiers": ["target"],
+                                        "attributes": ["*"]
+                                    },
+                                    "actions": ["Read"],
+                                    "environment": {
+                                        "serviceProviders": ["service"]
+                                    }
+                                },
+                                "rules": [
+                                    {
+                                        "effect": "Permit"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        }));
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/delegation")
+                    .method("POST")
+                    .header(
+                        AUTHORIZATION,
+                        server_token::server_token_test_helper::get_human_token_header(
+                            Some(pi),
+                            None,
+                        ),
+                    )
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .body(Body::new(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body: DelegationEvidenceContainer = serde_json::from_str(
+            std::str::from_utf8(&response.into_body().collect().await.unwrap().to_bytes()).unwrap(),
+        )
+        .unwrap();
+
+        tracing::info!("{:?}", body);
+
+        assert_eq!(body.delegation_evidence.policy_sets.len() > 0, true);
+
+        for ps in body.delegation_evidence.policy_sets.iter() {
+            for p in ps.policies.iter() {
+                assert_eq!(p.rules.get(0).unwrap().effect, "Deny")
+            }
+        }
 
         Ok(())
     }
