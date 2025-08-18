@@ -11,6 +11,7 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as CallbackImport } from './routes/callback'
 import { Route as authImport } from './routes/__auth'
 import { Route as authIndexImport } from './routes/__auth/index'
 import { Route as authMemberImport } from './routes/__auth/member'
@@ -40,6 +41,11 @@ import { Route as authMemberPolicysetPolicySetIdEditpolicyPolicyIdImport } from 
 import { Route as authAdminPolicysetPolicySetIdEditpolicyPolicyIdImport } from './routes/__auth/admin/policy_set.$policySetId.edit_policy.$policyId'
 
 // Create/Update Routes
+
+const CallbackRoute = CallbackImport.update({
+  path: '/callback',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const authRoute = authImport.update({
   id: '/__auth',
@@ -208,6 +214,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: ''
       preLoaderRoute: typeof authImport
+      parentRoute: typeof rootRoute
+    }
+    '/callback': {
+      id: '/callback'
+      path: '/callback'
+      fullPath: '/callback'
+      preLoaderRoute: typeof CallbackImport
       parentRoute: typeof rootRoute
     }
     '/__auth/admin': {
@@ -554,6 +567,7 @@ const authRouteWithChildren = authRoute._addFileChildren(authRouteChildren)
 
 export interface FileRoutesByFullPath {
   '': typeof authRouteWithChildren
+  '/callback': typeof CallbackRoute
   '/admin': typeof authAdminRouteWithChildren
   '/member': typeof authMemberRouteWithChildren
   '/': typeof authIndexRoute
@@ -583,6 +597,7 @@ export interface FileRoutesByFullPath {
 }
 
 export interface FileRoutesByTo {
+  '/callback': typeof CallbackRoute
   '/admin': typeof authAdminRouteWithChildren
   '/member': typeof authMemberRouteWithChildren
   '/': typeof authIndexRoute
@@ -614,6 +629,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/__auth': typeof authRouteWithChildren
+  '/callback': typeof CallbackRoute
   '/__auth/admin': typeof authAdminRouteWithChildren
   '/__auth/member': typeof authMemberRouteWithChildren
   '/__auth/': typeof authIndexRoute
@@ -646,6 +662,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | ''
+    | '/callback'
     | '/admin'
     | '/member'
     | '/'
@@ -674,6 +691,7 @@ export interface FileRouteTypes {
     | '/member/policy_set/$policySetId/edit_policy/$policyId'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/callback'
     | '/admin'
     | '/member'
     | '/'
@@ -703,6 +721,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/__auth'
+    | '/callback'
     | '/__auth/admin'
     | '/__auth/member'
     | '/__auth/'
@@ -734,10 +753,12 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   authRoute: typeof authRouteWithChildren
+  CallbackRoute: typeof CallbackRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   authRoute: authRouteWithChildren,
+  CallbackRoute: CallbackRoute,
 }
 
 export const routeTree = rootRoute
@@ -752,7 +773,8 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/__auth"
+        "/__auth",
+        "/callback"
       ]
     },
     "/__auth": {
@@ -762,6 +784,9 @@ export const routeTree = rootRoute
         "/__auth/member",
         "/__auth/"
       ]
+    },
+    "/callback": {
+      "filePath": "callback.tsx"
     },
     "/__auth/admin": {
       "filePath": "__auth/admin.tsx",

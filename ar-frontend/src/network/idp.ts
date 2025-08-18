@@ -5,24 +5,12 @@ export const IDP_URL = new URL(
   import.meta.env.VITE_IDP_URL,
 );
 
-//export function initLogin() {
-//  const redirectUrl = encodeURIComponent(window.location.href);
-//  const loginUrl = `${baseAPIUrl}/connect/human/auth?redirect_uri=${redirectUrl}`;
-//  window.location.href = loginUrl;
-//}
-
-let called = false;
 export function initLogin() {
-  console.log("called", called);
-  if (called) {
-    return;
-  }
-  called = true;
   async function run() {
     try {
-      console.log("INIT LOGIN");
-
-      const redirectUrl = encodeURIComponent(window.location.href);
+      const baseUrl = `${window.location.protocol}//${window.location.hostname}${window.location.port ? `:${window.location.port}` : ""}`;
+      const redirectUrl = `${baseUrl}/callback`;
+      // const redirectUrl = encodeURIComponent(window.location.href);
       const getParamsUrl = `${baseAPIUrl}/connect/human/auth_params?redirect_uri=${redirectUrl}`;
       const params = await (await fetch(getParamsUrl)).json();
 
@@ -31,8 +19,6 @@ export function initLogin() {
       const form = document.createElement("form");
       form.setAttribute("method", "POST");
       form.setAttribute("action", loginUrl);
-
-      console.log(params);
 
       for (const [key, value] of Object.entries(params)) {
         const hiddenField = document.createElement("input");

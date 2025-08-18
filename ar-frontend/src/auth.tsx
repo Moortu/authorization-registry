@@ -1,10 +1,4 @@
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useState,
-  useCallback,
-} from "react";
+import { createContext } from "react";
 import * as jose from "jose";
 import { z } from "zod";
 import { initLogin } from "./network/idp";
@@ -56,17 +50,13 @@ export function isAuthenticated(token: string | null): boolean {
   return true;
 }
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(null);
+import { create } from "zustand";
 
-  const getToken = useCallback(() => {
-    const search = new URLSearchParams(window.location.search);
-
-    //token is in url
-    const tokenFromSearch = search.get("token");
-    if (tokenFromSearch && isAuthenticated(tokenFromSearch)) {
-      return tokenFromSearch;
-    }
+export const useAuthStore = create<AuthContext>((set, get) => ({
+  token: null,
+  setToken: (token: string) => set({ token }),
+  getToken: () => {
+    const token = get().token;
 
     if (token === null) {
       initLogin();
@@ -79,21 +69,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     return token;
-  }, [token]);
-
-  return (
-    <authContext.Provider value={{ token, getToken, setToken }}>
-      {children}
-    </authContext.Provider>
-  );
-}
-
-export function useAuth() {
-  const auth = useContext(authContext);
-
-  if (!auth) {
-    throw new Error("auth context not initialiased");
-  }
-
-  return auth;
-}
+  },
+}));

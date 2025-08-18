@@ -1,4 +1,5 @@
-import { useAuth } from "../auth";
+// import { useAuth } from "../auth";
+import { useAuthStore } from "@/auth";
 import { z } from "zod";
 
 export const baseAPIUrl =
@@ -32,13 +33,13 @@ async function createErrorResponse(response: Response): Promise<ErrorResponse> {
 }
 
 export function useAuthenticatedFetch() {
-  const { getToken } = useAuth();
+  // const { getToken } = useAuth();
 
   const authenticatedFetch: typeof fetch = async (
     input: RequestInfo | URL,
     init?: RequestInit,
   ) => {
-    const token = await getToken();
+    const token = useAuthStore.getState().getToken();
 
     const headers = {
       Authorization: `Bearer ${token}`,
