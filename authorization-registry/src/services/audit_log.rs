@@ -16,7 +16,7 @@ use sea_orm::{
     QueryFilter, QuerySelect,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{json, Value};
 use uuid::Uuid;
 
 use crate::{
@@ -25,8 +25,52 @@ use crate::{
     TimeProvider,
 };
 
+#[derive(Serialize, Deserialize)]
+pub struct PolicySetCreatedEventMetadata {
+    pub policy_set_id: Uuid,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct PolicyRemoved {
+    pub policy_id: Uuid,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct PolicyAdded {
+    pub policy_id: Uuid,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct PolicyReplaced {
+    pub old_policy_id: Uuid,
+    pub new_policy_id: Uuid,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(tag = "edit_type")]
+pub enum EditedType {
+    PolicyRemoved(PolicyRemoved),
+    PolicyAdded(PolicyAdded),
+    PolicyReplaced(PolicyReplaced),
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct PolicySetEditedEventMetadata {
+    pub policy_set_id: Uuid,
+    #[serde(flatten)]
+    pub edited_type: EditedType,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct PolicySetDeletedEventMetadata {
+    pub policy_set_id: Uuid,
+}
+
 pub enum EventType {
     DmiDelegationRequest(DelegationRequest),
+    ArPolicySetCreated(PolicySetCreatedEventMetadata),
+    ArPolicySetEdited(PolicySetEditedEventMetadata),
+    ArPolicySetDeleted(PolicySetDeletedEventMetadata),
 }
 
 impl EventType {
@@ -36,6 +80,15 @@ impl EventType {
                 serde_json::to_value(delegation_request)
                     .context("Error parsing serde_json value")?,
             )),
+            Self::ArPolicySetCreated(meta_data) => Ok(Some(
+                serde_json::to_value(meta_data).context("Error parsing serde_json value")?,
+            )),
+            Self::ArPolicySetEdited(meta_data) => Ok(Some(
+                serde_json::to_value(meta_data).context("Error parsing serde_json value")?,
+            )),
+            Self::ArPolicySetDeleted(meta_data) => Ok(Some(
+                serde_json::to_value(meta_data).context("Error parsing serde_json value")?,
+            )),
         }
     }
 }
@@ -43,7 +96,10 @@ impl EventType {
 impl fmt::Display for EventType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
-            EventType::DmiDelegationRequest(_) => "dmi:authorization_registry:delegation:request",
+            EventType::DmiDelegationRequest(_) => "dmi:ar:delegation:request",
+            EventType::ArPolicySetCreated(_) => "dmi:ar:policy_set:created",
+            EventType::ArPolicySetEdited(_) => "dmi:ar:policy_set:edited",
+            EventType::ArPolicySetDeleted(_) => "dmi:ar:policy_set:deleted",
         };
         write!(f, "{}", s)
     }
@@ -51,6 +107,7 @@ impl fmt::Display for EventType {
 
 pub async fn log_event<T: ConnectionTrait>(
     now: DateTime<Utc>,
+    entry_id: String,
     event_type: EventType,
     source: Option<String>,
     data: Option<Value>,
@@ -61,6 +118,7 @@ pub async fn log_event<T: ConnectionTrait>(
     let id = uuid::Uuid::new_v4();
 
     let log_entry = AuditEventModel {
+        entry_id: ActiveValue::Set(entry_id.clone()),
         id: ActiveValue::Set(id.clone()),
         source: ActiveValue::Set(source),
         timestamp: ActiveValue::Set(now),
@@ -81,34 +139,47 @@ pub async fn log_event<T: ConnectionTrait>(
 
 #[derive(Serialize, Deserialize)]
 pub struct AuditEventWithIssAndSub {
-    pub id: Uuid,
     pub timestamp: DateTime<Utc>,
     #[serde(rename = "type")]
     pub event_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub context: Option<Value>,
+    pub context: Value,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<Value>,
     pub sub: String,
     pub iss: String,
+    #[serde(rename = "entryId")]
+    pub entry_id: String,
 }
 
-fn add_iss_and_sub(
+fn add_id_to_context(context: Option<serde_json::Value>, id: Uuid) -> serde_json::Value {
+    let mut initial = match context {
+        Some(context) => context.clone(),
+        None => json!({}),
+    };
+
+    if let Some(obj) = initial.as_object_mut() {
+        obj.insert("id".to_string(), id.to_string().into());
+    }
+
+    initial
+}
+
+fn add_iss_and_sub_and_id_to_context(
     client_eori: &str,
     controller_eori: &str,
     audit_event: ar_entity::audit_event::Model,
 ) -> AuditEventWithIssAndSub {
     return AuditEventWithIssAndSub {
-        id: audit_event.id,
         timestamp: audit_event.timestamp,
         event_type: audit_event.event_type,
         source: audit_event.source,
-        context: audit_event.context,
+        context: add_id_to_context(audit_event.context, audit_event.id),
         data: audit_event.data,
         iss: client_eori.to_owned(),
         sub: controller_eori.to_owned(),
+        entry_id: audit_event.entry_id,
     };
 }
 
@@ -222,8 +293,34 @@ pub async fn retrieve_events(
 
     let events_with_iss_and_sub: Vec<AuditEventWithIssAndSub> = events
         .into_iter()
-        .map(|e| add_iss_and_sub(client_eori, controller_eori, e))
+        .map(|e| add_iss_and_sub_and_id_to_context(client_eori, controller_eori, e))
         .collect();
 
     return Ok(events_with_iss_and_sub);
+}
+
+#[cfg(test)]
+
+mod tests {
+    use std::collections::HashMap;
+
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use crate::services::audit_log::add_id_to_context;
+
+    #[test]
+    fn test_add_id_to_context() {
+        let context = json!({
+            "something": "whatever"
+        });
+
+        let id = Uuid::new_v4();
+        let context = add_id_to_context(Some(context), id);
+
+        let map: HashMap<String, String> = serde_json::from_value(context).unwrap();
+
+        assert_eq!(map.get("id").unwrap(), &id.to_string());
+        assert_eq!(map.get("something").unwrap(), "whatever");
+    }
 }

@@ -118,6 +118,7 @@ async fn post_delegation(
 
     log_event(
         now,
+        "".to_owned(),
         crate::services::audit_log::EventType::DmiDelegationRequest(
             body.delegation_request.clone(),
         ),
@@ -208,10 +209,11 @@ mod test {
     };
     use ishare::delegation_evidence::DelegationEvidenceContainer;
 
-    use crate::db::policy::{
-        insert_policy_set_with_policies, AccessSubjectTarget, InsertPolicySetWithPolicies,
-    };
+    use crate::db::policy::AccessSubjectTarget;
     use crate::fixtures::fixtures::insert_policy_set_fixture;
+    use crate::services::policy::{
+        insert_policy_set_with_policies_into_db, InsertPolicySetWithPolicies,
+    };
     use crate::services::server_token;
     use axum::{
         body::Body,
@@ -762,7 +764,7 @@ mod test {
             service_providers: vec!["service".to_owned()],
         };
 
-        insert_policy_set_with_policies(
+        insert_policy_set_with_policies_into_db(
             chrono::Utc::now(),
             &InsertPolicySetWithPolicies {
                 policy_issuer: pi.clone(),
