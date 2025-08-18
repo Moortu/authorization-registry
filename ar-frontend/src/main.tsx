@@ -9,7 +9,6 @@ import "@fontsource-variable/inter";
 import { CssVarsProvider, extendTheme } from "@mui/joy";
 
 import { routeTree } from "./routeTree.gen";
-import { AuthProvider } from "./auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Create a new router instance
@@ -107,18 +106,6 @@ const theme = extendTheme({
     },
     JoyChip: {
       styleOverrides: {
-        // root: () => ({
-        //   fontFamily: "Karla Variable",
-        //   paddingLeft: "16px",
-        //   paddingRight: "16px",
-        //   paddingTop: "8px",
-        //   paddingBottom: "8px",
-        //   lineHeight: "16.52px",
-        //   letterSpacing: "1.1px",
-        //   textTransform: "uppercase",
-        //   fontWeight: 500,
-        //   fontSize: "14px",
-        // }),
         startDecorator: {
           paddingRight: 4,
         },
@@ -246,9 +233,7 @@ function WrappedApp() {
   return (
     <CssVarsProvider theme={theme}>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <RouterProvider router={router} />
-        </AuthProvider>
+        <RouterProvider router={router} />
       </QueryClientProvider>
     </CssVarsProvider>
   );
