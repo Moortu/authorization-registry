@@ -367,7 +367,7 @@ dependencies = [
  "chrono",
  "clap",
  "http-body-util",
- "ishare 0.8.1",
+ "ishare 0.9.0",
  "jsonwebtoken",
  "reqwest",
  "sea-orm",
@@ -1693,9 +1693,9 @@ dependencies = [
 
 [[package]]
 name = "ishare"
-version = "0.8.1"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "98526d236b44de5a9a4dfb98bcd5f06fc91a7516a7b57212062ffc4813d4dcc5"
+checksum = "3176f11bc304d6087ed458b924db38bc88e57dab0a20ff020136d240cc58b7c8"
 dependencies = [
  "anyhow",
  "async-trait",

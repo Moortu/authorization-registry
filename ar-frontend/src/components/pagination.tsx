@@ -3,6 +3,7 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 import usePagination from "@mui/material/usePagination";
+import { lighten } from "@mui/material";
 
 export function Pagination({
   numberOfItems,
@@ -24,7 +25,7 @@ export function Pagination({
 
   return (
     <nav>
-      <Box display="flex" alignItems="center">
+      <Box display="flex" alignItems="center" gap={0.5}>
         {items.map((item, index) => {
           if (item.type === "start-ellipsis" || item.type === "end-ellipsis") {
             return <span key={index}>…</span>;
@@ -67,6 +68,9 @@ export function Pagination({
                   item.selected
                     ? {
                         backgroundColor: "#363D44",
+                        "&:hover": {
+                          backgroundColor: lighten("#363D44", 0.1),
+                        },
                       }
                     : {}
                 }

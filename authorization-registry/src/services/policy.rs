@@ -125,9 +125,9 @@ pub async fn insert_policy_set_with_policies(
 pub struct InsertPolicySetWithPolicies {
     pub target: AccessSubjectTarget,
     pub policy_issuer: String,
-    licences: Vec<String>,
+    pub licences: Vec<String>,
     pub policies: Vec<ar_entity::delegation_evidence::Policy>,
-    max_delegation_depth: i32,
+    pub max_delegation_depth: i32,
 }
 
 pub async fn insert_policy_set_with_policies_into_db(
