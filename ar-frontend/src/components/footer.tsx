@@ -68,6 +68,7 @@ export function Footer() {
         width: "100%",
         display: "flex",
         justifyContent: "center",
+        textDecoration: "none",
       }}
     >
       <Box sx={{ maxWidth: 1440, width: 1440, height: 657 }}>
