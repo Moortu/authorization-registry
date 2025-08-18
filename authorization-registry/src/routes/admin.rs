@@ -8,7 +8,7 @@ use axum::{
 };
 use axum_extra::extract::WithRejection;
 use reqwest::StatusCode;
-use sea_orm::DatabaseConnection;
+use sea_orm::{DatabaseConnection, TransactionTrait};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use utoipa::ToSchema;
@@ -17,6 +17,13 @@ use uuid::Uuid;
 use crate::{
     db::policy::{self as policy_store, MatchingPolicySetRow, PolicySetsWithPagination},
     error::ExpectedError,
+    services::{
+        audit_log::{
+            log_event, PolicyAdded, PolicyRemoved, PolicyReplaced, PolicySetDeletedEventMetadata,
+            PolicySetEditedEventMetadata,
+        },
+        policy::InsertPolicySetWithPolicies,
+    },
 };
 use crate::{db::policy_set_template::InsertPolicySetTemplate, services::policy as policy_service};
 use crate::{error::AppError, error::ErrorResponse, AppState};
@@ -278,7 +285,30 @@ async fn add_policy_to_policy_set(
             })?;
     }
 
-    let policy = policy_store::add_policy_to_policy_set(&id, body, &db).await?;
+    let transaction = db.begin().await.context("error starting db connection")?;
+
+    let policy = policy_store::add_policy_to_policy_set(&id, body, &transaction).await?;
+
+    log_event(
+        app_state.time_provider.now(),
+        id.to_string(),
+        crate::services::audit_log::EventType::ArPolicySetEdited(PolicySetEditedEventMetadata {
+            policy_set_id: id.to_owned(),
+            edited_type: crate::services::audit_log::EditedType::PolicyAdded(PolicyAdded {
+                policy_id: policy.id,
+            }),
+        }),
+        None,
+        None,
+        &transaction,
+    )
+    .await
+    .context("error logging policy added event")?;
+
+    transaction
+        .commit()
+        .await
+        .context("error commiting transaction to db")?;
 
     Ok(Json(policy))
 }
@@ -352,7 +382,31 @@ async fn replace_policy_in_policy_set(
             })?;
     }
 
+    let transaction = db.begin().await.context("error starting db transaction")?;
+
     let policy = policy_store::replace_policy(policy_set_id, policy_id, &body, &db).await?;
+
+    log_event(
+        app_state.time_provider.now(),
+        policy_set_id.to_string(),
+        crate::services::audit_log::EventType::ArPolicySetEdited(PolicySetEditedEventMetadata {
+            policy_set_id: policy_set_id.to_owned(),
+            edited_type: crate::services::audit_log::EditedType::PolicyReplaced(PolicyReplaced {
+                old_policy_id: policy_id.to_owned(),
+                new_policy_id: policy.id.to_owned(),
+            }),
+        }),
+        None,
+        None,
+        &transaction,
+    )
+    .await
+    .context("Error logging policy set edited event")?;
+
+    transaction
+        .commit()
+        .await
+        .context("error commiting transaction to db")?;
 
     Ok(Json(policy))
 }
@@ -390,8 +444,29 @@ async fn replace_policy_in_policy_set(
 async fn delete_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     WithRejection(Path(id), _): WithRejection<Path<Uuid>, AppError>,
+    State(app_state): State<AppState>,
 ) -> Result<(), AppError> {
-    policy_store::delete_policy_set(&id, &db).await?;
+    let transaction = db.begin().await.context("error starting db transaction")?;
+
+    policy_store::delete_policy_set(&id, &transaction).await?;
+
+    log_event(
+        app_state.time_provider.now(),
+        id.to_string(),
+        crate::services::audit_log::EventType::ArPolicySetDeleted(PolicySetDeletedEventMetadata {
+            policy_set_id: id.to_owned(),
+        }),
+        None,
+        None,
+        &transaction,
+    )
+    .await
+    .context("Error logging policy set deleted event")?;
+
+    transaction
+        .commit()
+        .await
+        .context("error commiting transaction to db")?;
 
     Ok(())
 }
@@ -429,12 +504,33 @@ async fn delete_policy_set(
  )]
 async fn delete_policy_from_policy_set(
     Extension(db): Extension<DatabaseConnection>,
-    WithRejection(Path((_policy_set_id, policy_id)), _): WithRejection<
-        Path<(Uuid, Uuid)>,
-        AppError,
-    >,
+    WithRejection(Path((policy_set_id, policy_id)), _): WithRejection<Path<(Uuid, Uuid)>, AppError>,
+    State(app_state): State<AppState>,
 ) -> Result<(), AppError> {
-    policy_store::delete_policy(&policy_id, &db).await?;
+    let transaction = db.begin().await.context("error starting db transaction")?;
+
+    policy_store::delete_policy(&policy_id, &transaction).await?;
+
+    log_event(
+        app_state.time_provider.now(),
+        policy_set_id.to_string(),
+        crate::services::audit_log::EventType::ArPolicySetEdited(PolicySetEditedEventMetadata {
+            policy_set_id: policy_set_id.to_owned(),
+            edited_type: crate::services::audit_log::EditedType::PolicyRemoved(PolicyRemoved {
+                policy_id: policy_id.to_owned(),
+            }),
+        }),
+        None,
+        None,
+        &transaction,
+    )
+    .await
+    .context("Error logging policy set edited event")?;
+
+    transaction
+        .commit()
+        .await
+        .context("error commiting transaction to db")?;
 
     Ok(())
 }
@@ -499,7 +595,7 @@ struct InsertPolicySetResponse {
     path = "/admin/policy-set",
     tag = "Policy Management - Admin",
     request_body(
-        content = policy_store::InsertPolicySetWithPolicies,
+        content = InsertPolicySetWithPolicies,
         description = "Policy set details and its initial policies",
         content_type = "application/json"
     ),
@@ -530,10 +626,7 @@ struct InsertPolicySetResponse {
 async fn insert_policy_set(
     Extension(db): Extension<DatabaseConnection>,
     State(app_state): State<AppState>,
-    WithRejection(Json(body), _): WithRejection<
-        Json<policy_store::InsertPolicySetWithPolicies>,
-        AppError,
-    >,
+    WithRejection(Json(body), _): WithRejection<Json<InsertPolicySetWithPolicies>, AppError>,
 ) -> Result<Json<InsertPolicySetResponse>, AppError> {
     let policy_set_id = policy_service::insert_policy_set_with_policies_admin(
         app_state.time_provider.now(),

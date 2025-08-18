@@ -1,7 +1,8 @@
 import { CatchBoundary } from "@/components/catch-boundary";
+import { MainButton } from "@/components/main-button";
 import { PageLoadingFallback } from "@/components/page-loading-fallback";
 import { usePolicySetTemplates } from "@/network/policy-set-templates";
-import { Box, Button, Card, Stack, Typography } from "@mui/joy";
+import { Box, Card, Stack, Typography } from "@mui/joy";
 import {
   createFileRoute,
   Link,
@@ -25,13 +26,7 @@ function Component() {
         <Box paddingY={4} display="flex" gap={4}>
           <Typography level="h2">Policy set templates</Typography>
           <div>
-            <Button
-              sx={{
-                borderRadius: "8px",
-                height: "43px",
-                boxShadow: "0px 0px 36px 0px #FF358340",
-                backgroundColor: "#007EFF",
-              }}
+            <MainButton
               onClick={() => {
                 navigate({
                   to: "/admin/policy_set_templates/new_policy_set_template/define_policy_set_template",
@@ -39,7 +34,7 @@ function Component() {
               }}
             >
               New policy set template
-            </Button>
+            </MainButton>
           </div>
         </Box>
 

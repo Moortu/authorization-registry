@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use axum::async_trait;
 use ishare::{
     delegation_evidence::DelegationEvidenceContainer,
-    ishare::{Capabilities, PartyInfo, ValidatePartyError, ISHARE},
+    ishare::{Capabilities, CertificatesOrSpor, PartyInfo, ValidatePartyError, ISHARE},
 };
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -245,17 +245,22 @@ impl SatelliteProvider for ISHAREProvider {
             .await
             .context("Error getting party info IDP")?;
 
-        let idp_cert: &ishare::ishare::Certificate = idp_info
-            .certificates
-            .first()
-            .context("No certificate found for IDP")?;
+        let idp_cert = match idp_info.certificates_or_spor {
+            CertificatesOrSpor::Spor(_) => {
+                anyhow::bail!("Error: IDP should have certificate instead of spor");
+            }
+            CertificatesOrSpor::Certificates(certificates) => certificates
+                .into_iter()
+                .next()
+                .context("No certificate found for IDP")?,
+        };
 
         let encrypted_client_assertion = self
             .ishare
             .create_client_assertion_with_extra_claims_encrypted(
                 self.idp_connector.idp_eori.clone(),
                 auth_claims,
-                idp_cert,
+                &idp_cert,
             )
             .context("Error creating encyrpted client assertion")?;
 

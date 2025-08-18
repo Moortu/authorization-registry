@@ -3,3 +3,7 @@ body {
   overflow-y: scroll;
   font-family: "Merriweather Sans" !important;
 }
+
+a {
+  text-decoration: none;
+}
