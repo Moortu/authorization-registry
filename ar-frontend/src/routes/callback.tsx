@@ -16,10 +16,9 @@ export const Route = createFileRoute("/callback")({
 
     if (search.state) {
       throw redirect({
-        to: search.state
-      })
+        to: search.state,
+      });
     }
-    
 
     throw redirect({
       to: tokenContent.realm_access_roles.includes("dexspace_admin")
