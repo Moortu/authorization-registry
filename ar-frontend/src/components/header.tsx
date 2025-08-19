@@ -12,10 +12,28 @@ export function HeaderLink(props: ButtonProps & { selected: boolean }) {
       variant="plain"
       color="neutral"
       sx={{
-        typography: {
-          color: props.selected ? "#4890DA" : "#49525B",
-          fontWeight: 300,
-        },
+        typography: (theme) => ({
+          ...(props.selected
+            ? {
+                color: theme.vars.palette.primary[500],
+                fontWeight: 300,
+                "&:hover": {
+                  color: theme.vars.palette.primary[500],
+                  backgroundColor: "unset",
+                },
+              }
+            : {
+                color: theme.vars.palette.neutral[600],
+                fontWeight: 300,
+                "&:hover": {
+                  backgroundColor: "unset",
+                  color: theme.vars.palette.primary[500],
+                },
+                "&:active": {
+                  color: theme.vars.palette.primary[700],
+                },
+              }),
+        }),
       }}
       {...props}
     />

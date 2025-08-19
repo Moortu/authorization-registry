@@ -172,7 +172,7 @@ pub fn get_app(db: DatabaseConnection, app_state: AppState, disable_cors_check: 
     let capabilities_routes = get_capabilities_routes();
     let policy_set_template_routes = get_policy_set_template_routes(app_state.server_token.clone());
     let audit_log_routes = get_audit_log_routes(app_state.server_token.clone());
-    let config_routes = routes::config::get_config_routes(app_state.server_token.clone());
+    let config_routes = routes::config::get_config_routes();
 
     let app = Router::new()
         .nest("/connect", connect_routes)

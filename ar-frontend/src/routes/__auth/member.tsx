@@ -14,6 +14,7 @@ import { PolicySetCard } from "@/components/policy-set-list-page";
 import { Pagination } from "@/components/pagination";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useState } from "react";
+import { Footer } from "@/components/footer";
 
 const ITEMS_ON_PAGE = 3;
 
@@ -107,6 +108,7 @@ function Component() {
           </Box>
         </Box>
       </Box>
+      <Footer />
     </>
   );
 }

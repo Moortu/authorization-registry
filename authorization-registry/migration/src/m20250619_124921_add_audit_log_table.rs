@@ -39,7 +39,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
-enum AuditEvent {
+pub enum AuditEvent {
     Table,
     Id,
     Timestamp,
@@ -47,4 +47,5 @@ enum AuditEvent {
     Source,
     Context,
     Data,
+    EntryId,
 }

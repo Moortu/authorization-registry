@@ -3,6 +3,10 @@
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
+fn default_entry_id() -> String {
+    "".to_owned()
+}
+
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "audit_event")]
 pub struct Model {
@@ -18,6 +22,9 @@ pub struct Model {
     pub context: Option<Json>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<Json>,
+    #[sea_orm(column_type = "Text")]
+    #[serde(default = "default_entry_id")]
+    pub entry_id: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

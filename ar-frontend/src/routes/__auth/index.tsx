@@ -1,4 +1,4 @@
-import { getTokenContent, isAuthenticated, useAuth } from "@/auth";
+import { getTokenContent, isAuthenticated, useAuthStore } from "@/auth";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 
@@ -9,7 +9,7 @@ export const Route = createFileRoute("/__auth/")({
 function Component() {
   const navigate = useNavigate();
   const search = Route.useSearch();
-  const { token } = useAuth();
+  const { token } = useAuthStore();
 
   useEffect(() => {
     if (isAuthenticated(token) && token) {
@@ -22,8 +22,6 @@ function Component() {
         replace: true,
         search: {
           ...search,
-          // @ts-ignore
-          token: undefined,
         },
       });
     }

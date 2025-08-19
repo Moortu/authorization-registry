@@ -1,12 +1,12 @@
 use anyhow::Context;
 use reqwest::StatusCode;
 use sea_orm::DatabaseConnection;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use axum::async_trait;
 use ishare::{
     delegation_evidence::DelegationEvidenceContainer,
-    ishare::{Capabilities, PartyInfo, ValidatePartyError, ISHARE},
+    ishare::{Capabilities, CertificatesOrSpor, PartyInfo, ValidatePartyError, ISHARE},
 };
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -34,6 +34,15 @@ struct IdTokenClaims {
     pub last_name: String,
 }
 
+#[derive(Serialize)]
+pub struct OAuthRequestForm {
+    pub response_type: String,
+    pub scope: String,
+    pub request: String,
+    pub client_id: String,
+    pub state: String,
+}
+
 #[async_trait]
 pub trait SatelliteProvider: Send + Sync {
     async fn get_satellite_token(&self) -> anyhow::Result<String>;
@@ -43,6 +52,14 @@ pub trait SatelliteProvider: Send + Sync {
         server_url: &str,
         redirect_url: &str,
     ) -> anyhow::Result<String>;
+
+    fn get_h2m_redirect_base_url(&self) -> String;
+
+    async fn get_h2m_redirect_form(
+        &self,
+        server_url: &str,
+        redirect_url: &str,
+    ) -> anyhow::Result<OAuthRequestForm>;
 
     async fn handle_h2m_auth_callback(
         &self,
@@ -207,6 +224,57 @@ impl SatelliteProvider for ISHAREProvider {
         Ok(url)
     }
 
+    fn get_h2m_redirect_base_url(&self) -> String {
+        return self.idp_connector.get_realm_url();
+    }
+
+    async fn get_h2m_redirect_form(
+        &self,
+        server_url: &str,
+        redirect_url: &str,
+    ) -> anyhow::Result<OAuthRequestForm> {
+        let auth_claims = self
+            .idp_connector
+            .get_auth_request_claims(server_url, redirect_url);
+
+        let idp_eori = self.idp_connector.idp_eori.clone();
+        let now = chrono::Utc::now();
+
+        let idp_info = self
+            .validate_party(now, idp_eori.as_str())
+            .await
+            .context("Error getting party info IDP")?;
+
+        let idp_cert = match idp_info.certificates_or_spor {
+            CertificatesOrSpor::Spor(_) => {
+                anyhow::bail!("Error: IDP should have certificate instead of spor");
+            }
+            CertificatesOrSpor::Certificates(certificates) => certificates
+                .into_iter()
+                .next()
+                .context("No certificate found for IDP")?,
+        };
+
+        let encrypted_client_assertion = self
+            .ishare
+            .create_client_assertion_with_extra_claims_encrypted(
+                self.idp_connector.idp_eori.clone(),
+                auth_claims,
+                &idp_cert,
+            )
+            .context("Error creating encyrpted client assertion")?;
+
+        let oauth_params = OAuthRequestForm {
+            response_type: "code".to_string(),
+            scope: "openid ishare".to_string(),
+            request: encrypted_client_assertion,
+            client_id: self.idp_connector.client_id.clone(),
+            state: redirect_url.to_string(),
+        };
+
+        Ok(oauth_params)
+    }
+
     fn handle_previous_step_client_assertion(
         &self,
         now: chrono::DateTime<chrono::Utc>,
@@ -265,6 +333,8 @@ impl SatelliteProvider for ISHAREProvider {
             .fetch_token(&server_url, code, &client_assertion)
             .await
             .context("Error fetching token from idp")?;
+
+        tracing::info!("got id token {}", response.id_token.clone());
 
         let decoded_id_token = self
             .ishare

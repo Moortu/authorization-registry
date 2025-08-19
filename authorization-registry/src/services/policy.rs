@@ -1,13 +1,20 @@
 use anyhow::Context;
 use ar_entity::delegation_evidence::ResourceRule;
+use chrono::Utc;
 use ishare::delegation_evidence::verify_delegation_evidence;
 use ishare::delegation_request::{DelegationRequest, DelegationTarget, ResourceTarget};
 use reqwest::StatusCode;
-use sea_orm::DatabaseConnection;
+use sea_orm::{DatabaseConnection, TransactionTrait};
+use serde::Deserialize;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-use crate::db::policy::{self as policy_store, InsertPolicySetWithPolicies, MatchingPolicySetRow};
+use crate::db::policy::{self as policy_store, AccessSubjectTarget, MatchingPolicySetRow};
 use crate::error::{AppError, ExpectedError};
+use crate::services::audit_log::{
+    log_event, PolicyAdded, PolicyRemoved, PolicyReplaced, PolicySetCreatedEventMetadata,
+    PolicySetDeletedEventMetadata, PolicySetEditedEventMetadata,
+};
 use crate::services::delegation::create_delegation_evidence;
 use crate::TimeProvider;
 
@@ -106,9 +113,64 @@ pub async fn insert_policy_set_with_policies(
         }));
     }
 
-    let policy_set_id = policy_store::insert_policy_set_with_policies(now, args, db)
+    let policy_set_id = insert_policy_set_with_policies_into_db(now, args, db)
         .await
         .context("Error inserting policy set with policies")?;
+
+    Ok(policy_set_id)
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct InsertPolicySetWithPolicies {
+    pub target: AccessSubjectTarget,
+    pub policy_issuer: String,
+    pub licences: Vec<String>,
+    pub policies: Vec<ar_entity::delegation_evidence::Policy>,
+    pub max_delegation_depth: i32,
+}
+
+pub async fn insert_policy_set_with_policies_into_db(
+    now: chrono::DateTime<Utc>,
+    args: &InsertPolicySetWithPolicies,
+    db: &DatabaseConnection,
+) -> anyhow::Result<Uuid> {
+    let transaction = db.begin().await.context("Error opening db transaction")?;
+
+    let policy_set_id = policy_store::insert_policy_set(
+        now,
+        &args.target,
+        &args.policy_issuer,
+        &args.licences,
+        &args.max_delegation_depth,
+        &transaction,
+    )
+    .await
+    .context("Error inserting policy set into db")?;
+
+    for policy in args.policies.iter() {
+        policy_store::insert_policy(policy_set_id, &policy, &transaction)
+            .await
+            .context("Error inserting policy into db")?;
+    }
+
+    log_event(
+        now,
+        policy_set_id.to_string(),
+        super::audit_log::EventType::ArPolicySetCreated(PolicySetCreatedEventMetadata {
+            policy_set_id: policy_set_id.to_owned(),
+        }),
+        None,
+        None,
+        &transaction,
+    )
+    .await
+    .context("error logging policy set created event")?;
+
+    transaction
+        .commit()
+        .await
+        .context("Error commiting transaction to db")?;
 
     Ok(policy_set_id)
 }
@@ -121,7 +183,7 @@ pub async fn insert_policy_set_with_policies_admin(
 ) -> Result<Uuid, AppError> {
     validate_policy_set_ishare_parties(now, args, ishare).await?;
 
-    let policy_set_id = policy_store::insert_policy_set_with_policies(now, args, db)
+    let policy_set_id = insert_policy_set_with_policies_into_db(now, args, db)
         .await
         .context("Error inserting policy set with policies")?;
 
@@ -226,6 +288,7 @@ pub async fn verify_policy_set_access(
 }
 
 pub async fn delete_policy_set(
+    now: chrono::DateTime<Utc>,
     requester_company_id: &str,
     id: &Uuid,
     client_eori: &str,
@@ -278,9 +341,29 @@ pub async fn delete_policy_set(
         }));
     }
 
-    policy_store::delete_policy_set(&id, &db)
+    let transaction = db.begin().await.context("error starting db transaction")?;
+
+    policy_store::delete_policy_set(&id, &transaction)
         .await
         .context(format!("Error deleting policy set: {}", id))?;
+
+    log_event(
+        now,
+        id.to_string(),
+        crate::services::audit_log::EventType::ArPolicySetDeleted(PolicySetDeletedEventMetadata {
+            policy_set_id: id.to_owned(),
+        }),
+        None,
+        None,
+        &transaction,
+    )
+    .await
+    .context("Error logging policy set deleted event")?;
+
+    transaction
+        .commit()
+        .await
+        .context("error commiting transaction to db")?;
 
     Ok(())
 }
@@ -370,9 +453,32 @@ pub async fn add_policy_to_policy_set(
         }));
     }
 
-    let policy = policy_store::add_policy_to_policy_set(policy_set_id, policy, db)
+    let transaction = db.begin().await.context("error starting db transaction")?;
+
+    let policy = policy_store::add_policy_to_policy_set(policy_set_id, policy, &transaction)
         .await
         .context("Error adding policy to policy set")?;
+
+    log_event(
+        now,
+        policy_set_id.to_string(),
+        crate::services::audit_log::EventType::ArPolicySetEdited(PolicySetEditedEventMetadata {
+            policy_set_id: policy_set_id.to_owned(),
+            edited_type: crate::services::audit_log::EditedType::PolicyAdded(PolicyAdded {
+                policy_id: policy.id,
+            }),
+        }),
+        None,
+        None,
+        &transaction,
+    )
+    .await
+    .context("error logging policy added event")?;
+
+    transaction
+        .commit()
+        .await
+        .context("error commiting transaction to db")?;
 
     Ok(policy)
 }
@@ -463,9 +569,33 @@ pub async fn replace_policy_in_policy_set(
         }));
     }
 
-    let policy = policy_store::replace_policy(policy_set_id, policy_id, &policy, db)
+    let transaction = db.begin().await.context("error starting db transtaction")?;
+
+    let policy = policy_store::replace_policy(policy_set_id, policy_id, &policy, &transaction)
         .await
         .context("Error adding policy to policy set")?;
+
+    log_event(
+        now,
+        policy_set_id.to_string(),
+        crate::services::audit_log::EventType::ArPolicySetEdited(PolicySetEditedEventMetadata {
+            policy_set_id: policy_set_id.to_owned(),
+            edited_type: crate::services::audit_log::EditedType::PolicyReplaced(PolicyReplaced {
+                old_policy_id: policy_id.to_owned(),
+                new_policy_id: policy.id.to_owned(),
+            }),
+        }),
+        None,
+        None,
+        &transaction,
+    )
+    .await
+    .context("Error logging policy set edited event")?;
+
+    transaction
+        .commit()
+        .await
+        .context("error commiting transaction to db")?;
 
     Ok(policy)
 }
@@ -529,6 +659,7 @@ pub async fn get_policy_set_with_policies(
 }
 
 pub async fn remove_policy_from_policy_set(
+    now: chrono::DateTime<Utc>,
     requester_company_id: &str,
     policy_set_id: &Uuid,
     policy_id: &Uuid,
@@ -594,9 +725,32 @@ pub async fn remove_policy_from_policy_set(
         }));
     }
 
-    policy_store::delete_policy(policy_id, db)
+    let transaction = db.begin().await.context("error starting db transaction")?;
+
+    policy_store::delete_policy(policy_id, &transaction)
         .await
         .context("Error deleting policy")?;
+
+    log_event(
+        now,
+        policy_set_id.to_string(),
+        crate::services::audit_log::EventType::ArPolicySetEdited(PolicySetEditedEventMetadata {
+            policy_set_id: policy_set_id.to_owned(),
+            edited_type: crate::services::audit_log::EditedType::PolicyRemoved(PolicyRemoved {
+                policy_id: policy_id.to_owned(),
+            }),
+        }),
+        None,
+        None,
+        &transaction,
+    )
+    .await
+    .context("Error logging policy set edited event")?;
+
+    transaction
+        .commit()
+        .await
+        .context("error commiting transaction to database")?;
 
     Ok(())
 }
@@ -749,7 +903,7 @@ mod test {
             ]
         }))
         .unwrap();
-        policy_store::insert_policy_set_with_policies(chrono::Utc::now(), &policy_set, &db)
+        insert_policy_set_with_policies_into_db(chrono::Utc::now(), &policy_set, &db)
             .await
             .unwrap();
 

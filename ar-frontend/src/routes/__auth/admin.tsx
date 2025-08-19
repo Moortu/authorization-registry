@@ -7,6 +7,7 @@ import {
 import { CatchBoundary } from "@/components/catch-boundary";
 import { Box } from "@mui/joy";
 import { Header, HeaderLink } from "@/components/header";
+import { PageContainer } from "@/components/page-container";
 
 export const Route = createFileRoute("/__auth/admin")({
   component: Component,
@@ -18,7 +19,7 @@ function Component() {
   const location = useLocation();
 
   return (
-    <>
+    <PageContainer>
       <Header>
         <HeaderLink
           onClick={() => navigate({ to: "/admin/policy_set" })}
@@ -45,6 +46,6 @@ function Component() {
           </Box>
         </Box>
       </Box>
-    </>
+    </PageContainer>
   );
 }
