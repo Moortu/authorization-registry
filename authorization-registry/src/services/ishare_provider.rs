@@ -334,8 +334,6 @@ impl SatelliteProvider for ISHAREProvider {
             .await
             .context("Error fetching token from idp")?;
 
-        tracing::info!("got id token {}", response.id_token.clone());
-
         let decoded_id_token = self
             .ishare
             .decode_token_custom_claims::<IdTokenClaims>(&response.id_token, None)
