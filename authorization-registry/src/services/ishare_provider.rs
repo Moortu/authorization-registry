@@ -160,7 +160,7 @@ impl SatelliteProvider for ISHAREProvider {
 
             let client_assertion = self
                 .ishare
-                .create_client_assertion(self.ishare.sattelite_eori.clone())?;
+                .create_client_assertion(self.ishare.satellite_eori.clone())?;
             let token_response = self
                 .ishare
                 .get_satelite_access_token(&client_assertion)
@@ -333,8 +333,6 @@ impl SatelliteProvider for ISHAREProvider {
             .fetch_token(&server_url, code, &client_assertion)
             .await
             .context("Error fetching token from idp")?;
-
-        tracing::info!("got id token {}", response.id_token.clone());
 
         let decoded_id_token = self
             .ishare
