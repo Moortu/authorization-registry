@@ -266,7 +266,7 @@ impl SatelliteProvider for ISHAREProvider {
 
         let oauth_params = OAuthRequestForm {
             response_type: "code".to_string(),
-            scope: "openid ishare".to_string(),
+            scope: "openid iSHARE".to_string(),
             request: encrypted_client_assertion,
             client_id: self.idp_connector.client_id.clone(),
             state: redirect_url.to_string(),

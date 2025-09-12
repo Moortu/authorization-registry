@@ -44,7 +44,7 @@ impl IdpConnector {
         let idp_url = self.idp_url.clone();
         let client_id = self.client_id.clone();
         let encoded_state = urlencoding::encode(state);
-        let url = format!("{idp_url}/protocol/openid-connect/auth?response_type=code&scope=openid+ishare&client_id={client_id}&request={client_assertion}&state={encoded_state}");
+        let url = format!("{idp_url}/protocol/openid-connect/auth?response_type=code&scope=openid+iSHARE&client_id={client_id}&request={client_assertion}&state={encoded_state}");
 
         return url;
     }
@@ -69,7 +69,7 @@ impl IdpConnector {
 
         return AuthRequestClaims {
             client_id: self.client_id.clone(),
-            scope: "openid ishare".to_owned(),
+            scope: "openid iSHARE".to_owned(),
             redirect_uri: redirect_uri.to_owned(),
             response_type: "code".to_owned(),
             state: callback_url.to_owned(),
