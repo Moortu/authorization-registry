@@ -181,7 +181,8 @@ pub fn get_app(db: DatabaseConnection, app_state: AppState, disable_cors_check: 
         .nest("/policy-set", policy_set_routes)
         .nest("/capabilities", capabilities_routes)
         .nest("/policy-set-template", policy_set_template_routes)
-        .nest("/audit-log", audit_log_routes)
+        .nest("/audit-log", audit_log_routes.clone())
+        .nest("/audit-log/", audit_log_routes)
         .nest("/config", config_routes)
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(
