@@ -1,4 +1,4 @@
-use std::{fmt, sync::Arc};
+use std::{collections::HashMap, fmt, sync::Arc};
 
 use anyhow::Context;
 use ar_entity::audit_event::{ActiveModel as AuditEventModel, Entity as AuditEventEntity};
@@ -144,7 +144,7 @@ pub struct AuditEventWithIssAndSub {
     pub event_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
-    pub context: Value,
+    pub context: HashMap<String, String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<Value>,
     pub sub: String,
@@ -153,7 +153,7 @@ pub struct AuditEventWithIssAndSub {
     pub entry_id: String,
 }
 
-fn add_id_to_context(context: Option<serde_json::Value>, id: Uuid) -> serde_json::Value {
+fn add_id_to_context(context: Option<serde_json::Value>, id: Uuid) -> HashMap<String, String> {
     let mut initial = match context {
         Some(context) => context.clone(),
         None => json!({}),
@@ -163,7 +163,17 @@ fn add_id_to_context(context: Option<serde_json::Value>, id: Uuid) -> serde_json
         obj.insert("id".to_string(), id.to_string().into());
     }
 
-    initial
+    let mut map = HashMap::new();
+    if let Some(obj) = initial.as_object() {
+        for (k, v) in obj {
+            if let Some(s) = v.as_str() {
+                map.insert(k.clone(), s.to_string());
+            } else {
+                map.insert(k.clone(), v.to_string());
+            }
+        }
+    }
+    return map;
 }
 
 fn add_iss_and_sub_and_id_to_context(
@@ -302,8 +312,6 @@ pub async fn retrieve_events(
 #[cfg(test)]
 
 mod tests {
-    use std::collections::HashMap;
-
     use serde_json::json;
     use uuid::Uuid;
 
@@ -318,9 +326,7 @@ mod tests {
         let id = Uuid::new_v4();
         let context = add_id_to_context(Some(context), id);
 
-        let map: HashMap<String, String> = serde_json::from_value(context).unwrap();
-
-        assert_eq!(map.get("id").unwrap(), &id.to_string());
-        assert_eq!(map.get("something").unwrap(), "whatever");
+        assert_eq!(context.get("id").unwrap(), &id.to_string());
+        assert_eq!(context.get("something").unwrap(), "whatever");
     }
 }

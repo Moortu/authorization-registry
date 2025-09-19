@@ -66,11 +66,12 @@ async fn retrieve_audit_log_entries(
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use crate::fixtures::fixtures::insert_policy_set_fixture;
     use crate::routes::policy_set::InsertPolicySetResponse;
     use crate::services::audit_log::{
         AuditEventWithIssAndSub, EditedType, PolicyAdded, PolicyRemoved, PolicyReplaced,
-        PolicySetCreatedEventMetadata, PolicySetEditedEventMetadata,
     };
     use crate::services::server_token;
     use crate::test_helpers::helpers::{create_request_body, get_test_app, init_test_db};
@@ -740,10 +741,9 @@ mod tests {
 
         assert_eq!(events.len(), 1);
 
-        let context: DelegationRequest =
-            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
+        let context: HashMap<String, String> = events.get(0).unwrap().context.clone();
 
-        assert_eq!(context.policy_issuer, "NL.24244");
+        assert_eq!(context.get("policyIssuer").unwrap(), "NL.24244");
     }
 
     #[sqlx::test]
@@ -878,10 +878,12 @@ mod tests {
 
         assert_eq!(events.len(), 1);
 
-        let context: PolicySetCreatedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
+        let context: HashMap<String, String> = events.get(0).unwrap().context.clone();
 
-        assert_eq!(context.policy_set_id, policy_set_response.uuid);
+        assert_eq!(
+            context.get("policy_set_id").unwrap(),
+            &policy_set_response.uuid.to_string()
+        );
     }
 
     #[sqlx::test]
@@ -1014,10 +1016,12 @@ mod tests {
 
         assert_eq!(events.len(), 1);
 
-        let context: PolicySetCreatedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
+        let context: HashMap<String, String> = events.get(0).unwrap().context.clone();
 
-        assert_eq!(context.policy_set_id, policy_set_response.uuid);
+        assert_eq!(
+            context.get("policy_set_id").unwrap(),
+            &policy_set_response.uuid.to_string()
+        );
     }
 
     #[sqlx::test]
@@ -1094,15 +1098,15 @@ mod tests {
 
         assert_eq!(events.len(), 1);
 
-        let context: PolicySetEditedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
+        let context: HashMap<String, String> = events.get(0).unwrap().context.clone();
+        let edited_type = serde_json::from_value(serde_json::to_value(&context).unwrap()).unwrap();
 
         assert_eq!(
-            context.policy_set_id,
-            Uuid::parse_str("84b7fba4-05f3-4af8-9d84-dde384abe881").unwrap()
+            context.get("policy_set_id").unwrap(),
+            "84b7fba4-05f3-4af8-9d84-dde384abe881"
         );
 
-        match context.edited_type {
+        match edited_type {
             EditedType::PolicyRemoved(PolicyRemoved { policy_id }) => {
                 assert_eq!(
                     Uuid::parse_str("564f3b46-7127-4c3c-a0b8-2859c01cc9c1").unwrap(),
@@ -1189,15 +1193,15 @@ mod tests {
 
         assert_eq!(events.len(), 1);
 
-        let context: PolicySetEditedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
+        let context: HashMap<String, String> = events.get(0).unwrap().context.clone();
+        let edited_type = serde_json::from_value(serde_json::to_value(&context).unwrap()).unwrap();
 
         assert_eq!(
-            context.policy_set_id,
-            Uuid::parse_str("84b7fba4-05f3-4af8-9d84-dde384abe881").unwrap()
+            context.get("policy_set_id").unwrap(),
+            "84b7fba4-05f3-4af8-9d84-dde384abe881"
         );
 
-        match context.edited_type {
+        match edited_type {
             EditedType::PolicyRemoved(PolicyRemoved { policy_id }) => {
                 assert_eq!(
                     Uuid::parse_str("564f3b46-7127-4c3c-a0b8-2859c01cc9c1").unwrap(),
@@ -1308,15 +1312,15 @@ mod tests {
 
         assert_eq!(events.len(), 1);
 
-        let context: PolicySetEditedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
+        let context: HashMap<String, String> = events.get(0).unwrap().context.clone();
+        let edited_type = serde_json::from_value(serde_json::to_value(&context).unwrap()).unwrap();
 
         assert_eq!(
-            context.policy_set_id,
-            Uuid::parse_str("84b7fba4-05f3-4af8-9d84-dde384abe881").unwrap()
+            context.get("policy_set_id").unwrap(),
+            "84b7fba4-05f3-4af8-9d84-dde384abe881",
         );
 
-        match context.edited_type {
+        match edited_type {
             EditedType::PolicyAdded(PolicyAdded { policy_id }) => {
                 assert_eq!(policy.id, policy_id)
             }
@@ -1424,15 +1428,16 @@ mod tests {
 
         assert_eq!(events.len(), 1);
 
-        let context: PolicySetEditedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
+        let context: HashMap<String, String> = events.get(0).unwrap().context.clone();
 
         assert_eq!(
-            context.policy_set_id,
-            Uuid::parse_str("84b7fba4-05f3-4af8-9d84-dde384abe881").unwrap()
+            context.get("policy_set_id").unwrap(),
+            "84b7fba4-05f3-4af8-9d84-dde384abe881"
         );
 
-        match context.edited_type {
+        let edited_type = serde_json::from_value(serde_json::to_value(&context).unwrap()).unwrap();
+
+        match edited_type {
             EditedType::PolicyAdded(PolicyAdded { policy_id }) => {
                 assert_eq!(policy.id, policy_id)
             }
@@ -1539,15 +1544,16 @@ mod tests {
 
         assert_eq!(events.len(), 1);
 
-        let context: PolicySetEditedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
+        let context: HashMap<String, String> = events.get(0).unwrap().context.clone();
 
         assert_eq!(
-            context.policy_set_id,
-            Uuid::parse_str("84b7fba4-05f3-4af8-9d84-dde384abe881").unwrap()
+            context.get("policy_set_id").unwrap(),
+            "84b7fba4-05f3-4af8-9d84-dde384abe881",
         );
 
-        match context.edited_type {
+        let edited_type = serde_json::from_value(serde_json::to_value(&context).unwrap()).unwrap();
+
+        match edited_type {
             EditedType::PolicyReplaced(PolicyReplaced {
                 old_policy_id,
                 new_policy_id,
@@ -1637,12 +1643,11 @@ mod tests {
 
         assert_eq!(events.len(), 1);
 
-        let context: PolicySetCreatedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
+        let context: HashMap<String, String> = events.get(0).unwrap().context.clone();
 
         assert_eq!(
-            context.policy_set_id,
-            Uuid::parse_str("84b7fba4-05f3-4af8-9d84-dde384abe881").unwrap()
+            context.get("policy_set_id").unwrap(),
+            "84b7fba4-05f3-4af8-9d84-dde384abe881"
         );
 
         Ok(())
@@ -1721,12 +1726,11 @@ mod tests {
 
         assert_eq!(events.len(), 1);
 
-        let context: PolicySetCreatedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
+        let context: HashMap<String, String> = events.get(0).unwrap().context.clone();
 
         assert_eq!(
-            context.policy_set_id,
-            Uuid::parse_str("84b7fba4-05f3-4af8-9d84-dde384abe881").unwrap()
+            context.get("policy_set_id").unwrap(),
+            "84b7fba4-05f3-4af8-9d84-dde384abe881"
         );
 
         Ok(())
@@ -1829,15 +1833,16 @@ mod tests {
 
         assert_eq!(events.len(), 1);
 
-        let context: PolicySetEditedEventMetadata =
-            serde_json::from_value(events.get(0).unwrap().context.clone()).unwrap();
+        let context: HashMap<String, String> = events.get(0).unwrap().context.clone();
 
         assert_eq!(
-            context.policy_set_id,
-            Uuid::parse_str("84b7fba4-05f3-4af8-9d84-dde384abe881").unwrap()
+            context.get("policy_set_id").unwrap(),
+            "84b7fba4-05f3-4af8-9d84-dde384abe881",
         );
 
-        match context.edited_type {
+        let edited_type = serde_json::from_value(serde_json::to_value(&context).unwrap()).unwrap();
+
+        match edited_type {
             EditedType::PolicyReplaced(PolicyReplaced {
                 old_policy_id,
                 new_policy_id,
