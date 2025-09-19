@@ -149,8 +149,7 @@ pub struct AuditEventWithIssAndSub {
     pub data: Option<Value>,
     pub sub: String,
     pub iss: String,
-    #[serde(rename = "id")]
-    pub entry_id: String,
+    pub id: String,
 }
 
 fn add_id_to_context(context: Option<serde_json::Value>, id: Uuid) -> HashMap<String, String> {
@@ -189,7 +188,7 @@ fn add_iss_and_sub_and_id_to_context(
         data: audit_event.data,
         iss: client_eori.to_owned(),
         sub: controller_eori.to_owned(),
-        entry_id: audit_event.entry_id,
+        id: audit_event.id.to_string(),
     };
 }
 
