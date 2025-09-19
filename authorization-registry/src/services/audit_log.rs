@@ -149,7 +149,7 @@ pub struct AuditEventWithIssAndSub {
     pub data: Option<Value>,
     pub sub: String,
     pub iss: String,
-    #[serde(rename = "entryId")]
+    #[serde(rename = "id")]
     pub entry_id: String,
 }
 
