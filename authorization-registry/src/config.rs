@@ -78,6 +78,10 @@ pub struct FrontendConfig {
     pub footer: FooterConfig,
 }
 
+fn default_service_name() -> String {
+    "Dexes Authorization Registry".to_owned()
+}
+
 #[derive(Deserialize, Clone, Debug)]
 pub struct Config {
     pub frontend: FrontendConfig,
@@ -107,6 +111,8 @@ pub struct Config {
     #[serde(default = "default_delegation_allows_service_providers")]
     pub delegation_allows_service_providers: bool,
     pub dataspace_config: Option<AllowedDataspaces>,
+    #[serde(default = "default_service_name")]
+    pub service_name: String,
 }
 
 pub fn read_config(path: String) -> Config {

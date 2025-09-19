@@ -138,6 +138,7 @@ pub struct AppConfig {
     pub validate_m2m_certificate: bool,
     pub delegation_allows_service_providers: bool,
     pub frontend: FrontendConfig,
+    pub service_name: String,
 }
 
 #[derive(Clone)]
@@ -262,6 +263,7 @@ async fn main() {
             validate_m2m_certificate: config.validate_m2m_certificate,
             delegation_allows_service_providers: config.delegation_allows_service_providers,
             frontend: config.frontend,
+            service_name: config.service_name,
         }),
     };
 
