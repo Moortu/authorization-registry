@@ -80,6 +80,7 @@ pub mod helpers {
             time_provider: Arc::new(FakeTimeProvider::new()),
             de_expiry_seconds: 3600,
             config: Arc::new(crate::AppConfig {
+                service_name: "AR".to_owned(),
                 deploy_route: "".to_owned(),
                 client_eori: "NL.CONSUME_TOO_MUCH".to_owned(),
                 validate_m2m_certificate: true,

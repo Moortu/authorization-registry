@@ -50,13 +50,13 @@ async fn retrieve_audit_log_entries(
     let requester_company_id = role.get_company_id();
 
     let events = crate::services::audit_log::retrieve_events(
-        &app_state.config.client_eori,
         &requester_company_id,
         query.from,
         query.to,
         query.max_results,
         query.event_types,
         app_state.time_provider,
+        &app_state.config,
         &db,
     )
     .await?;
@@ -328,10 +328,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(audit_log.len(), 1);
-        assert_eq!(
-            audit_log.get(0).unwrap().source.as_ref().unwrap(),
-            "included"
-        );
+        assert_eq!(audit_log.get(0).unwrap().source, "AR");
     }
 
     #[sqlx::test]
@@ -631,10 +628,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(audit_log.len(), 1);
-        assert_eq!(
-            audit_log.get(0).unwrap().source.as_ref().unwrap(),
-            "included"
-        );
+        assert_eq!(audit_log.get(0).unwrap().source, "AR");
     }
 
     #[sqlx::test]

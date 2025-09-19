@@ -22,7 +22,7 @@ use uuid::Uuid;
 use crate::{
     error::{AppError, ExpectedError},
     services::delegation::create_delegation_evidence,
-    TimeProvider,
+    AppConfig, TimeProvider,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -137,30 +137,33 @@ pub async fn log_event<T: ConnectionTrait>(
     Ok(())
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct AuditEventWithIssAndSub {
     pub timestamp: DateTime<Utc>,
     #[serde(rename = "type")]
     pub event_type: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub source: Option<String>,
+    pub source: String,
     pub context: HashMap<String, String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<Value>,
     pub sub: String,
     pub iss: String,
-    #[serde(rename = "entryId")]
-    pub entry_id: String,
+    pub id: String,
 }
 
-fn add_id_to_context(context: Option<serde_json::Value>, id: Uuid) -> HashMap<String, String> {
+fn add_entry_id_to_context(
+    context: Option<serde_json::Value>,
+    entry_id: String,
+) -> HashMap<String, String> {
     let mut initial = match context {
         Some(context) => context.clone(),
         None => json!({}),
     };
 
     if let Some(obj) = initial.as_object_mut() {
-        obj.insert("id".to_string(), id.to_string().into());
+        if entry_id.len() > 0 {
+            obj.insert("entryId".to_string(), entry_id.to_string().into());
+        }
     }
 
     let mut map = HashMap::new();
@@ -180,27 +183,28 @@ fn add_iss_and_sub_and_id_to_context(
     client_eori: &str,
     controller_eori: &str,
     audit_event: ar_entity::audit_event::Model,
+    source: &str,
 ) -> AuditEventWithIssAndSub {
     return AuditEventWithIssAndSub {
         timestamp: audit_event.timestamp,
         event_type: audit_event.event_type,
-        source: audit_event.source,
-        context: add_id_to_context(audit_event.context, audit_event.id),
+        source: source.to_owned(),
+        context: add_entry_id_to_context(audit_event.context, audit_event.entry_id),
         data: audit_event.data,
         iss: client_eori.to_owned(),
         sub: controller_eori.to_owned(),
-        entry_id: audit_event.entry_id,
+        id: audit_event.id.to_string(),
     };
 }
 
 pub async fn retrieve_events(
-    client_eori: &str,
     controller_eori: &str,
     from: Option<chrono::DateTime<Utc>>,
     to: Option<chrono::DateTime<Utc>>,
     max_results: u64,
     event_types: Option<String>,
     time_provider: Arc<dyn TimeProvider>,
+    app_config: &AppConfig,
     db: &DatabaseConnection,
 ) -> Result<Vec<AuditEventWithIssAndSub>, AppError> {
     tracing::info!(
@@ -210,7 +214,7 @@ pub async fn retrieve_events(
 
     let delegation_evidence_container = create_delegation_evidence(
         &DelegationRequest {
-            policy_issuer: client_eori.to_owned(),
+            policy_issuer: app_config.client_eori.to_owned(),
             target: DelegationTarget {
                 access_subject: controller_eori.to_string(),
             },
@@ -224,7 +228,7 @@ pub async fn retrieve_events(
                         },
                         actions: vec!["Read".to_owned()],
                         environment: Some(Environment {
-                            service_providers: vec![client_eori.to_string()],
+                            service_providers: vec![app_config.client_eori.to_string()],
                         }),
                     },
                     rules: vec![ResourceRules {
@@ -303,7 +307,14 @@ pub async fn retrieve_events(
 
     let events_with_iss_and_sub: Vec<AuditEventWithIssAndSub> = events
         .into_iter()
-        .map(|e| add_iss_and_sub_and_id_to_context(client_eori, controller_eori, e))
+        .map(|e| {
+            add_iss_and_sub_and_id_to_context(
+                &app_config.client_eori,
+                controller_eori,
+                e,
+                &app_config.service_name,
+            )
+        })
         .collect();
 
     return Ok(events_with_iss_and_sub);
@@ -315,7 +326,7 @@ mod tests {
     use serde_json::json;
     use uuid::Uuid;
 
-    use crate::services::audit_log::add_id_to_context;
+    use crate::services::audit_log::add_entry_id_to_context;
 
     #[test]
     fn test_add_id_to_context() {
@@ -323,10 +334,10 @@ mod tests {
             "something": "whatever"
         });
 
-        let id = Uuid::new_v4();
-        let context = add_id_to_context(Some(context), id);
+        let id = Uuid::new_v4().to_string();
+        let context = add_entry_id_to_context(Some(context), id.clone());
 
-        assert_eq!(context.get("id").unwrap(), &id.to_string());
+        assert_eq!(context.get("entryId").unwrap(), &id);
         assert_eq!(context.get("something").unwrap(), "whatever");
     }
 }
