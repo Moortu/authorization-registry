@@ -157,15 +157,6 @@ impl FromRef<AppState> for Arc<ServerToken> {
 }
 
 pub fn get_app(db: DatabaseConnection, app_state: AppState, disable_cors_check: bool) -> Router {
-    let cors = if disable_cors_check {
-        CorsLayer::new()
-            .allow_methods(AllowMethods::any())
-            .allow_origin(AllowOrigin::any())
-            .allow_headers(AllowHeaders::any())
-    } else {
-        CorsLayer::new()
-    };
-
     let connect_routes = get_connect_routes();
     let admin_routes = get_admin_routes(app_state.server_token.clone());
     let delegation_routes = get_delegation_routes(app_state.server_token.clone());
@@ -211,10 +202,18 @@ pub fn get_app(db: DatabaseConnection, app_state: AppState, disable_cors_check: 
             }),
         )
         .layer(Extension(db))
-        .layer(cors)
         .with_state(app_state);
 
-    return app;
+    if disable_cors_check {
+        return app.layer(
+            CorsLayer::new()
+                .allow_methods(AllowMethods::any())
+                .allow_origin(AllowOrigin::any())
+                .allow_headers(AllowHeaders::any()),
+        );
+    } else {
+        return app;
+    };
 }
 
 #[tokio::main]
