@@ -18,7 +18,7 @@ fn default_deploy_route() -> String {
 }
 
 fn default_disable_cors_check() -> bool {
-    true
+    false
 }
 
 fn default_validate_m2m_certificate() -> bool {
