@@ -1712,8 +1712,7 @@ dependencies = [
 [[package]]
 name = "ishare"
 version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2102e5e41d8bc2614591047fb1fd7e23a198c29205b8e068b8d2b5454f5e9346"
+source = "git+https://github.com/Moortu/ishare-connect#d8bb8d532eb430f9ce01cb838dd6f8db630fa2d9"
 dependencies = [
  "anyhow",
  "async-trait",
