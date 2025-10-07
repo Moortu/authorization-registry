@@ -260,6 +260,7 @@ async fn main() {
         config: Arc::new(AppConfig {
             deploy_route: config.deploy_route.clone(),
             client_eori: config.client_eori.clone(),
+            allowed_company_id: config.allowed_company_id.clone(),
             validate_m2m_certificate: config.validate_m2m_certificate,
             delegation_allows_service_providers: config.delegation_allows_service_providers,
             frontend: config.frontend,
