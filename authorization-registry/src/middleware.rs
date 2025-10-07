@@ -80,14 +80,20 @@ pub async fn extract_human_middleware(
 pub async fn auth_role_middleware(
     State(roles): State<Vec<String>>,
     Extension(human): Extension<Human>,
+    State(app_state): State<AppState>,
     req: Request,
     next: Next,
 ) -> Result<(StatusCode, HeaderMap, Body), AppError> {
-    if !&human.realm_access_roles.iter().any(|r| roles.contains(&r)) {
+    let has_role = human.realm_access_roles.iter().any(|r| roles.contains(&r));
+        let allowed_company_id = &app_state.config.allowed_company_id;
+        let has_company_id = human.company_id.as_deref() == Some(allowed_company_id);
+
+        if !has_role && !has_company_id {
         return Err(AppError::Expected(ExpectedError {
             status_code: StatusCode::UNAUTHORIZED,
-            message:  "You don't have the correct access role".to_owned(),
-            reason: format!("User '{}' with access roles '{:?}', does not have any required access roles '{:?}'", &human.user_id, &human.realm_access_roles, &roles),
+            message:  "You don't have the correct access role or company_id".to_owned(),
+                        reason: format!("User '{}' with roles '{:?}' and company_id '{:?}' does not have any required access roles '{:?}' or company_id '{}'",
+                                        &human.user_id, &human.realm_access_roles, &human.company_id, &roles, allowed_company_id
             metadata: None,
         }));
     }
