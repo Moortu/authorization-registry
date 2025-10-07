@@ -32,7 +32,7 @@ use crate::{
     services::server_token::ServerToken,
 };
 
-pub fn get_admin_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
+pub fn get_admin_routes(server_token: Arc<ServerToken>, app_state: Arc<AppState>,) -> Router<AppState> {
     return Router::new()
         .route(
             "/policy-set-template/:id",
@@ -56,7 +56,6 @@ pub fn get_admin_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
         )
         .layer(from_fn_with_state(
             vec!["dexspace_admin".to_owned()],
-            app_state.clone(),
             auth_role_middleware,
         ))
         .layer(Extension(app_state.clone()))
