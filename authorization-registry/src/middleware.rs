@@ -5,6 +5,8 @@ use crate::{
     ServerToken,
 };
 
+use crate::AppState;
+
 use axum::{
     body::Body,
     extract::{Request, State},
@@ -86,7 +88,7 @@ pub async fn auth_role_middleware(
 ) -> Result<(StatusCode, HeaderMap, Body), AppError> {
     let has_role = human.realm_access_roles.iter().any(|r| roles.contains(&r));
     let allowed_company_id = &app_state.config.allowed_company_id;
-    let has_company_id = human.company_id.as_deref() == Some(allowed_company_id);
+    let has_company_id = human.company_id == *allowed_company_id;
 
     if !has_role && !has_company_id {
         return Err(AppError::Expected(ExpectedError {
