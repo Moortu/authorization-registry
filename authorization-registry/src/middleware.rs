@@ -17,7 +17,6 @@ use axum::{
 };
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct RealmAccess {
@@ -68,9 +67,9 @@ pub async fn extract_human_middleware(
             let allowed_company_id = "EU.EORI.NLWECITYDMI";
             if machine.company_id == *allowed_company_id {
                 let human_equivalent = Human {
-                    user_id: machine.company_id.clone(),
+                    user_id: machine.subject.clone(),
                     realm_access_roles: vec!["dexspace_admin".to_owned()],
-                    company_id: machine.company_id.clone(),
+                    company_id: Some(machine.company_id.clone()),
                 };
                 req.extensions_mut().insert(human_equivalent);
             } else {
