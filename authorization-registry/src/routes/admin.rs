@@ -58,6 +58,7 @@ pub fn get_admin_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
             vec!["dexspace_admin".to_owned()],
             auth_role_middleware,
         ))
+        .layer(Extension(app_state.clone()))K
         .layer(from_fn(extract_human_middleware))
         .layer(from_fn_with_state(server_token, extract_role_middleware));
 }
