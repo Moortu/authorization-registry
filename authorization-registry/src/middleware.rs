@@ -53,35 +53,23 @@ pub async fn extract_role_middleware(
 
 pub async fn extract_human_middleware(
     Extension(role): Extension<Role>,
-    Extension(app_state): Extension<Arc<AppState>>,
     mut req: Request,
     next: Next,
 ) -> Result<(StatusCode, HeaderMap, Body), AppError> {
-    let allowed_company_id = &app_state.config.allowed_company_id;
+    let human = match role {
+        Role::Human(human) => human,
+        _ => {
+            return Err(AppError::Expected(ExpectedError {
+                status_code: StatusCode::UNAUTHORIZED,
+                message: "You need a h2m access token to access".to_owned(),
+                reason: "Request attempted with a machine token but human token is required"
+                    .to_owned(),
+                metadata: None,
+            }));
+        }
+    };
 
-    match role {
-        Role::Human(human) => {
-            req.extensions_mut().insert(human.clone());
-        }
-        Role::Machine(machine) => {
-            let allowed_company_id = "EU.EORI.NLWECITYDMI";
-            if machine.company_id == *allowed_company_id {
-                let human_equivalent = Human {
-                    user_id: machine.subject.clone(),
-                    realm_access_roles: vec!["dexspace_admin".to_owned()],
-                    company_id: Some(machine.company_id.clone()),
-                };
-                req.extensions_mut().insert(human_equivalent);
-            } else {
-                return Err(AppError::Expected(ExpectedError {
-                    status_code: StatusCode::UNAUTHORIZED,
-                    message: "You need a token with correct company_id".to_owned(),
-                    reason: "Machine token does not have allowed company_id".to_owned(),
-                    metadata: None,
-                }));
-            }
-        }
-    }
+    req.extensions_mut().insert(human.clone());
 
     let res = next.run(req).await;
     let status = res.status().clone();
