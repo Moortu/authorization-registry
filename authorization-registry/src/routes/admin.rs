@@ -64,6 +64,8 @@ pub fn get_admin_routes(
             auth_role_middleware,
         ))
         .layer(Extension(app_state.clone()))
+        .layer(from_fn(extract_human_middleware))
+        .layer(from_fn_with_state(server_token, extract_role_middleware));
 }
 
 

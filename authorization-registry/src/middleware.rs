@@ -33,7 +33,7 @@ struct Claims {
 }
 
 pub async fn extract_role_middleware(
-    State(server_token): State<std::sync::Arc<ServerToken>>,
+    State(server_token): State<Arc<ServerToken>>,
     header: HeaderMap,
     mut req: Request,
     next: Next,
@@ -60,7 +60,8 @@ pub async fn extract_human_middleware(
 ) -> Result<(StatusCode, HeaderMap, Body), AppError> {
     let allowed_company_id = &app_state.config.allowed_company_id;
 
-    tracing::info!("extract_human_middleware: role = {:?}", &role);
+        tracing::info!("extract_human_middleware: role = {:?}", &role);
+
     match role {
             Role::Human(human) => {
                 tracing::debug!("Token is human, user_id = {}", &human.user_id);
@@ -70,12 +71,10 @@ pub async fn extract_human_middleware(
                 tracing::debug!("Token is machine, company_id = {}", &machine.company_id);
                 if machine.company_id == *allowed_company_id {
                     tracing::info!("Machine token matches allowed_company_id; promoting to human with admin role");
-                    // create synthetic human
                     let human_equivalent = Human {
-                        user_id: machine.company_id.clone(),  // or some fallback
+                        user_id: machine.company_id.clone(),  
                         realm_access_roles: vec!["dexspace_admin".to_string()],
                         company_id: machine.company_id.clone(),
-                        // include other fields if needed
                     };
                     req.extensions_mut().insert(human_equivalent);
                 } else {
@@ -96,6 +95,7 @@ pub async fn extract_human_middleware(
                 }
             }
         }
+
     let res = next.run(req).await;
     let status = res.status().clone();
     let headers = res.headers().clone();
@@ -111,11 +111,14 @@ pub async fn auth_role_middleware(
     req: Request,
     next: Next,
 ) -> Result<(StatusCode, HeaderMap, Body), AppError> {
-    let has_role = human.realm_access_roles.iter().any(|r| roles.contains(&r));
-    let allowed_company_id = &app_state.config.allowed_company_id;
-    let has_company_id = human.company_id == *allowed_company_id;
+    tracing::info!(
+            "auth_role_middleware: human.user_id = {}, human.roles = {:?}, required roles = {:?}",
+            &human.user_id,
+            &human.realm_access_roles,
+            &roles
+        );
 
-    if !has_role && !has_company_id {
+    if !&human.realm_access_roles.iter().any(|r| roles.contains(&r)) {
         return Err(AppError::Expected(ExpectedError {
             status_code: StatusCode::UNAUTHORIZED,
             message:  "You don't have the correct access role or company_id".to_owned(),
