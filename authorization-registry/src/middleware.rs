@@ -15,6 +15,7 @@ use axum::{
 };
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct RealmAccess {
@@ -30,7 +31,7 @@ struct Claims {
 }
 
 pub async fn extract_role_middleware(
-    State(server_token): State<std::sync::Arc<ServerToken>>,
+    State(server_token): State<Arc<ServerToken>>,
     header: HeaderMap,
     mut req: Request,
     next: Next,
@@ -51,23 +52,46 @@ pub async fn extract_role_middleware(
 
 pub async fn extract_human_middleware(
     Extension(role): Extension<Role>,
+    Extension(app_state): Extension<Arc<AppState>>,
     mut req: Request,
     next: Next,
 ) -> Result<(StatusCode, HeaderMap, Body), AppError> {
-    let human = match role {
-        Role::Human(human) => human,
-        _ => {
-            return Err(AppError::Expected(ExpectedError {
-                status_code: StatusCode::UNAUTHORIZED,
-                message: "You need a h2m access token to access".to_owned(),
-                reason: "Request attempted with a machine token but human token is required"
-                    .to_owned(),
-                metadata: None,
-            }));
-        }
-    };
+    let allowed_company_id = &app_state.config.allowed_company_id;
+        tracing::info!("extract_human_middleware: role = {:?}", &role);
 
-    req.extensions_mut().insert(human.clone());
+    match role {
+            Role::Human(human) => {
+                tracing::debug!("Token is human, user_id = {}", &human.user_id);
+                req.extensions_mut().insert(human.clone());
+            }
+            Role::Machine(machine) => {
+                tracing::debug!("Token is machine, company_id = {}", &machine.company_id);
+                if machine.company_id == *allowed_company_id {
+                    tracing::info!("Machine token matches allowed_company_id; promoting to human with admin role");
+                    let human_equivalent = Human {
+                        user_id: machine.company_id.clone(),  // or fallback
+                        realm_access_roles: vec!["dexspace_admin".to_string()],
+                        company_id: machine.company_id.clone(),
+                    };
+                    req.extensions_mut().insert(human_equivalent);
+                } else {
+                    tracing::warn!(
+                        "Machine token rejected: company_id `{}` != allowed `{}`",
+                        &machine.company_id,
+                        allowed_company_id
+                    );
+                    return Err(AppError::Expected(ExpectedError {
+                        status_code: StatusCode::UNAUTHORIZED,
+                        message: "You need a valid human or machine token with correct company_id".to_owned(),
+                        reason: format!(
+                            "Machine token has company_id `{}`, allowed is `{}`",
+                            &machine.company_id, allowed_company_id
+                        ),
+                        metadata: None,
+                    }));
+                }
+            }
+        }
 
     let res = next.run(req).await;
     let status = res.status().clone();
@@ -83,6 +107,13 @@ pub async fn auth_role_middleware(
     req: Request,
     next: Next,
 ) -> Result<(StatusCode, HeaderMap, Body), AppError> {
+    tracing::info!(
+            "auth_role_middleware: human.user_id = {}, human.roles = {:?}, required roles = {:?}",
+            &human.user_id,
+            &human.realm_access_roles,
+            &roles
+        );
+
     if !&human.realm_access_roles.iter().any(|r| roles.contains(&r)) {
         return Err(AppError::Expected(ExpectedError {
             status_code: StatusCode::UNAUTHORIZED,
