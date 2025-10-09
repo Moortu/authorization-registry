@@ -5,6 +5,8 @@ use crate::{
     ServerToken,
 };
 
+use crate::AppState;
+
 use axum::{
     body::Body,
     extract::{Request, State},
@@ -57,6 +59,7 @@ pub async fn extract_human_middleware(
     next: Next,
 ) -> Result<(StatusCode, HeaderMap, Body), AppError> {
     let allowed_company_id = &app_state.config.allowed_company_id;
+
         tracing::info!("extract_human_middleware: role = {:?}", &role);
 
     match role {
@@ -69,7 +72,7 @@ pub async fn extract_human_middleware(
                 if machine.company_id == *allowed_company_id {
                     tracing::info!("Machine token matches allowed_company_id; promoting to human with admin role");
                     let human_equivalent = Human {
-                        user_id: machine.company_id.clone(),  // or fallback
+                        user_id: machine.company_id.clone(),  
                         realm_access_roles: vec!["dexspace_admin".to_string()],
                         company_id: machine.company_id.clone(),
                     };
@@ -104,6 +107,7 @@ pub async fn extract_human_middleware(
 pub async fn auth_role_middleware(
     State(roles): State<Vec<String>>,
     Extension(human): Extension<Human>,
+    Extension(app_state): Extension<AppState>,
     req: Request,
     next: Next,
 ) -> Result<(StatusCode, HeaderMap, Body), AppError> {
@@ -117,8 +121,9 @@ pub async fn auth_role_middleware(
     if !&human.realm_access_roles.iter().any(|r| roles.contains(&r)) {
         return Err(AppError::Expected(ExpectedError {
             status_code: StatusCode::UNAUTHORIZED,
-            message:  "You don't have the correct access role".to_owned(),
-            reason: format!("User '{}' with access roles '{:?}', does not have any required access roles '{:?}'", &human.user_id, &human.realm_access_roles, &roles),
+            message:  "You don't have the correct access role or company_id".to_owned(),
+            reason: format!("User '{}' with roles '{:?}' and company_id '{:?}' does not have any required access roles '{:?}' or company_id '{}'",
+                  &human.user_id, &human.realm_access_roles, &human.company_id, &roles, allowed_company_id),
             metadata: None,
         }));
     }
