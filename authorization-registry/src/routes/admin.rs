@@ -54,12 +54,12 @@ pub fn get_admin_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
                 .put(replace_policy_in_policy_set)
                 .get(get_policy),
         )
-        .layer(from_fn_with_state(
-            vec!["dexspace_admin".to_owned()],
-            auth_role_middleware,
-        ))
-        .layer(from_fn(extract_human_middleware))
-        .layer(from_fn_with_state(server_token, extract_role_middleware));
+//         .layer(from_fn_with_state(
+//             vec!["dexspace_admin".to_owned()],
+//             auth_role_middleware,
+//         ))
+//         .layer(from_fn(extract_human_middleware))
+//         .layer(from_fn_with_state(server_token, extract_role_middleware));
 }
 
 #[utoipa::path(
