@@ -122,8 +122,8 @@ pub async fn auth_role_middleware(
         return Err(AppError::Expected(ExpectedError {
             status_code: StatusCode::UNAUTHORIZED,
             message:  "You don't have the correct access role or company_id".to_owned(),
-            reason: format!("User '{}' with roles '{:?}' and company_id '{:?}' does not have any required access roles '{:?}' or company_id '{}'",
-                  &human.user_id, &human.realm_access_roles, &human.company_id, &roles, allowed_company_id),
+            reason: format!("User '{}' with roles '{:?}' and company_id '{:?}' does not have any required access roles '{:?}'",
+                  &human.user_id, &human.realm_access_roles, &human.company_id, &roles),
             metadata: None,
         }));
     }

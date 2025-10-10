@@ -159,7 +159,9 @@ impl FromRef<AppState> for Arc<ServerToken> {
 
 pub fn get_app(db: DatabaseConnection, app_state: AppState, disable_cors_check: bool) -> Router {
     let connect_routes = get_connect_routes();
-    let admin_routes = get_admin_routes(app_state.server_token.clone(), Arc::new(app_state.clone()),);
+    let admin_routes = get_admin_routes(
+//     app_state.server_token.clone(), Arc::new(app_state.clone()),
+    );
     let delegation_routes = get_delegation_routes(app_state.server_token.clone());
     let policy_set_routes = get_policy_set_routes(app_state.server_token.clone());
     let capabilities_routes = get_capabilities_routes();
