@@ -32,8 +32,11 @@ use crate::{
     services::server_token::ServerToken,
 };
 
-pub fn get_admin_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
-    return Router::new()
+pub fn get_admin_routes(
+    server_token: Arc<ServerToken>,
+    app_state: Arc<AppState>,
+) -> Router<AppState> {
+    Router::new()
         .route(
             "/policy-set-template/:id",
             delete(delete_policy_set_template),
@@ -61,6 +64,7 @@ pub fn get_admin_routes(server_token: Arc<ServerToken>) -> Router<AppState> {
 //         .layer(from_fn(extract_human_middleware))
 //         .layer(from_fn_with_state(server_token, extract_role_middleware));
 }
+
 
 #[utoipa::path(
     delete,
