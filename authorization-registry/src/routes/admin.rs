@@ -2,7 +2,7 @@ use anyhow::Context;
 use ar_entity::delegation_evidence::Policy;
 use axum::{
     extract::{Path, Query, State},
-//     middleware::{from_fn, from_fn_with_state},
+    middleware::{from_fn, from_fn_with_state},
     routing::{delete, get, post},
     Extension, Json, Router,
 };
@@ -28,13 +28,13 @@ use crate::{
 use crate::{db::policy_set_template::InsertPolicySetTemplate, services::policy as policy_service};
 use crate::{error::AppError, error::ErrorResponse, AppState};
 use crate::{
-//     middleware::{auth_role_middleware, extract_human_middleware, extract_role_middleware},
+    middleware::{auth_role_middleware, extract_human_middleware, extract_role_middleware},
     services::server_token::ServerToken,
 };
 
 pub fn get_admin_routes(
-//     server_token: Arc<ServerToken>,
-//     app_state: Arc<AppState>,
+    server_token: Arc<ServerToken>,
+    app_state: Arc<AppState>,
 ) -> Router<AppState> {
     Router::new()
         .route(
@@ -57,12 +57,13 @@ pub fn get_admin_routes(
                 .put(replace_policy_in_policy_set)
                 .get(get_policy),
         )
-//         .layer(from_fn_with_state(
-//             vec!["dexspace_admin".to_owned()],
-//             auth_role_middleware,
-//         ))
-//         .layer(from_fn(extract_human_middleware))
-//         .layer(from_fn_with_state(server_token, extract_role_middleware));
+        .layer(from_fn_with_state(
+            vec!["dexspace_admin".to_owned()],
+            auth_role_middleware,
+        ))
+        .layer(from_fn(extract_human_middleware))
+        .layer(from_fn_with_state(server_token, extract_role_middleware))
+        .layer(Extension(app_state.clone()));
 }
 
 
