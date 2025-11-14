@@ -107,7 +107,7 @@ pub async fn extract_human_middleware(
 pub async fn auth_role_middleware(
     State(roles): State<Vec<String>>,
     Extension(human): Extension<Human>,
-    Extension(app_state): Extension<AppState>,
+    Extension(_app_state): Extension<Arc<AppState>>,
     req: Request,
     next: Next,
 ) -> Result<(StatusCode, HeaderMap, Body), AppError> {
