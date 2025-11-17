@@ -57,13 +57,13 @@ pub fn get_admin_routes(
                 .put(replace_policy_in_policy_set)
                 .get(get_policy),
         )
-        .layer(Extension(app_state.clone()))
-        .layer(from_fn_with_state(server_token.clone(), extract_role_middleware))
-        .layer(from_fn(extract_human_middleware))
         .layer(from_fn_with_state(
             vec!["dexspace_admin".to_owned()],
             auth_role_middleware,
         ))
+        .layer(from_fn(extract_human_middleware))
+        .layer(from_fn_with_state(server_token.clone(), extract_role_middleware))
+        .layer(Extension(app_state.clone()))
 }
 
 
